@@ -1,0 +1,106 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Bolão Copa 2026{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-gold:       #C8A84B;
+      --color-navy:       #0A0F2C;
+      --color-red:        #E8003D;
+      --color-white:      #F5F0E8;
+      --color-sandstone:  #D4B896;
+      --bg-primary:       var(--color-navy);
+      --bg-surface:       #111829;
+      --bg-surface-alt:   #1A2340;
+      --text-primary:     var(--color-white);
+      --text-secondary:   var(--color-sandstone);
+      --text-muted:       rgba(245, 240, 232, 0.45);
+      --accent-hover:     #DFC05A;
+      --danger:           var(--color-red);
+      --border-default:   rgba(200, 168, 75, 0.2);
+      --border-strong:    rgba(200, 168, 75, 0.5);
+    }
+    body { font-family: 'Barlow', sans-serif; background: var(--bg-primary); color: var(--text-primary); }
+    .barlow-condensed { font-family: 'Barlow Condensed', sans-serif; }
+    .card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; }
+    .bottom-nav { background: var(--bg-surface); border-top: 1px solid var(--border-default); }
+    .nav-active { color: var(--color-gold); }
+    .nav-inactive { color: var(--text-muted); }
+    .gold-shimmer {
+      background: linear-gradient(135deg, #A8851E 0%, #C8A84B 40%, #EDD97A 70%, #C8A84B 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .logout-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 24px; }
+    .btn-cancel { background: var(--bg-surface-alt); color: var(--text-secondary); border: 1px solid var(--border-default); border-radius: 10px; font-size: 0.875rem; padding: 10px; font-family: 'Barlow', sans-serif; cursor: pointer; }
+    .btn-logout-confirm { background: var(--danger); color: white; border: none; border-radius: 10px; font-size: 0.875rem; font-weight: 600; padding: 10px; font-family: 'Barlow', sans-serif; cursor: pointer; }
+    {% block extra_styles %}{% endblock %}
+  </style>
+</head>
+<body class="min-h-screen pb-24">
+
+  <header style="background: var(--bg-surface); border-bottom: 1px solid var(--border-default);" class="sticky top-0 z-10">
+    <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        🏆
+        <span class="barlow-condensed text-base uppercase tracking-wider">Bolão Copa 2026</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs" style="color: var(--text-muted);">{{ request.user.username }}</span>
+        <button onclick="abrirLogout()" style="color: var(--text-muted);" class="hover:opacity-80">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-lg mx-auto px-4 pt-5 space-y-5">
+    {% block content %}{% endblock %}
+  </main>
+
+  <nav class="fixed bottom-0 left-0 right-0 bottom-nav">
+    <div class="max-w-lg mx-auto px-4 py-2 flex items-center justify-around">
+      <a href="{% url 'pool:matches' %}" class="flex flex-col items-center gap-0.5 {% if active_nav == 'matches' %}nav-active{% else %}nav-inactive{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>
+        <span class="text-xs {% if active_nav == 'matches' %}font-medium{% endif %}">Jogos</span>
+      </a>
+      <a href="{% url 'pool:ranking' %}" class="flex flex-col items-center gap-0.5 {% if active_nav == 'ranking' %}nav-active{% else %}nav-inactive{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M3 12m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M9 8m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M15 4m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M4 20l14 0"/></svg>
+        <span class="text-xs {% if active_nav == 'ranking' %}font-medium{% endif %}">Ranking</span>
+      </a>
+      <a href="{% url 'pool:historic' %}" class="flex flex-col items-center gap-0.5 {% if active_nav == 'historic' %}nav-active{% else %}nav-inactive{% endif %}">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/></svg>
+        <span class="text-xs {% if active_nav == 'historic' %}font-medium{% endif %}">Histórico</span>
+      </a>
+    </div>
+  </nav>
+
+  <div id="logout-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4" style="background: rgba(0,0,0,0.7);">
+    <div class="logout-card w-full max-w-sm p-6 text-center">
+      <div class="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style="background: var(--bg-surface-alt); border: 1px solid var(--border-default);">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;color:var(--text-muted)"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></svg>
+      </div>
+      <p class="text-base font-semibold mb-1" style="color: var(--text-primary);">Sair da conta?</p>
+      <p class="text-sm mb-6" style="color: var(--text-muted);">Você precisará entrar novamente para fazer palpites.</p>
+      <div class="flex gap-3">
+        <button onclick="fecharLogout()" class="btn-cancel flex-1">Cancelar</button>
+        <form method="post" action="{% url 'pool:logout' %}" class="flex-1">
+          {% csrf_token %}
+          <button type="submit" class="btn-logout-confirm w-full">Sair</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function abrirLogout() { document.getElementById('logout-modal').classList.remove('hidden'); }
+    function fecharLogout() { document.getElementById('logout-modal').classList.add('hidden'); }
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

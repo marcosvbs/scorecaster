@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolão Copa 2026 — Entrar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-gold: #C8A84B; --color-navy: #0A0F2C; --color-white: #F5F0E8;
+      --color-sandstone: #D4B896; --bg-surface: #111829; --bg-surface-alt: #1A2340;
+      --text-primary: var(--color-white); --text-secondary: var(--color-sandstone);
+      --text-muted: rgba(245,240,232,0.45); --accent-hover: #DFC05A;
+      --border-default: rgba(200,168,75,0.2); --border-strong: rgba(200,168,75,0.5);
+    }
+    body { font-family: 'Barlow', sans-serif; color: var(--text-primary); }
+    .barlow-condensed { font-family: 'Barlow Condensed', sans-serif; }
+    .card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; }
+    .input-field {
+      background: var(--bg-surface-alt); border: 1px solid var(--border-default);
+      border-radius: 10px; color: var(--text-primary); padding: 10px 14px;
+      width: 100%; font-size: 0.875rem; font-family: 'Barlow', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-field::placeholder { color: var(--text-muted); }
+    .input-field:focus { border-color: var(--color-gold); outline: none; box-shadow: 0 0 0 3px rgba(200,168,75,0.15); }
+    .btn-primary {
+      background: var(--color-gold); color: var(--color-navy); font-weight: 700;
+      border: none; border-radius: 10px; padding: 12px 24px; width: 100%;
+      font-size: 0.875rem; font-family: 'Barlow', sans-serif; cursor: pointer;
+      letter-spacing: 0.03em; transition: background 0.2s, transform 0.1s;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:active { transform: scale(0.98); }
+    .gold-shimmer {
+      background: linear-gradient(135deg, #A8851E 0%, #C8A84B 40%, #EDD97A 70%, #C8A84B 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .trophy-bg { background: radial-gradient(ellipse at center, rgba(200,168,75,0.15) 0%, transparent 70%); }
+    .error-msg { color: #E8003D; font-size: 0.75rem; margin-top: 4px; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4" style="background: linear-gradient(180deg, #060A1A 0%, #0A0F2C 100%);">
+
+  <div class="w-full max-w-sm">
+
+    <div class="text-center mb-8 trophy-bg py-6">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style="background: rgba(200,168,75,0.15); border: 1px solid var(--border-strong);">
+        🏆
+      </div>
+      <h1 class="barlow-condensed text-3xl uppercase tracking-wider gold-shimmer">Bolão Copa 2026</h1>
+      <p class="text-xs mt-1" style="color: var(--text-muted);">Canadá · México · Estados Unidos</p>
+    </div>
+
+    <div class="card p-6">
+      <form method="post" action="{% url 'pool:login' %}" class="space-y-4">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="error-msg text-center">Usuário ou senha incorretos.</div>
+        {% endif %}
+
+        <div>
+          <label for="id_username" class="block text-sm font-medium mb-1.5" style="color: var(--text-secondary);">Usuário</label>
+          <input
+            type="text"
+            name="username"
+            id="id_username"
+            placeholder="ex: rafael.mendes"
+            class="input-field"
+            autocomplete="username"
+            value="{{ form.username.value|default:'' }}"
+          >
+          {% if form.username.errors %}
+            <p class="error-msg">{{ form.username.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <label for="id_password" class="block text-sm font-medium mb-1.5" style="color: var(--text-secondary);">Senha</label>
+          <input
+            type="password"
+            name="password"
+            id="id_password"
+            placeholder="••••••••"
+            class="input-field"
+            autocomplete="current-password"
+          >
+          {% if form.password.errors %}
+            <p class="error-msg">{{ form.password.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        {% if next %}
+          <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <button type="submit" class="btn-primary mt-2">Entrar</button>
+
+      </form>
+    </div>
+
+    <p class="text-center text-xs mt-6" style="color: var(--text-muted);">
+      Sem conta? Entre em contato com o administrador do bolão.
+    </p>
+
+  </div>
+
+</body>
+</html>

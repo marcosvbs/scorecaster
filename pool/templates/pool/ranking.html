@@ -1,0 +1,81 @@
+{% extends "pool/base.html" %}
+
+{% block title %}Bolão Copa 2026 — Ranking{% endblock %}
+
+{% block extra_styles %}
+  .podium-first { background: linear-gradient(160deg, #1A1A0A 0%, #201800 100%); border: 1px solid var(--border-strong); border-radius: 16px; }
+  .podium-other { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; }
+  .divider { border-top: 1px solid var(--border-default); }
+  .row-highlight { background: rgba(200,168,75,0.06); }
+{% endblock %}
+
+{% block content %}
+
+  <div>
+    <h1 class="text-base font-semibold" style="color: var(--text-primary);">Ranking geral</h1>
+    <p class="text-xs mt-0.5" style="color: var(--text-muted);">
+      Atualizado após cada jogo · {{ total_matches }} jogo{{ total_matches|pluralize }} disputado{{ total_matches|pluralize }}
+    </p>
+  </div>
+
+  {# ── Podium top 3 (only shown with 3+ participants) ── #}
+  {% if ranking|length >= 3 %}
+  <div class="grid grid-cols-3 gap-2 items-end">
+
+    <div class="podium-other p-3 pt-5 mt-4 text-center">
+      <span class="text-lg">🥈</span>
+      <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">{{ ranking.1.user.username }}</span>
+      <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">{{ ranking.1.total_points }}</span>
+      <span class="text-xs" style="color: var(--text-muted);">pts</span>
+    </div>
+
+    <div class="podium-first p-3 -mt-1 text-center">
+      <span class="text-xl">🥇</span>
+      <span class="block text-xs font-semibold mt-1 leading-tight gold-shimmer">{{ ranking.0.user.username }}</span>
+      <span class="barlow-condensed block text-2xl mt-1" style="color: var(--color-gold);">{{ ranking.0.total_points }}</span>
+      <span class="text-xs" style="color: var(--color-gold); opacity: 0.7;">pts</span>
+    </div>
+
+    <div class="podium-other p-3 pt-5 mt-4 text-center">
+      <span class="text-lg">🥉</span>
+      <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">{{ ranking.2.user.username }}</span>
+      <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">{{ ranking.2.total_points }}</span>
+      <span class="text-xs" style="color: var(--text-muted);">pts</span>
+    </div>
+
+  </div>
+  {% endif %}
+
+  {# ── Full list ── #}
+  <div class="card overflow-hidden">
+    <div class="px-4 py-3 divider flex items-center justify-between">
+      <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Todos os participantes</span>
+      <span class="text-xs" style="color: var(--text-muted);">{{ ranking|length }} participante{{ ranking|length|pluralize }}</span>
+    </div>
+
+    <div>
+      {% for entry in ranking %}
+      <div class="flex items-center px-4 py-3 gap-3 {% if not forloop.first %}divider{% endif %} {% if entry.user == request.user %}row-highlight{% endif %}">
+        <span class="text-sm w-5 {% if entry.position == 1 %}font-bold{% endif %}"
+              style="color: {% if entry.position == 1 %}var(--color-gold){% else %}var(--text-muted){% endif %};">
+          {{ entry.position }}
+        </span>
+        <span class="text-sm flex-1 {% if entry.position <= 3 %}font-semibold{% endif %}"
+              style="color: {% if entry.position <= 3 %}var(--text-primary){% else %}var(--text-secondary){% endif %};">
+          {{ entry.user.username }}
+          {% if entry.user == request.user %}
+            <span class="text-xs font-normal ml-1" style="color: var(--text-muted);">você</span>
+          {% endif %}
+        </span>
+        <span class="text-sm {% if entry.position == 1 %}font-bold{% endif %}"
+              style="color: {% if entry.position == 1 %}var(--color-gold){% elif entry.position <= 3 %}var(--text-primary){% else %}var(--text-secondary){% endif %};">
+          {{ entry.total_points }} pts
+        </span>
+      </div>
+      {% empty %}
+        <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum participante ainda.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+{% endblock %}
