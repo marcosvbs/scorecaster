@@ -260,10 +260,7 @@
       const data = await resp.json();
       if (data.ok) {
         closeModal();
-        const toast = document.getElementById('toast');
-        toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 2000);
-        setTimeout(() => location.reload(), 2100);
+        location.reload();
       } else {
         alert(data.error || 'Não foi possível registrar o palpite.');
       }
