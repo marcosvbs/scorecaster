@@ -53,7 +53,6 @@
     {# ── Today tab ── #}
     <div id="panel-today" class="space-y-3">
       {% for match in today_matches %}
-
         {% if match.status == 'open' %}
         <div class="game-card p-4"
              onclick="openModal({{ match.id }}, '{{ match.get_phase_display }}', '{{ match.starts_at|time:'H\hi' }}', '{{ match.home_team.name }}', '{{ match.away_team.name }}', {{ match.user_prediction.home_goals|default:0 }}, {{ match.user_prediction.away_goals|default:0 }})">
@@ -66,13 +65,13 @@
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 flex-1">
-              <span class="text-xl">{{ match.home_team.flag }}</span>
+              <span style="font-size: 1.25rem; line-height: 1;">{{ match.home_team.flag_emoji }}</span>
               <span class="text-sm font-semibold" style="color: var(--text-primary);">{{ match.home_team.name }}</span>
             </div>
             <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
             <div class="flex items-center gap-2 flex-1 justify-end">
               <span class="text-sm font-semibold" style="color: var(--text-primary);">{{ match.away_team.name }}</span>
-              <span class="text-xl">{{ match.away_team.flag }}</span>
+              <span style="font-size: 1.25rem; line-height: 1;">{{ match.away_team.flag_emoji }}</span>
             </div>
           </div>
           <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
@@ -93,7 +92,7 @@
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 flex-1">
-              <span class="text-xl">{{ match.home_team.flag }}</span>
+              <span style="font-size: 1.25rem; line-height: 1;">{{ match.home_team.flag_emoji }}</span>
               <span class="text-sm font-semibold" style="color: var(--text-primary);">{{ match.home_team.name }}</span>
             </div>
             <div class="flex items-center gap-1">
@@ -103,7 +102,7 @@
             </div>
             <div class="flex items-center gap-2 flex-1 justify-end">
               <span class="text-sm font-semibold" style="color: var(--text-primary);">{{ match.away_team.name }}</span>
-              <span class="text-xl">{{ match.away_team.flag }}</span>
+              <span style="font-size: 1.25rem; line-height: 1;">{{ match.away_team.flag_emoji }}</span>
             </div>
           </div>
           <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
@@ -123,13 +122,13 @@
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 flex-1">
-              <span class="text-xl">{{ match.home_team.flag }}</span>
+              <span style="font-size: 1.25rem; line-height: 1;">{{ match.home_team.flag_emoji }}</span>
               <span class="text-sm font-semibold" style="color: var(--text-muted);">{{ match.home_team.name }}</span>
             </div>
             <span class="text-xs font-bold px-3" style="color: rgba(245,240,232,0.2);">×</span>
             <div class="flex items-center gap-2 flex-1 justify-end">
               <span class="text-sm font-semibold" style="color: var(--text-muted);">{{ match.away_team.name }}</span>
-              <span class="text-xl">{{ match.away_team.flag }}</span>
+              <span style="font-size: 1.25rem; line-height: 1;">{{ match.away_team.flag_emoji }}</span>
             </div>
           </div>
           <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">Palpites encerrados às {{ match.prediction_deadline|time:"H\hi" }}</p>
@@ -151,13 +150,13 @@
           {% for match in day.list %}
           <div class="flex items-center justify-between{% if not forloop.first %} border-t pt-3{% endif %}" style="border-color: var(--border-default);">
             <div class="flex items-center gap-2 flex-1">
-              <span class="text-xl">{{ match.home_team.flag }}</span>
+              <span style="font-size: 1.25rem; line-height: 1;">{{ match.home_team.flag_emoji }}</span>
               <span class="text-sm" style="color: var(--text-secondary);">{{ match.home_team.name }}</span>
             </div>
             <span class="text-xs px-2" style="color: var(--text-muted);">× {{ match.starts_at|time:"H\h" }}</span>
             <div class="flex items-center gap-2 flex-1 justify-end">
               <span class="text-sm" style="color: var(--text-secondary);">{{ match.away_team.name }}</span>
-              <span class="text-xl">{{ match.away_team.flag }}</span>
+              <span style="font-size: 1.25rem; line-height: 1;">{{ match.away_team.flag_emoji }}</span>
             </div>
           </div>
           {% endfor %}

@@ -9,6 +9,10 @@ class Team(models.Model):
     name = models.CharField(max_length=50)
     flag = models.CharField(max_length=4)
 
+    @property
+    def flag_emoji(self):
+        return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in self.flag.upper())
+
     def __str__(self):
         return f"{self.flag} {self.name}"
 

@@ -79,11 +79,6 @@ def historic(request):
 
 
 @login_required
-def save_prediction(request):
-    pass
-
-
-@login_required
 @require_POST
 def save_prediction(request):
     try:
@@ -105,7 +100,9 @@ def save_prediction(request):
 
     match = get_object_or_404(Match, id=match_id)
     local_now = timezone.localtime(timezone.now())
-    prediction_deadline = match.starts_at - timezone.timedelta(minutes=30)
+    prediction_deadline = timezone.localtime(match.starts_at) - timezone.timedelta(
+        minutes=30
+    )
 
     if local_now >= prediction_deadline:
         return JsonResponse({"ok": False, "error": "Deadline has passed."}, status=400)

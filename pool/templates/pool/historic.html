@@ -61,7 +61,7 @@
 
         <div class="flex items-center justify-between">
           <span class="text-sm flex-1" style="color: var(--text-secondary);">
-            {{ entry.match.home_team.flag }} {{ entry.match.home_team.name }}
+            {{ entry.match.home_team.flag_emoji }} {{ entry.match.home_team.name }}
           </span>
 
           {% if entry.result != 'none' %}
@@ -78,7 +78,7 @@
           {% endif %}
 
           <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
-            {{ entry.match.away_team.name }} {{ entry.match.away_team.flag }}
+            {{ entry.match.away_team.name }} {{ entry.match.away_team.flag_emoji }}
           </span>
         </div>
 
