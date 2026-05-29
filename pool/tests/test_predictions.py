@@ -18,8 +18,8 @@ def user(db):
 
 @pytest.fixture
 def teams(db):
-    home = Team.objects.create(name="Brasil", flag="🇧🇷")
-    away = Team.objects.create(name="Argentina", flag="🇦🇷")
+    home = Team.objects.create(name="Brasil", flag="BR")
+    away = Team.objects.create(name="Argentina", flag="AR")
     return home, away
 
 

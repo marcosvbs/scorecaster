@@ -4,7 +4,7 @@ from .models import Team, Match, Prediction
 
 @admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ["flag", "name"]
+    list_display = ["flag", "name", "external_id"]
 
     search_fields = ["name"]
 
@@ -18,13 +18,12 @@ class MatchAdmin(admin.ModelAdmin):
         "starts_at",
         "home_goals",
         "away_goals",
+        "external_id",
     ]
 
     list_filter = ["phase", "starts_at"]
 
     search_fields = ["home_team__name", "away_team__name"]
-
-    readonly_fields = ["home_goals", "away_goals"]
 
 
 @admin.register(Prediction)

@@ -140,3 +140,26 @@ def test_no_predictions_does_not_break(match):
     match.home_goals = 2
     match.away_goals = 1
     match.save()
+
+
+def test_correcting_result_rescores(match, user):
+    prediction = Prediction.objects.create(
+        user=user,
+        match=match,
+        home_goals=2,
+        away_goals=1,
+    )
+
+    match.home_goals = 0
+    match.away_goals = 0
+    match.save()
+
+    prediction.refresh_from_db()
+    assert prediction.points == 0 and prediction.result == "wrong"
+
+    match.home_goals = 2
+    match.away_goals = 1
+    match.save()
+
+    prediction.refresh_from_db()
+    assert prediction.points == 10 and prediction.result == "exact"

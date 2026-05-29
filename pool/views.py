@@ -36,18 +36,9 @@ def matches(request):
 
     predictions_by_match = {p.match_id: p for p in user_predictions}
 
-    KNOCKOUT_PHASES = [
-        "round_of_16",
-        "quarter_final",
-        "semi_final",
-        "third_place",
-        "final",
-    ]
-
     for match in today_matches:
         deadline = timezone.localtime(match.starts_at) - timezone.timedelta(minutes=30)
         match.prediction_deadline = deadline
-        match.is_knockout = match.phase in KNOCKOUT_PHASES
         user_pred = predictions_by_match.get(match.id)
         match.user_prediction = user_pred
 

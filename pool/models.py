@@ -3,12 +3,20 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from pool.utils.scoring import calculate_points
 
-KNOCKOUT_PHASES = ["round_of_16", "quarter_final", "semi_final", "third_place", "final"]
+KNOCKOUT_PHASES = [
+    "round_of_32",
+    "round_of_16",
+    "quarter_final",
+    "semi_final",
+    "third_place",
+    "final",
+]
 
 
 class Team(models.Model):
     name = models.CharField(max_length=50)
     flag = models.CharField(max_length=4)
+    external_id = models.IntegerField(null=True, blank=True, unique=True)
 
     @property
     def flag_emoji(self):
@@ -21,6 +29,7 @@ class Team(models.Model):
 class Match(models.Model):
     PHASE_CHOICES = [
         ("group", "Fase de Grupos"),
+        ("round_of_32", "32-avos de Final"),
         ("round_of_16", "Oitavas de Final"),
         ("quarter_final", "Quartas de Final"),
         ("semi_final", "Semifinal"),
@@ -38,10 +47,11 @@ class Match(models.Model):
     starts_at = models.DateTimeField()
     home_goals = models.IntegerField(null=True, blank=True)
     away_goals = models.IntegerField(null=True, blank=True)
+    external_id = models.IntegerField(null=True, blank=True, unique=True)
 
     @property
-    def is_finished(self):
-        return self.home_goals is not None and self.away_goals is not None
+    def is_knockout(self):
+        return self.phase in KNOCKOUT_PHASES
 
     def __str__(self):
         return f"{self.home_team} vs {self.away_team} — {self.starts_at:%d/%m %Hh}"
@@ -49,17 +59,21 @@ class Match(models.Model):
     def save(self, *args, **kwargs):
         if self.pk:
             previous = Match.objects.get(pk=self.pk)
-            result_just_added = (
-                previous.home_goals is None
+            goals_changed = (
+                previous.home_goals != self.home_goals
+                or previous.away_goals != self.away_goals
+            )
+            should_score = (
+                goals_changed
                 and self.home_goals is not None
                 and self.away_goals is not None
             )
         else:
-            result_just_added = False
+            should_score = False
 
         super().save(*args, **kwargs)
 
-        if result_just_added:
+        if should_score:
             predictions = list(Prediction.objects.filter(match=self))
 
             for p in predictions:
