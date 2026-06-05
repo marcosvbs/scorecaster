@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,36 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-(lxwu=b&g_0p0otuuu2ri^153j#-k@54bvkm9^9zh5zl4@+p5s"
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-(lxwu=b&g_0p0otuuu2ri^153j#-k@54bvkm9^9zh5zl4@+p5s",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()
+]
+ALLOWED_HOSTS.append(".railway.app")
+if DEBUG:
+    ALLOWED_HOSTS += ["localhost", "127.0.0.1"]
+
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if o.strip()
+]
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Set HTTPS_ONLY=True on Railway (TLS terminated at the proxy). Kept off in
+# the local Docker simulation, which serves plain HTTP.
+if os.environ.get("HTTPS_ONLY", "False") == "True":
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 
 # Application definition
@@ -86,10 +111,12 @@ WSGI_APPLICATION = "worldcup26.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# SQLite in dev and production. On Railway, point SQLITE_PATH at the mounted
+# volume (e.g. /data/db.sqlite3) so the database survives deploys.
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": os.environ.get("SQLITE_PATH", BASE_DIR / "db.sqlite3"),
     }
 }
 
@@ -135,3 +162,37 @@ LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
+# Sessions — persistent long-lived cookie so users stay logged in between
+# visits without re-authenticating (spec section 10).
+
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 365  # 1 year
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True  # slides expiry forward on each visit
+
+
+# API-Football (https://www.api-football.com). The key is a secret: env var
+# only, never committed, never logged (spec section 2).
+
+API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY", "")
+API_FOOTBALL_BASE_URL = os.environ.get(
+    "API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io"
+)
+API_FOOTBALL_LEAGUE_ID = int(os.environ.get("API_FOOTBALL_LEAGUE_ID", "1"))
+API_FOOTBALL_SEASON = int(os.environ.get("API_FOOTBALL_SEASON", "2026"))
+
+
+# Logging — pool app logs to stderr so Railway captures API failures
+# (spec section 9, resilience). Never log the API key.
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "pool": {"handlers": ["console"], "level": "INFO"},
+    },
+}

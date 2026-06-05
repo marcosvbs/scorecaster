@@ -1,4 +1,5 @@
 services:
+  # Local development: autoreload, DEBUG on, code mounted from the host.
   web:
     build: .
     ports:
@@ -9,3 +10,26 @@ services:
       - DEBUG=True
       - SECRET_KEY=local-dev-secret-key
     command: python manage.py runserver 0.0.0.0:8000
+
+  # Railway simulation: gunicorn + WhiteNoise, DEBUG off, migrations on boot,
+  # SQLite on a named volume (mirrors the Railway volume mount at /data).
+  # Run with: docker compose --profile railway up --build railway
+  railway:
+    build: .
+    profiles: ["railway"]
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=railway-sim-secret-key
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
+      - SQLITE_PATH=/data/db.sqlite3
+      - PORT=8000
+    env_file:
+      - .env # provides API_FOOTBALL_KEY (gitignored, never baked into the image)
+    volumes:
+      - railway_data:/data
+
+volumes:
+  railway_data:

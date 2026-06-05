@@ -142,6 +142,50 @@ def test_no_predictions_does_not_break(match):
     match.save()
 
 
+def test_save_with_result_marks_match_scored(match, user):
+    Prediction.objects.create(user=user, match=match, home_goals=2, away_goals=1)
+
+    match.home_goals = 2
+    match.away_goals = 1
+    match.save()
+
+    match.refresh_from_db()
+    assert match.is_scored is True
+
+
+def test_round_winner_created_when_last_match_scored(match, user):
+    from pool.models import RoundWinner
+
+    match.round = "Group Stage - 1"
+    match.save()
+    Prediction.objects.create(user=user, match=match, home_goals=2, away_goals=1)
+
+    match.home_goals = 2
+    match.away_goals = 1
+    match.save()
+
+    winner = RoundWinner.objects.get(round="Group Stage - 1")
+    assert winner.user == user
+    assert winner.points == 10
+
+
+def test_resave_same_goals_does_not_duplicate_scoring(match, user):
+    from pool.models import RoundWinner
+
+    prediction = Prediction.objects.create(
+        user=user, match=match, home_goals=2, away_goals=1
+    )
+
+    match.home_goals = 2
+    match.away_goals = 1
+    match.save()
+    match.save()  # same goals: guard prevents re-scoring
+
+    prediction.refresh_from_db()
+    assert prediction.points == 10
+    assert RoundWinner.objects.count() == 1
+
+
 def test_correcting_result_rescores(match, user):
     prediction = Prediction.objects.create(
         user=user,

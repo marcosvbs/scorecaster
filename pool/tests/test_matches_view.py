@@ -39,10 +39,10 @@ def teams(db):
     return home, away
 
 
-def make_match(teams, starts_at, phase="group"):
+def make_match(teams, starts_at, phase="group", round=""):
     home, away = teams
     return Match.objects.create(
-        home_team=home, away_team=away, phase=phase, starts_at=starts_at
+        home_team=home, away_team=away, phase=phase, round=round, starts_at=starts_at
     )
 
 
@@ -83,17 +83,37 @@ def test_match_past_deadline_is_locked(auth_client, teams):
     assert find(resp.context["today_matches"], match.id).status == "locked"
 
 
-def test_upcoming_matches_separated_from_today(auth_client, teams):
-    today_match = make_match(teams, timezone.now() + timezone.timedelta(hours=2))
-    future_match = make_match(teams, timezone.now() + timezone.timedelta(days=3))
+def test_future_rounds_separated_from_current(auth_client, teams):
+    current_match = make_match(
+        teams, timezone.now() + timezone.timedelta(hours=2), round="Group Stage - 1"
+    )
+    future_match = make_match(
+        teams, timezone.now() + timezone.timedelta(days=3), round="Group Stage - 2"
+    )
 
     resp = auth_client.get("/")
 
-    today_ids = {m.id for m in resp.context["today_matches"]}
+    current_ids = {m.id for m in resp.context["today_matches"]}
     upcoming_ids = {m.id for m in resp.context["upcoming_matches"]}
-    assert today_match.id in today_ids
+    assert current_match.id in current_ids
     assert future_match.id in upcoming_ids
-    assert today_match.id not in upcoming_ids
+    assert current_match.id not in upcoming_ids
+
+
+def test_multi_day_round_fully_in_current_tab(auth_client, teams):
+    """A round spans several days; all its matches belong to the current tab."""
+    early = make_match(
+        teams, timezone.now() + timezone.timedelta(hours=2), round="Group Stage - 1"
+    )
+    late = make_match(
+        teams, timezone.now() + timezone.timedelta(days=2), round="Group Stage - 1"
+    )
+
+    resp = auth_client.get("/")
+
+    current_ids = {m.id for m in resp.context["today_matches"]}
+    assert {early.id, late.id} <= current_ids
+    assert len(resp.context["upcoming_matches"]) == 0
 
 
 def test_knockout_phase_flag(auth_client, teams):
@@ -104,3 +124,107 @@ def test_knockout_phase_flag(auth_client, teams):
     resp = auth_client.get("/")
 
     assert find(resp.context["today_matches"], match.id).is_knockout is True
+
+
+def test_tab_labels_renamed(auth_client, teams):
+    make_match(teams, timezone.now() + timezone.timedelta(hours=2))
+
+    resp = auth_client.get("/")
+    html = resp.content.decode()
+
+    assert "Rodada atual" in html
+    assert "Próximos jogos" in html
+    assert ">Hoje<" not in html
+
+
+def test_tempo_normal_text_removed(auth_client, teams):
+    make_match(
+        teams, timezone.now() + timezone.timedelta(hours=2), phase="round_of_16"
+    )
+
+    resp = auth_client.get("/")
+
+    assert "Palpite vale para o tempo normal" not in resp.content.decode()
+
+
+def _close_round(teams, round_str, starts_at, user):
+    match = make_match(teams, starts_at, round=round_str)
+    Prediction.objects.create(user=user, match=match, home_goals=1, away_goals=0)
+    match.home_goals = 1
+    match.away_goals = 0
+    match.save()
+    return match
+
+
+def test_winner_card_shown_after_round_closes(auth_client, teams, user):
+    _close_round(
+        teams, "Group Stage - 1", timezone.now() - timezone.timedelta(days=1), user
+    )
+    # next round exists but has not started yet
+    make_match(
+        teams, timezone.now() + timezone.timedelta(days=1), round="Group Stage - 2"
+    )
+
+    resp = auth_client.get("/")
+
+    winner = resp.context["round_winner"]
+    assert winner is not None
+    assert winner.user.username == "rafael"
+    assert winner.points == 10
+
+
+def test_winner_card_hidden_once_next_round_starts(auth_client, teams, user):
+    _close_round(
+        teams, "Group Stage - 1", timezone.now() - timezone.timedelta(days=1), user
+    )
+    # first match of the next round already kicked off
+    make_match(
+        teams, timezone.now() - timezone.timedelta(minutes=10), round="Group Stage - 2"
+    )
+
+    resp = auth_client.get("/")
+
+    assert resp.context["round_winner"] is None
+
+
+def test_winner_card_hidden_when_no_winner_rows(auth_client, teams, user):
+    """Closed round without predictions produces no RoundWinner -> no card."""
+    match = make_match(
+        teams, timezone.now() - timezone.timedelta(days=1), round="Group Stage - 1"
+    )
+    match.home_goals = 1
+    match.away_goals = 0
+    match.save()
+
+    resp = auth_client.get("/")
+
+    assert resp.context["round_winner"] is None
+
+
+def test_winner_card_hidden_while_round_in_progress(auth_client, teams, user):
+    make_match(
+        teams, timezone.now() + timezone.timedelta(hours=2), round="Group Stage - 1"
+    )
+
+    resp = auth_client.get("/")
+
+    assert resp.context["round_winner"] is None
+
+
+def test_winner_card_lists_multiple_winners(auth_client, teams, user):
+    other = User.objects.create_user(username="ana", password="x")
+    match = make_match(
+        teams, timezone.now() - timezone.timedelta(days=1), round="Group Stage - 1"
+    )
+    # both miss -> 0 points each -> multiple winners (spec 7.4)
+    Prediction.objects.create(user=user, match=match, home_goals=1, away_goals=0)
+    Prediction.objects.create(user=other, match=match, home_goals=2, away_goals=0)
+    match.home_goals = 0
+    match.away_goals = 1
+    match.save()
+
+    resp = auth_client.get("/")
+
+    winner = resp.context["round_winner"]
+    assert winner is not None
+    assert winner.user.username == "ana, rafael"

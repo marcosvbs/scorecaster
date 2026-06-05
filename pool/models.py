@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
-from pool.utils.scoring import calculate_points
+from django.utils import timezone
 
 KNOCKOUT_PHASES = [
     "round_of_32",
@@ -11,6 +11,9 @@ KNOCKOUT_PHASES = [
     "third_place",
     "final",
 ]
+
+# API-Football statuses that mean the match is over (spec section 9).
+FINISHED_STATUSES = {"FT", "AET", "PEN"}
 
 
 class Team(models.Model):
@@ -44,14 +47,25 @@ class Match(models.Model):
         Team, on_delete=models.PROTECT, related_name="away_matches"
     )
     phase = models.CharField(max_length=20, choices=PHASE_CHOICES)
+    # Raw API-Football "round" string (FIFA matchday), e.g. "Group Stage - 1",
+    # "Round of 16". Groups matches into rounds (spec sections 3 and 7).
+    round = models.CharField(max_length=50, blank=True, default="")
     starts_at = models.DateTimeField()
     home_goals = models.IntegerField(null=True, blank=True)
     away_goals = models.IntegerField(null=True, blank=True)
     external_id = models.IntegerField(null=True, blank=True, unique=True)
+    # Last status seen from the API (NS, 1H, HT, 2H, ET, FT, AET, PEN...).
+    api_status = models.CharField(max_length=10, blank=True, default="NS")
+    # Once True the match was scored and is never queried on the API again.
+    is_scored = models.BooleanField(default=False)
 
     @property
     def is_knockout(self):
         return self.phase in KNOCKOUT_PHASES
+
+    @property
+    def prediction_deadline(self):
+        return self.starts_at - timezone.timedelta(minutes=30)
 
     def __str__(self):
         return f"{self.home_team} vs {self.away_team} — {self.starts_at:%d/%m %Hh}"
@@ -74,16 +88,10 @@ class Match(models.Model):
         super().save(*args, **kwargs)
 
         if should_score:
-            predictions = list(Prediction.objects.filter(match=self))
+            # Local import: scoring_service imports models.
+            from pool.services.scoring_service import score_match
 
-            for p in predictions:
-                points, result = calculate_points(
-                    p.home_goals, p.away_goals, self.home_goals, self.away_goals
-                )
-                p.points = points
-                p.result = result
-
-            Prediction.objects.bulk_update(predictions, ["points", "result"])
+            score_match(self)
 
 
 class Prediction(models.Model):
@@ -105,9 +113,33 @@ class Prediction(models.Model):
     result = models.CharField(
         max_length=10, choices=RESULT_CHOICES, null=True, blank=True
     )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = [("user", "match")]
 
     def __str__(self):
         return f"{self.user} — {self.match} — {self.home_goals}×{self.away_goals}"
+
+
+class RoundWinner(models.Model):
+    """Cached winner(s) of a closed round (spec section 7).
+
+    Computed once when the round's last match is scored, so pages never
+    re-aggregate. A round may have multiple winners only when nobody scored
+    (spec 7.4) — hence unique on (round, user), not on round alone.
+    """
+
+    round = models.CharField(max_length=50)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    points = models.IntegerField()
+    exact_count = models.IntegerField(default=0)
+    partial_count = models.IntegerField(default=0)
+    computed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [("round", "user")]
+
+    def __str__(self):
+        return f"{self.round} — {self.user} — {self.points} pts"

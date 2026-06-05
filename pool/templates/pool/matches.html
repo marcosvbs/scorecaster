@@ -46,8 +46,8 @@
   {# ── Tabs ── #}
   <section>
     <div class="flex gap-1 p-1 rounded-xl mb-4" style="background: var(--bg-surface-alt);">
-      <button id="tab-today" onclick="switchTab('today')" class="flex-1 py-1.5 text-sm font-medium transition-colors tab-active">Hoje</button>
-      <button id="tab-upcoming" onclick="switchTab('upcoming')" class="flex-1 py-1.5 text-sm transition-colors tab-inactive">Próximos</button>
+      <button id="tab-today" onclick="switchTab('today')" class="flex-1 py-1.5 text-sm font-medium transition-colors tab-active">Rodada atual</button>
+      <button id="tab-upcoming" onclick="switchTab('upcoming')" class="flex-1 py-1.5 text-sm transition-colors tab-inactive">Próximos jogos</button>
     </div>
 
     {# ── Today tab ── #}
@@ -76,7 +76,6 @@
           </div>
           <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
             Palpites encerram às {{ match.prediction_deadline|time:"H\hi" }}
-            {% if match.is_knockout %} · Palpite vale para o tempo normal{% endif %}
           </p>
         </div>
 
@@ -107,7 +106,6 @@
           </div>
           <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
             Palpites encerram às {{ match.prediction_deadline|time:"H\hi" }}
-            {% if match.is_knockout %} · Palpite vale para o tempo normal{% endif %}
           </p>
         </div>
 
@@ -136,24 +134,24 @@
         {% endif %}
 
       {% empty %}
-        <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum jogo hoje.</p>
+        <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum jogo na rodada atual.</p>
       {% endfor %}
     </div>
 
     {# ── Upcoming tab ── #}
     <div id="panel-upcoming" class="space-y-3 hidden">
-      {% regroup upcoming_matches by starts_at|date:"Y-m-d" as matches_by_day %}
-      {% for day in matches_by_day %}
+      {% regroup upcoming_matches by round as matches_by_round %}
+      {% for round_group in matches_by_round %}
       <div class="card p-4">
-        <p class="text-xs mb-3" style="color: var(--color-gold);">{{ day.list.0.starts_at|date:"d \d\e F" }}</p>
+        <p class="text-xs mb-3" style="color: var(--color-gold);">{{ round_group.list.0.get_phase_display }} · {{ round_group.grouper }}</p>
         <div class="space-y-3">
-          {% for match in day.list %}
+          {% for match in round_group.list %}
           <div class="flex items-center justify-between{% if not forloop.first %} border-t pt-3{% endif %}" style="border-color: var(--border-default);">
             <div class="flex items-center gap-2 flex-1">
               <span style="font-size: 1.25rem; line-height: 1;">{{ match.home_team.flag_emoji }}</span>
               <span class="text-sm" style="color: var(--text-secondary);">{{ match.home_team.name }}</span>
             </div>
-            <span class="text-xs px-2" style="color: var(--text-muted);">× {{ match.starts_at|time:"H\h" }}</span>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× {{ match.starts_at|date:"d/m" }} {{ match.starts_at|time:"H\h" }}</span>
             <div class="flex items-center gap-2 flex-1 justify-end">
               <span class="text-sm" style="color: var(--text-secondary);">{{ match.away_team.name }}</span>
               <span style="font-size: 1.25rem; line-height: 1;">{{ match.away_team.flag_emoji }}</span>

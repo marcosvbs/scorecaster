@@ -132,3 +132,55 @@ def test_rejects_malformed_json(auth_client, open_match):
         "/predictions/save/", data="this is not json", content_type="application/json"
     )
     assert resp.status_code == 400
+
+
+def test_rejects_future_round_match(auth_client, teams):
+    """Future rounds are view-only: no predicting ahead (spec section 4)."""
+    home, away = teams
+    Match.objects.create(
+        home_team=home,
+        away_team=away,
+        phase="group",
+        round="Group Stage - 1",
+        starts_at=timezone.now() + timezone.timedelta(hours=2),
+    )
+    future_match = Match.objects.create(
+        home_team=home,
+        away_team=away,
+        phase="group",
+        round="Group Stage - 2",
+        starts_at=timezone.now() + timezone.timedelta(days=4),
+    )
+
+    resp = post(
+        auth_client, {"match_id": future_match.id, "home_goals": 1, "away_goals": 0}
+    )
+
+    assert resp.status_code == 400
+    assert resp.json()["ok"] is False
+    assert Prediction.objects.count() == 0
+
+
+def test_accepts_current_round_match(auth_client, teams):
+    home, away = teams
+    current = Match.objects.create(
+        home_team=home,
+        away_team=away,
+        phase="group",
+        round="Group Stage - 1",
+        starts_at=timezone.now() + timezone.timedelta(hours=2),
+    )
+    Match.objects.create(
+        home_team=home,
+        away_team=away,
+        phase="group",
+        round="Group Stage - 2",
+        starts_at=timezone.now() + timezone.timedelta(days=4),
+    )
+
+    resp = post(
+        auth_client, {"match_id": current.id, "home_goals": 1, "away_goals": 0}
+    )
+
+    assert resp.json()["ok"] is True
+    assert Prediction.objects.count() == 1
