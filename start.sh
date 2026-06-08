@@ -6,15 +6,6 @@ set -e
 
 python manage.py migrate --noinput
 
-# --- TEMPORARY one-off bootstrap (REMOVE after first successful deploy) ---
-# Seeds teams + 104 fixtures (idempotent upserts) and creates the admin user
-# from DJANGO_SUPERUSER_* env vars. `|| true` so a re-run ("user exists") under
-# `set -e` doesn't crash the container. Delete this block and the env vars once
-# the data is in place.
-python manage.py seed_world_cup
-python manage.py createsuperuser --noinput || true
-# --- end temporary ---
-
 # Low-frequency scheduler (spec section 9). Each tick is a cheap no-op with
 # zero API calls unless a match is past its expected end. The subshell dies
 # with the container; a failed tick never kills the loop.
