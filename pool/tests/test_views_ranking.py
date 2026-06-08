@@ -38,3 +38,18 @@ def test_ranking_empty_state(auth_client):
     assert resp.status_code == 200
     assert resp.context["total_matches"] == 0
     assert len(resp.context["ranking"]) == 1  # only the logged-in user
+
+
+def test_ranking_view_never_aggregates(auth_client, monkeypatch):
+    import pytest
+
+    import pool.services.ranking as ranking_module
+
+    monkeypatch.setattr(
+        ranking_module,
+        "compute_ranking",
+        lambda: pytest.fail("ranking view must not aggregate at request time"),
+    )
+
+    resp = auth_client.get("/ranking/")
+    assert resp.status_code == 200

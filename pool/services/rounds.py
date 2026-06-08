@@ -1,17 +1,18 @@
 """Round semantics (spec sections 3, 4 and 7).
 
-A round is the set of matches sharing the same API-Football "round" string
-(FIFA matchday). It may span several days and closes when its last match is
+A round is the set of matches sharing the same "round" string (FIFA
+matchday). It may span several days and closes when its last match is
 scored. The current round is the one accepting predictions.
 """
 
 import logging
+import re
 
 from pool.models import Match
 
 logger = logging.getLogger(__name__)
 
-# Ordered substring matchers: API round string -> Match.phase value.
+# Ordered substring matchers: round string -> Match.phase value.
 _PHASE_MATCHERS = [
     ("group", "group"),
     ("round of 32", "round_of_32"),
@@ -25,13 +26,28 @@ _PHASE_MATCHERS = [
 
 
 def phase_from_round(round_str):
-    """Map an API-Football round string to a Match.phase value."""
+    """Map a round string to a Match.phase value."""
     lowered = round_str.lower()
     for needle, phase in _PHASE_MATCHERS:
         if needle in lowered:
             return phase
-    logger.warning("Unknown API round string %r, falling back to 'group'", round_str)
+    logger.warning("Unknown round string %r, falling back to 'group'", round_str)
     return "group"
+
+
+def round_label(round_str):
+    """pt-BR label for a round string, shown to users (cards, history, modal).
+
+    Group rounds get their matchday number ("Fase de Grupos · 1ª Rodada");
+    knockout rounds use the phase's pt-BR name ("Oitavas de Final").
+    """
+    phase = phase_from_round(round_str)
+    base = dict(Match.PHASE_CHOICES).get(phase, "Fase de Grupos")
+    if phase == "group":
+        match = re.search(r"(\d+)", round_str or "")
+        if match:
+            return f"{base} · {match.group(1)}ª Rodada"
+    return base
 
 
 def get_current_round():

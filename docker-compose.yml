@@ -26,8 +26,6 @@ services:
       - CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
       - SQLITE_PATH=/data/db.sqlite3
       - PORT=8000
-    env_file:
-      - .env # provides API_FOOTBALL_KEY (gitignored, never baked into the image)
     volumes:
       - railway_data:/data
 

@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone as dt_timezone
 
 import pytest
@@ -72,6 +73,18 @@ def test_match_with_prediction_is_predicted(auth_client, teams, user):
     resp = auth_client.get("/")
 
     assert find(resp.context["today_matches"], match.id).status == "predicted"
+
+
+def test_cards_show_ptbr_round_label_and_date(auth_client, teams):
+    make_match(teams, timezone.now() + timezone.timedelta(hours=2), round="Group Stage - 1")
+    make_match(teams, timezone.now() + timezone.timedelta(days=5), round="Group Stage - 2")
+
+    html = auth_client.get("/").content.decode("utf-8")
+
+    assert "Fase de Grupos · 1ª Rodada" in html  # current-round card
+    assert "15/06" in html                       # kickoff date on the card
+    assert "Fase de Grupos · 2ª Rodada" in html  # upcoming tab grouper
+    assert "Group Stage" not in html             # raw English round never leaks
 
 
 def test_match_past_deadline_is_locked(auth_client, teams):
@@ -228,3 +241,30 @@ def test_winner_card_lists_multiple_winners(auth_client, teams, user):
     winner = resp.context["round_winner"]
     assert winner is not None
     assert winner.user.username == "ana, rafael"
+
+
+def test_team_name_is_js_escaped_in_onclick(auth_client, db):
+    """A quote in a team name (API-supplied or admin typo) must not break out
+    of the JS string inside onclick — escapejs, not just HTML autoescaping,
+    because browsers decode entities before the JS parser runs."""
+    payload = "x', alert(1), '"
+    home = Team.objects.create(name=payload, flag="XX")
+    away = Team.objects.create(name="Argentina", flag="AR")
+    Match.objects.create(
+        home_team=home,
+        away_team=away,
+        phase="group",
+        starts_at=timezone.now() + timezone.timedelta(hours=2),
+    )
+
+    resp = auth_client.get("/")
+    html = resp.content.decode()
+
+    # escapejs form inside the onclick JS string
+    assert "x\\u0027, alert(1), \\u0027" in html
+    # No onclick may carry the entity-encoded quote: the browser decodes
+    # entities in attributes BEFORE the JS parser runs, so &#x27; there would
+    # still break out. (The visible <span> text keeps &#x27; — safe in HTML.)
+    onclick_attrs = re.findall(r'onclick="([^"]*)"', html)
+    assert onclick_attrs  # match card rendered
+    assert not any("&#x27;" in attr for attr in onclick_attrs)

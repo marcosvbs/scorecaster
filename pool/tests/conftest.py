@@ -2,6 +2,7 @@ from datetime import datetime, timezone as dt_timezone
 
 import pytest
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import Client
 from django.utils import timezone
 
@@ -9,6 +10,13 @@ from pool.models import Team, Match
 
 # Fixed mid-day instant (12:00 in America/Sao_Paulo) shared by view tests.
 FROZEN_NOW = datetime(2026, 6, 15, 15, 0, tzinfo=dt_timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    """LocMem cache outlives transactions; reset throttle counters per test."""
+    cache.clear()
+    yield
 
 
 @pytest.fixture

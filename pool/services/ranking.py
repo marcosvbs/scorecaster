@@ -4,14 +4,19 @@ Cumulative over closed rounds only: points from a round still in progress
 never show up. Tiebreakers: total points, exact hits, winner hits
 (result exact or partial), fewer skipped matches; username as a final
 deterministic fallback.
+
+Request paths never aggregate: compute_ranking() runs only when a round
+closes (and as the round-winner tiebreak); its result is persisted as
+RankingEntry rows, which get_ranking() reads back.
 """
 
 from types import SimpleNamespace
 
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.db.models import Count, Q, Sum
 
-from pool.models import Match, Prediction
+from pool.models import Match, Prediction, RankingEntry
 
 
 def closed_rounds():
@@ -69,3 +74,49 @@ def compute_ranking():
     for position, row in enumerate(rows, start=1):
         row.position = position
     return rows
+
+
+def rebuild_ranking_snapshot():
+    """Persist compute_ranking() as RankingEntry rows. Idempotent."""
+    rows = compute_ranking()
+    with transaction.atomic():
+        RankingEntry.objects.all().delete()
+        RankingEntry.objects.bulk_create(
+            RankingEntry(
+                user=row.user,
+                position=row.position,
+                total_points=row.total_points,
+                exact_count=row.exact_count,
+                winner_hit_count=row.winner_hit_count,
+                skipped=row.skipped,
+            )
+            for row in rows
+        )
+    return rows
+
+
+def get_ranking():
+    """Read the pre-computed ranking. No aggregation — request-path safe.
+
+    Users created after the last snapshot are appended at the bottom with
+    zeros; before the first round closes (empty snapshot) everyone is listed
+    at zero.
+    """
+    entries = list(RankingEntry.objects.select_related("user"))
+    known_ids = {e.user_id for e in entries}
+
+    missing = User.objects.exclude(id__in=known_ids).order_by("username")
+    next_position = len(entries) + 1
+    for user in missing:
+        entries.append(
+            SimpleNamespace(
+                user=user,
+                position=next_position,
+                total_points=0,
+                exact_count=0,
+                winner_hit_count=0,
+                skipped=0,
+            )
+        )
+        next_position += 1
+    return entries

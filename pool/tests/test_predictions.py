@@ -98,6 +98,18 @@ def test_rejects_missing_fields(auth_client, open_match):
     assert resp.json()["ok"] is False
 
 
+@pytest.mark.parametrize("bad_goals", ["2", True, 2.5, [2], {"n": 2}])
+def test_rejects_non_integer_goals(auth_client, open_match, bad_goals):
+    """JSON strings/bools/floats must 400, never 500 (TypeError) or coerce."""
+    resp = post(
+        auth_client,
+        {"match_id": open_match.id, "home_goals": bad_goals, "away_goals": 1},
+    )
+    assert resp.status_code == 400
+    assert resp.json()["ok"] is False
+    assert Prediction.objects.count() == 0
+
+
 def test_rejects_unauthenticated(client, open_match):
     resp = post(client, {"match_id": open_match.id, "home_goals": 1, "away_goals": 0})
     assert resp.status_code != 200
@@ -159,6 +171,29 @@ def test_rejects_future_round_match(auth_client, teams):
     assert resp.status_code == 400
     assert resp.json()["ok"] is False
     assert Prediction.objects.count() == 0
+
+
+def test_rate_limited_after_20_saves_in_a_minute(auth_client, open_match):
+    payload = {"match_id": open_match.id, "home_goals": 1, "away_goals": 0}
+    for _ in range(20):
+        assert post(auth_client, payload).status_code == 200
+
+    resp = post(auth_client, payload)
+    assert resp.status_code == 429
+    assert resp.json()["ok"] is False
+
+
+def test_rate_limit_is_per_user(auth_client, client, open_match):
+    from django.contrib.auth.models import User
+
+    payload = {"match_id": open_match.id, "home_goals": 1, "away_goals": 0}
+    for _ in range(21):
+        post(auth_client, payload)
+    assert post(auth_client, payload).status_code == 429
+
+    User.objects.create_user(username="joca", password="test123")
+    client.login(username="joca", password="test123")
+    assert post(client, payload).status_code == 200
 
 
 def test_accepts_current_round_match(auth_client, teams):

@@ -10,7 +10,7 @@ import logging
 from django.db.models import Count, Q, Sum
 
 from pool.models import Match, Prediction, RoundWinner
-from pool.services.ranking import compute_ranking
+from pool.services.ranking import compute_ranking, rebuild_ranking_snapshot
 from pool.utils.scoring import calculate_points
 
 logger = logging.getLogger(__name__)
@@ -62,6 +62,11 @@ def close_round_if_complete(round_str):
     RoundWinner.objects.filter(round=round_str).exclude(
         user__in=[w.user for w in winners]
     ).delete()
+
+    # Refresh the pre-computed ranking so pages never aggregate at request
+    # time. Manual admin corrections come through here too, keeping the
+    # snapshot consistent with the live data.
+    rebuild_ranking_snapshot()
 
     logger.info(
         "Round %r closed, winner(s): %s",

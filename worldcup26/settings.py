@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,19 +22,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
-    "django-insecure-(lxwu=b&g_0p0otuuu2ri^153j#-k@54bvkm9^9zh5zl4@+p5s",
+# Dev-only fallback. With DEBUG=False (production) the guard below refuses to
+# boot on it, so sessions/CSRF can never be signed with a public key.
+_INSECURE_DEFAULT_SECRET_KEY = (
+    "django-insecure-(lxwu=b&g_0p0otuuu2ri^153j#-k@54bvkm9^9zh5zl4@+p5s"
 )
 
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get("SECRET_KEY", _INSECURE_DEFAULT_SECRET_KEY)
+
 # SECURITY WARNING: don't run with debug turned on in production!
+# The Dockerfile bakes DEBUG=False into the production image; the True
+# default only serves local development.
 DEBUG = os.environ.get("DEBUG", "True") == "True"
+
+if not DEBUG and SECRET_KEY == _INSECURE_DEFAULT_SECRET_KEY:
+    raise ImproperlyConfigured(
+        "SECRET_KEY environment variable must be set when DEBUG is False."
+    )
 
 ALLOWED_HOSTS = [
     h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()
 ]
-ALLOWED_HOSTS.append(".railway.app")
+if not ALLOWED_HOSTS:
+    # Convenience default for a fresh Railway deploy; an explicit
+    # ALLOWED_HOSTS env var replaces it entirely.
+    ALLOWED_HOSTS.append(".railway.app")
 if DEBUG:
     ALLOWED_HOSTS += ["localhost", "127.0.0.1"]
 
@@ -51,6 +66,9 @@ if os.environ.get("HTTPS_ONLY", "False") == "True":
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    # Conservative HSTS (1h, no subdomains/preload) — long enough for
+    # browsers to stick to HTTPS, short enough to back out of safely.
+    SECURE_HSTS_SECONDS = 3600
 
 
 # Application definition
@@ -113,10 +131,25 @@ WSGI_APPLICATION = "worldcup26.wsgi.application"
 
 # SQLite in dev and production. On Railway, point SQLITE_PATH at the mounted
 # volume (e.g. /data/db.sqlite3) so the database survives deploys.
+# WAL: reads don't block while the scheduler writes results; timeout waits on
+# locks instead of raising "database is locked".
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": os.environ.get("SQLITE_PATH", BASE_DIR / "db.sqlite3"),
+        "OPTIONS": {
+            "timeout": 20,
+            "init_command": "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
+        },
+    }
+}
+
+# Local-memory cache backs the rate limiter (pool/services/throttle.py).
+# Per-process: exact with gunicorn's single worker; N workers multiply the
+# effective limit by N, which is still bounded. Resets on restart.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
 
@@ -172,15 +205,19 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_SAVE_EVERY_REQUEST = True  # slides expiry forward on each visit
 
 
-# API-Football (https://www.api-football.com). The key is a secret: env var
-# only, never committed, never logged (spec section 2).
+# api.fifa.com v3 — the pool's data source. Undocumented public endpoint, no
+# API key. Defaults target the FIFA World Cup 2026 (competition 17, season
+# 285023); both come from the match-centre URL path. Called only by the
+# seed_world_cup / check_results commands, never in a request path.
 
-API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY", "")
-API_FOOTBALL_BASE_URL = os.environ.get(
-    "API_FOOTBALL_BASE_URL", "https://v3.football.api-sports.io"
+FIFA_API_BASE_URL = os.environ.get("FIFA_API_BASE_URL", "https://api.fifa.com/api/v3")
+FIFA_COMPETITION_ID = os.environ.get("FIFA_COMPETITION_ID", "17")
+FIFA_SEASON_ID = os.environ.get("FIFA_SEASON_ID", "285023")
+# MatchStatus integer codes that mean "finished" (reverse-engineered: 0).
+# Comma-separated env override once live codes are confirmed during the cup.
+FIFA_FINISHED_STATUSES = tuple(
+    int(code) for code in os.environ.get("FIFA_FINISHED_STATUSES", "0").split(",") if code.strip()
 )
-API_FOOTBALL_LEAGUE_ID = int(os.environ.get("API_FOOTBALL_LEAGUE_ID", "1"))
-API_FOOTBALL_SEASON = int(os.environ.get("API_FOOTBALL_SEASON", "2026"))
 
 
 # Logging — pool app logs to stderr so Railway captures API failures

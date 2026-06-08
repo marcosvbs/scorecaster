@@ -2,8 +2,13 @@ import pytest
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from pool.models import Prediction
-from pool.services.ranking import closed_rounds, compute_ranking
+from pool.models import Prediction, RankingEntry
+from pool.services.ranking import (
+    closed_rounds,
+    compute_ranking,
+    get_ranking,
+    rebuild_ranking_snapshot,
+)
 
 
 @pytest.fixture
@@ -115,3 +120,83 @@ def test_user_without_predictions_has_high_skip_count(make_match, users):
     rows = {r.user.username: r for r in compute_ranking()}
     assert rows["bruno"].skipped == 1
     assert rows["bruno"].total_points == 0
+
+
+# ── Pre-computed snapshot (RankingEntry) ──
+
+
+def test_round_close_rebuilds_snapshot(make_match, users):
+    match = make_match(round="Group Stage - 1")
+    Prediction.objects.create(user=users[0], match=match, home_goals=2, away_goals=0)
+
+    assert RankingEntry.objects.count() == 0
+    finish(match, 2, 0)  # closes the round -> snapshot written
+
+    entries = list(RankingEntry.objects.all())
+    assert len(entries) == 3
+    assert entries[0].user == users[0]
+    assert entries[0].total_points == 10
+    assert entries[0].position == 1
+
+
+def test_correction_updates_snapshot(make_match, users):
+    match = make_match(round="Group Stage - 1")
+    Prediction.objects.create(user=users[0], match=match, home_goals=2, away_goals=0)
+    Prediction.objects.create(user=users[1], match=match, home_goals=0, away_goals=2)
+
+    finish(match, 2, 0)
+    assert RankingEntry.objects.get(position=1).user == users[0]
+
+    finish(match, 0, 2)  # admin correction flips the result
+    assert RankingEntry.objects.get(position=1).user == users[1]
+    assert RankingEntry.objects.count() == 3  # no duplicates
+
+
+def test_get_ranking_reads_snapshot_without_aggregating(make_match, users, monkeypatch):
+    match = make_match(round="Group Stage - 1")
+    Prediction.objects.create(user=users[0], match=match, home_goals=2, away_goals=0)
+    finish(match, 2, 0)
+
+    import pool.services.ranking as ranking_module
+
+    monkeypatch.setattr(
+        ranking_module,
+        "compute_ranking",
+        lambda: pytest.fail("get_ranking must not aggregate"),
+    )
+
+    rows = get_ranking()
+    assert rows[0].user == users[0]
+    assert rows[0].total_points == 10
+
+
+def test_get_ranking_appends_users_created_after_snapshot(make_match, users):
+    match = make_match(round="Group Stage - 1")
+    Prediction.objects.create(user=users[0], match=match, home_goals=2, away_goals=0)
+    finish(match, 2, 0)
+
+    late = User.objects.create_user(username="zeca", password="x")
+
+    rows = get_ranking()
+    assert rows[-1].user == late
+    assert rows[-1].total_points == 0
+    assert rows[-1].position == 4
+
+
+def test_get_ranking_empty_snapshot_lists_all_users_at_zero(users):
+    rows = get_ranking()
+
+    assert len(rows) == 3
+    assert all(r.total_points == 0 for r in rows)
+    assert [r.position for r in rows] == [1, 2, 3]
+
+
+def test_rebuild_snapshot_is_idempotent(make_match, users):
+    match = make_match(round="Group Stage - 1")
+    Prediction.objects.create(user=users[0], match=match, home_goals=2, away_goals=0)
+    finish(match, 2, 0)
+
+    rebuild_ranking_snapshot()
+    rebuild_ranking_snapshot()
+
+    assert RankingEntry.objects.count() == 3

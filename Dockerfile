@@ -8,12 +8,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Build with production settings so WhiteNoise generates the static manifest
-# that the runtime (DEBUG=False) expects.
+# that the runtime (DEBUG=False) expects. The throwaway SECRET_KEY only
+# satisfies the settings boot guard; the real key comes from the environment
+# at runtime.
 ENV DEBUG=False
-RUN python manage.py collectstatic --noinput
+RUN SECRET_KEY=build-only-dummy python manage.py collectstatic --noinput
+
+RUN chmod +x start.sh
 
 EXPOSE 8000
 
-# Railway injects PORT; default to 8000 for local runs. Migrations run on
-# boot so a fresh volume (or a new deploy) is always up to date.
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn worldcup26.wsgi:application --bind 0.0.0.0:${PORT:-8000}"]
+# start.sh: migrate, background check_results loop (10 min), then gunicorn.
+# Railway injects PORT; defaults to 8000 for local runs.
+CMD ["./start.sh"]

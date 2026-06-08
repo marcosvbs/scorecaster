@@ -1,14 +1,15 @@
 """Time-driven result fetching and scoring (spec section 9).
 
-Run by an external scheduler (Railway cron) every ~10 minutes. Ticks where
-no match is past its expected end make ZERO API calls, so the schedule
-frequency does not burn the daily quota. A match that has not finished yet
-simply stays unscored and is re-checked on the next tick — that IS the
-low-frequency extraordinary routine from the spec.
+Run by the container's internal scheduler every ~10 minutes. Ticks where no
+match is past its expected end make ZERO API calls, so the schedule frequency
+does not matter. A match that has not finished yet stays unscored and is
+re-checked on the next tick.
 
-Request economy: due matches are grouped by date, one request per date.
-Scored matches are never queried again. Failures are logged and retried on
-the next tick; nothing is ever marked scored on failure.
+Request economy: when anything is due, ONE `calendar/matches` request returns
+the whole tournament, so a single call covers every due match (and resolves
+knockout placeholder teams as the bracket fills in). Scored matches are never
+queried again. Failures are logged and retried next tick; nothing is ever
+marked scored on failure.
 """
 
 import logging
@@ -16,8 +17,9 @@ import logging
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from pool.models import FINISHED_STATUSES, Match
-from pool.services.api_football import ApiFootballClient, ApiFootballError
+from pool.models import Match
+from pool.services.fifa_api import FifaApiClient, FifaApiError, normalize_matches
+from pool.services.fixtures import upsert_team
 from pool.services.scoring_service import score_match
 
 logger = logging.getLogger(__name__)
@@ -34,7 +36,7 @@ def expected_check_time(match):
 
 
 class Command(BaseCommand):
-    help = "Fetch finished match results from API-Football and score predictions."
+    help = "Fetch finished match results from api.fifa.com and score predictions."
 
     def handle(self, *args, **options):
         now = timezone.now()
@@ -45,65 +47,67 @@ class Command(BaseCommand):
             self.stdout.write("Nothing due. No API calls made.")
             return
 
-        by_date = {}
-        for match in due:
-            by_date.setdefault(match.starts_at.date().isoformat(), []).append(match)
+        client = FifaApiClient()
+        try:
+            feed = {m["external_id"]: m for m in normalize_matches(client.get_all_matches())}
+        except FifaApiError as exc:
+            # Retry on the next tick; never mark anything scored here.
+            logger.error("api.fifa.com fetch failed: %s", exc)
+            self.stdout.write(self.style.ERROR("Fetch failed; will retry next tick."))
+            return
 
-        client = ApiFootballClient()
         scored = 0
-        for date_str, matches in sorted(by_date.items()):
-            try:
-                fixtures = client.get_fixtures_by_date(date_str)
-            except ApiFootballError as exc:
-                # Retry on the next tick; never mark anything scored here.
-                logger.error("Fetch for %s failed: %s", date_str, exc)
+        for match in due:
+            normalized = feed.get(match.external_id)
+            if normalized is None:
+                logger.warning(
+                    "Match %s not present in feed; retrying next tick", match.external_id
+                )
                 continue
-
-            fixtures_by_id = {f["fixture"]["id"]: f for f in fixtures}
-            for match in matches:
-                fixture = fixtures_by_id.get(match.external_id)
-                if fixture is None:
-                    logger.warning(
-                        "Fixture %s not in API response for %s",
-                        match.external_id,
-                        date_str,
-                    )
-                    continue
-                scored += self._apply(match, fixture)
+            scored += self._apply(match, normalized)
 
         self.stdout.write(
             self.style.SUCCESS(f"Checked {len(due)} match(es), scored {scored}.")
         )
 
-    def _apply(self, match, fixture):
-        status = fixture["fixture"]["status"]["short"]
-        if status not in FINISHED_STATUSES:
-            match.api_status = status
-            match.save(update_fields=["api_status"])
+    def _apply(self, match, normalized):
+        # Resolve placeholder -> real teams as the knockout bracket fills in.
+        match.home_team = upsert_team(normalized["home"])
+        match.away_team = upsert_team(normalized["away"])
+        match.api_status = normalized["status"]
+
+        finished = (
+            normalized["is_finished"]
+            and normalized["home_goals"] is not None
+            and normalized["away_goals"] is not None
+        )
+        if not finished:
+            # Still in progress, or finished status without scores yet: persist
+            # the latest teams/status and re-check next tick.
+            match.save()
             logger.info(
-                "Match %s still in progress (%s), retrying next tick",
+                "Match %s not final yet (status %s), retrying next tick",
                 match.external_id,
-                status,
+                normalized["status"],
             )
             return 0
 
-        # Final score: API 'goals' includes extra time but never penalties
-        # (spec section 6) — a 1x1 decided on penalties scores as a 1x1 draw.
-        match.home_goals = fixture["goals"]["home"]
-        match.away_goals = fixture["goals"]["away"]
-        match.api_status = status
+        # Final score from FIFA HomeTeamScore/AwayTeamScore: includes extra
+        # time, excludes the penalty shootout (spec section 6) — a 1x1 decided
+        # on penalties scores as a 1x1 draw.
+        match.home_goals = normalized["home_goals"]
+        match.away_goals = normalized["away_goals"]
         match.save()  # triggers score_match when goals changed
 
         if not match.is_scored:
-            # Goals already matched what was in the DB (e.g. admin had filled
-            # them in) so save() didn't fire the pipeline — score explicitly.
+            # Goals already matched what was in the DB so save() didn't fire the
+            # pipeline (e.g. admin had filled them in) — score explicitly.
             score_match(match)
 
         logger.info(
-            "Match %s finished %s-%s (%s), predictions scored",
+            "Match %s finished %s-%s, predictions scored",
             match.external_id,
             match.home_goals,
             match.away_goals,
-            status,
         )
         return 1

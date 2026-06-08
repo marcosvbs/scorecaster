@@ -10,17 +10,39 @@ from django.utils import timezone
 from django.http import JsonResponse
 
 from pool.models import Match, Prediction, RoundWinner
-from pool.services.ranking import compute_ranking
+from pool.services.ranking import get_ranking
 from pool.services.rounds import (
     current_round_matches,
     future_round_matches,
     is_match_in_current_round,
+)
+from pool.services.throttle import (
+    LOGIN_RATE_LIMIT,
+    PREDICTION_RATE_LIMIT,
+    client_ip,
+    is_rate_limited,
 )
 
 
 class CustomLoginView(LoginView):
     template_name = "pool/login.html"
     redirect_authenticated_user = True
+
+    def post(self, request, *args, **kwargs):
+        max_requests, window = LOGIN_RATE_LIMIT
+        if is_rate_limited(f"login:{client_ip(request)}", max_requests, window):
+            # Plain form POST: re-render the page with a pt-BR message
+            # instead of returning raw JSON.
+            form = self.get_form()
+            context = self.get_context_data(
+                form=form,
+                throttle_error=(
+                    "Muitas tentativas de login. "
+                    "Tente novamente em alguns minutos."
+                ),
+            )
+            return self.render_to_response(context, status=429)
+        return super().post(request, *args, **kwargs)
 
 
 def _round_winner_card(now):
@@ -116,7 +138,8 @@ def matches(request):
 def ranking(request):
     context = {
         "active_nav": "ranking",
-        "ranking": compute_ranking(),
+        # Pre-computed snapshot — no aggregation at request time.
+        "ranking": get_ranking(),
         "total_matches": Match.objects.filter(is_scored=True).count(),
     }
     return render(request, "pool/ranking.html", context)
@@ -157,6 +180,13 @@ def historic(request):
 @login_required
 @require_POST
 def save_prediction(request):
+    max_requests, window = PREDICTION_RATE_LIMIT
+    if is_rate_limited(f"prediction:{request.user.id}", max_requests, window):
+        return JsonResponse(
+            {"ok": False, "error": "Too many requests. Try again soon."},
+            status=429,
+        )
+
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
@@ -168,6 +198,16 @@ def save_prediction(request):
 
     if match_id is None or home_goals is None or away_goals is None:
         return JsonResponse({"ok": False, "error": "Missing fields."}, status=400)
+
+    # JSON can carry strings/bools/floats; only true ints are valid (a bare
+    # string here would make the range check below raise TypeError → 500).
+    if not all(
+        isinstance(g, int) and not isinstance(g, bool)
+        for g in (home_goals, away_goals)
+    ):
+        return JsonResponse(
+            {"ok": False, "error": "Goals must be integers."}, status=400
+        )
 
     if not (0 <= home_goals <= 99) or not (0 <= away_goals <= 99):
         return JsonResponse(

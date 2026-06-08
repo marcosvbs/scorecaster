@@ -2,7 +2,7 @@ import pytest
 from django.db import IntegrityError
 from django.utils import timezone
 
-from pool.models import Prediction, RoundWinner
+from pool.models import Prediction, RankingEntry, RoundWinner
 
 
 def test_prediction_deadline_is_30_minutes_before_start(make_match):
@@ -65,8 +65,10 @@ def test_str_representations(make_match, user):
         user=user, match=match, home_goals=1, away_goals=0
     )
     winner = RoundWinner.objects.create(round="Group Stage - 1", user=user, points=10)
+    entry = RankingEntry.objects.create(user=user, position=1, total_points=10)
 
     assert "Brasil" in str(match.home_team)
     assert "Brasil" in str(match)
     assert "1×0" in str(prediction)
     assert "10 pts" in str(winner)
+    assert str(entry).startswith("#1")

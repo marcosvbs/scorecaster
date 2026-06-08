@@ -12,9 +12,6 @@ KNOCKOUT_PHASES = [
     "final",
 ]
 
-# API-Football statuses that mean the match is over (spec section 9).
-FINISHED_STATUSES = {"FT", "AET", "PEN"}
-
 
 class Team(models.Model):
     name = models.CharField(max_length=50)
@@ -23,7 +20,13 @@ class Team(models.Model):
 
     @property
     def flag_emoji(self):
-        return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in self.flag.upper())
+        # Defensive: only a 2-letter ASCII code maps to a flag; anything else
+        # (placeholder team, unmapped country) renders nothing rather than
+        # garbage codepoints.
+        code = (self.flag or "").upper()
+        if len(code) != 2 or not (code.isascii() and code.isalpha()):
+            return ""
+        return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in code)
 
     def __str__(self):
         return f"{self.flag} {self.name}"
@@ -47,8 +50,8 @@ class Match(models.Model):
         Team, on_delete=models.PROTECT, related_name="away_matches"
     )
     phase = models.CharField(max_length=20, choices=PHASE_CHOICES)
-    # Raw API-Football "round" string (FIFA matchday), e.g. "Group Stage - 1",
-    # "Round of 16". Groups matches into rounds (spec sections 3 and 7).
+    # Round string (FIFA matchday), e.g. "Group Stage - 1", "Round of 16".
+    # Groups matches into rounds (spec sections 3 and 7).
     round = models.CharField(max_length=50, blank=True, default="")
     starts_at = models.DateTimeField()
     home_goals = models.IntegerField(null=True, blank=True)
@@ -121,6 +124,28 @@ class Prediction(models.Model):
 
     def __str__(self):
         return f"{self.user} — {self.match} — {self.home_goals}×{self.away_goals}"
+
+
+class RankingEntry(models.Model):
+    """Pre-computed general ranking snapshot (spec sections 3 and 8).
+
+    Rebuilt by rebuild_ranking_snapshot() whenever a round closes, so the
+    ranking page never aggregates predictions at request time.
+    """
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    position = models.IntegerField()
+    total_points = models.IntegerField(default=0)
+    exact_count = models.IntegerField(default=0)
+    winner_hit_count = models.IntegerField(default=0)
+    skipped = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["position"]
+
+    def __str__(self):
+        return f"#{self.position} {self.user} — {self.total_points} pts"
 
 
 class RoundWinner(models.Model):

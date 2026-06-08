@@ -7,7 +7,22 @@ from pool.services.rounds import (
     get_current_round,
     is_match_in_current_round,
     phase_from_round,
+    round_label,
 )
+
+
+def test_round_label_group_includes_matchday():
+    assert round_label("Group Stage - 1") == "Fase de Grupos · 1ª Rodada"
+    assert round_label("Group Stage - 3") == "Fase de Grupos · 3ª Rodada"
+
+
+def test_round_label_knockout_uses_ptbr_phase():
+    assert round_label("Round of 16") == "Oitavas de Final"
+    assert round_label("Final") == "Final"
+
+
+def test_round_label_group_without_number_falls_back():
+    assert round_label("Group Stage") == "Fase de Grupos"
 
 
 @pytest.mark.parametrize(
