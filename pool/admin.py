@@ -1,8 +1,14 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.http import HttpResponse
+from django.shortcuts import redirect, render
+from django.urls import path, reverse
 
-from .models import Team, Match, Prediction, RoundWinner
+from .models import Team, Match, Prediction, RankingEntry, RoundWinner
+from .services.reset import full_reset
 from .services.throttle import LOGIN_RATE_LIMIT, client_ip, is_rate_limited
+
+# Word the admin must type to confirm the destructive full reset.
+RESET_CONFIRM_WORD = "ZERAR"
 
 # The admin login form takes password guesses like any other; throttle it
 # with the SAME key as the site login so an IP gets one shared budget.
@@ -79,6 +85,63 @@ class PredictionAdmin(_ReadOnlyAdmin):
     list_filter = ["result"]
 
     search_fields = ["user__username"]
+
+    # Adds the "Zerar palpites e resultados" button to the changelist toolbar.
+    change_list_template = "admin/pool/prediction/change_list.html"
+
+    def get_urls(self):
+        # admin_site.admin_view enforces staff login; the view itself adds a
+        # superuser check on top, since the reset is irreversible.
+        custom = [
+            path(
+                "full-reset/",
+                self.admin_site.admin_view(self.full_reset_view),
+                name="pool_prediction_full_reset",
+            ),
+        ]
+        return custom + super().get_urls()
+
+    def full_reset_view(self, request):
+        if not request.user.is_superuser:
+            self.message_user(
+                request,
+                "Apenas superusuários podem zerar os dados.",
+                level=messages.ERROR,
+            )
+            return redirect("admin:pool_prediction_changelist")
+
+        if request.method == "POST":
+            if request.POST.get("confirm") != RESET_CONFIRM_WORD:
+                self.message_user(
+                    request,
+                    "Confirmação incorreta. Nenhum dado foi alterado.",
+                    level=messages.WARNING,
+                )
+                return redirect("admin:pool_prediction_full_reset")
+
+            counts = full_reset()
+            self.message_user(
+                request,
+                "Dados zerados: {predictions} palpites, {round_winners} "
+                "vencedores de rodada, {ranking_entries} posições do ranking "
+                "removidos; {matches} jogos reiniciados.".format(**counts),
+                level=messages.SUCCESS,
+            )
+            return redirect("admin:pool_prediction_changelist")
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Zerar palpites e resultados",
+            "confirm_word": RESET_CONFIRM_WORD,
+            "counts": {
+                "predictions": Prediction.objects.count(),
+                "round_winners": RoundWinner.objects.count(),
+                "ranking_entries": RankingEntry.objects.count(),
+                "scored_matches": Match.objects.filter(is_scored=True).count(),
+            },
+            "changelist_url": reverse("admin:pool_prediction_changelist"),
+        }
+        return render(request, "admin/pool/prediction/full_reset_confirm.html", context)
 
 
 @admin.register(RoundWinner)

@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+  <div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{{ changelist_url }}">Palpites</a>
+    &rsaquo; Zerar palpites e resultados
+  </div>
+{% endblock %}
+
+{% block content %}
+  <p style="color:#b3261e;font-weight:bold;">
+    Atenção: esta ação é irreversível.
+  </p>
+  <p>Os seguintes dados serão <strong>apagados</strong>:</p>
+  <ul>
+    <li>{{ counts.predictions }} palpite(s)</li>
+    <li>{{ counts.round_winners }} vencedor(es) de rodada</li>
+    <li>{{ counts.ranking_entries }} posição(ões) do ranking</li>
+  </ul>
+  <p>
+    E todos os jogos serão <strong>reiniciados</strong> para o estado
+    pré-torneio (placar zerado, sem pontuação) —
+    {{ counts.scored_matches }} jogo(s) atualmente pontuado(s) serão reabertos.
+    Os times não são afetados.
+  </p>
+
+  <form method="post" action="{% url 'admin:pool_prediction_full_reset' %}">
+    {% csrf_token %}
+    <p>
+      <label for="confirm">
+        Digite <strong>{{ confirm_word }}</strong> para confirmar:
+      </label>
+      <input type="text" name="confirm" id="confirm" autocomplete="off">
+    </p>
+    <div class="submit-row">
+      <input type="submit" id="submit-reset" value="Zerar tudo" class="default"
+             disabled>
+      <a href="{{ changelist_url }}" class="button cancel-link">Cancelar</a>
+    </div>
+  </form>
+
+  <script>
+    (function () {
+      var input = document.getElementById("confirm");
+      var submit = document.getElementById("submit-reset");
+      var word = "{{ confirm_word|escapejs }}";
+      function sync() { submit.disabled = input.value.trim() !== word; }
+      input.addEventListener("input", sync);
+      sync();
+    })();
+  </script>
+{% endblock %}
