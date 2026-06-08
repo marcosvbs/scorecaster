@@ -4,7 +4,6 @@ from django.utils import timezone
 
 from pool.models import Prediction, RankingEntry
 from pool.services.ranking import (
-    closed_rounds,
     compute_ranking,
     get_ranking,
     rebuild_ranking_snapshot,
@@ -33,11 +32,11 @@ def test_empty_ranking_lists_all_users_with_zero(users):
     assert [r.position for r in rows] == [1, 2, 3]
 
 
-def test_only_closed_rounds_count(make_match, users):
+def test_scored_matches_count_live_mid_round(make_match, users):
     now = timezone.now()
     closed = make_match(starts_at=now - timezone.timedelta(days=2), round="Group Stage - 1")
     Prediction.objects.create(user=users[0], match=closed, home_goals=2, away_goals=0)
-    finish(closed, 2, 0)  # closes round 1 -> ana +10
+    finish(closed, 2, 0)  # ana +10
 
     in_progress = make_match(starts_at=now, round="Group Stage - 2")
     pending = make_match(
@@ -46,14 +45,13 @@ def test_only_closed_rounds_count(make_match, users):
     Prediction.objects.create(
         user=users[1], match=in_progress, home_goals=1, away_goals=0
     )
-    finish(in_progress, 1, 0)  # bruno +10, but round 2 still has a pending match
+    finish(in_progress, 1, 0)  # bruno +10 immediately, even though round 2 is open
 
-    assert closed_rounds() == {"Group Stage - 1"}
     rows = {r.user.username: r for r in compute_ranking()}
     assert rows["ana"].total_points == 10
-    assert rows["bruno"].total_points == 0  # round 2 not closed yet
+    assert rows["bruno"].total_points == 10  # live: counts before round 2 closes
 
-    finish(pending, 0, 0)  # now round 2 closes
+    finish(pending, 0, 0)  # round 2 fully scored, no extra points for bruno
     rows = {r.user.username: r for r in compute_ranking()}
     assert rows["bruno"].total_points == 10
 
@@ -137,6 +135,23 @@ def test_round_close_rebuilds_snapshot(make_match, users):
     assert entries[0].user == users[0]
     assert entries[0].total_points == 10
     assert entries[0].position == 1
+
+
+def test_mid_round_score_rebuilds_snapshot(make_match, users):
+    """Scoring a single match rebuilds the snapshot, even while the round
+    still has pending matches (live per-match ranking)."""
+    now = timezone.now()
+    scored = make_match(starts_at=now, round="Group Stage - 1")
+    make_match(
+        starts_at=now + timezone.timedelta(days=1), round="Group Stage - 1"
+    )  # pending -> round stays open
+    Prediction.objects.create(user=users[0], match=scored, home_goals=2, away_goals=0)
+
+    finish(scored, 2, 0)  # round not closed, but snapshot must update
+
+    entry = RankingEntry.objects.get(user=users[0])
+    assert entry.total_points == 10
+    assert entry.position == 1
 
 
 def test_correction_updates_snapshot(make_match, users):

@@ -117,7 +117,7 @@ def matches(request):
         user_pred = predictions_by_match.get(match.id)
         match.user_prediction = user_pred
 
-        if now >= match.prediction_deadline:
+        if match.is_scored or now >= match.prediction_deadline:
             match.status = "locked"
         elif user_pred:
             match.status = "predicted"
@@ -215,6 +215,13 @@ def save_prediction(request):
         )
 
     match = get_object_or_404(Match, id=match_id)
+
+    # A scored match is locked even if its round is still current and the
+    # deadline has not passed (e.g. an admin set the result early).
+    if match.is_scored:
+        return JsonResponse(
+            {"ok": False, "error": "Match is already scored."}, status=400
+        )
 
     # Only the current round accepts predictions (spec section 4).
     if not is_match_in_current_round(match):

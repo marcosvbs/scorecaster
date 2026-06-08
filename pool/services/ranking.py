@@ -1,12 +1,12 @@
 """General ranking with tiebreakers (spec section 8).
 
-Cumulative over closed rounds only: points from a round still in progress
-never show up. Tiebreakers: total points, exact hits, winner hits
-(result exact or partial), fewer skipped matches; username as a final
-deterministic fallback.
+Cumulative over every scored match (live, per-match): points from a match
+show up as soon as it is scored, even while its round is still in progress.
+Tiebreakers: total points, exact hits, winner hits (result exact or partial),
+fewer skipped matches; username as a final deterministic fallback.
 
-Request paths never aggregate: compute_ranking() runs only when a round
-closes (and as the round-winner tiebreak); its result is persisted as
+Request paths never aggregate: compute_ranking() runs only when a match is
+scored (and as the round-winner tiebreak); its result is persisted as
 RankingEntry rows, which get_ranking() reads back.
 """
 
@@ -19,23 +19,13 @@ from django.db.models import Count, Q, Sum
 from pool.models import Match, Prediction, RankingEntry
 
 
-def closed_rounds():
-    """Rounds whose every match is scored."""
-    all_rounds = set(Match.objects.values_list("round", flat=True).distinct())
-    open_rounds = set(
-        Match.objects.filter(is_scored=False).values_list("round", flat=True).distinct()
-    )
-    return all_rounds - open_rounds
-
-
 def compute_ranking():
-    closed = closed_rounds()
-    scored_match_count = Match.objects.filter(round__in=closed, is_scored=True).count()
+    scored_match_count = Match.objects.filter(is_scored=True).count()
 
     stats_by_user = {
         row["user_id"]: row
         for row in (
-            Prediction.objects.filter(match__round__in=closed, match__is_scored=True)
+            Prediction.objects.filter(match__is_scored=True)
             .values("user_id")
             .annotate(
                 total_points=Sum("points"),

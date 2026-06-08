@@ -173,6 +173,31 @@ def test_rejects_future_round_match(auth_client, teams):
     assert Prediction.objects.count() == 0
 
 
+def test_rejects_scored_match_even_before_deadline(auth_client, teams):
+    """A scored match is locked even while its round is current and its
+    deadline is still in the future (admin set the result early)."""
+    home, away = teams
+    match = Match.objects.create(
+        home_team=home,
+        away_team=away,
+        phase="group",
+        round="Group Stage - 1",
+        starts_at=timezone.now() + timezone.timedelta(hours=2),
+    )
+    match.home_goals = 1
+    match.away_goals = 0
+    match.save()  # scores the match -> is_scored=True
+    assert match.is_scored is True
+
+    resp = post(
+        auth_client, {"match_id": match.id, "home_goals": 2, "away_goals": 2}
+    )
+
+    assert resp.status_code == 400
+    assert resp.json()["ok"] is False
+    assert Prediction.objects.filter(match=match).count() == 0
+
+
 def test_rate_limited_after_20_saves_in_a_minute(auth_client, open_match):
     payload = {"match_id": open_match.id, "home_goals": 1, "away_goals": 0}
     for _ in range(20):

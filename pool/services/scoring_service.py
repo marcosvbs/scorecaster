@@ -36,6 +36,11 @@ def score_match(match):
 
     close_round_if_complete(match.round)
 
+    # Live ranking: the snapshot moves on every scored match, not only when a
+    # round closes. One rebuild here covers the round-close path too, since
+    # close_round_if_complete is only ever reached from score_match.
+    rebuild_ranking_snapshot()
+
 
 def close_round_if_complete(round_str):
     """Upsert RoundWinner rows once every match of the round is scored."""
@@ -62,11 +67,6 @@ def close_round_if_complete(round_str):
     RoundWinner.objects.filter(round=round_str).exclude(
         user__in=[w.user for w in winners]
     ).delete()
-
-    # Refresh the pre-computed ranking so pages never aggregate at request
-    # time. Manual admin corrections come through here too, keeping the
-    # snapshot consistent with the live data.
-    rebuild_ranking_snapshot()
 
     logger.info(
         "Round %r closed, winner(s): %s",
