@@ -4,40 +4,40 @@
 {% block breadcrumbs %}
   <div class="breadcrumbs">
     <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
-    &rsaquo; <a href="{{ changelist_url }}">Palpites</a>
-    &rsaquo; Zerar palpites e resultados
+    &rsaquo; <a href="{{ changelist_url }}">Predictions</a>
+    &rsaquo; Reset predictions and results
   </div>
 {% endblock %}
 
 {% block content %}
   <p style="color:#b3261e;font-weight:bold;">
-    Atenção: esta ação é irreversível.
+    Warning: this action cannot be undone.
   </p>
-  <p>Os seguintes dados serão <strong>apagados</strong>:</p>
+  <p>The following data will be <strong>deleted</strong>:</p>
   <ul>
-    <li>{{ counts.predictions }} palpite(s)</li>
-    <li>{{ counts.round_winners }} vencedor(es) de rodada</li>
-    <li>{{ counts.ranking_entries }} posição(ões) do ranking</li>
+    <li>{{ counts.predictions }} prediction(s)</li>
+    <li>{{ counts.round_winners }} round winner(s)</li>
+    <li>{{ counts.ranking_entries }} ranking position(s)</li>
   </ul>
   <p>
-    E todos os jogos serão <strong>reiniciados</strong> para o estado
-    pré-torneio (placar zerado, sem pontuação) —
-    {{ counts.scored_matches }} jogo(s) atualmente pontuado(s) serão reabertos.
-    Os times não são afetados.
+    And every match will be <strong>reopened</strong> to the pre-tournament
+    state (score cleared, no points) —
+    {{ counts.scored_matches }} currently scored match(es) will be reopened.
+    Teams are not affected.
   </p>
 
   <form method="post" action="{% url 'admin:pool_prediction_full_reset' %}">
     {% csrf_token %}
     <p>
       <label for="confirm">
-        Digite <strong>{{ confirm_word }}</strong> para confirmar:
+        Type <strong>{{ confirm_word }}</strong> to confirm:
       </label>
       <input type="text" name="confirm" id="confirm" autocomplete="off">
     </p>
     <div class="submit-row">
-      <input type="submit" id="submit-reset" value="Zerar tudo" class="default"
-             disabled>
-      <a href="{{ changelist_url }}" class="button cancel-link">Cancelar</a>
+      <input type="submit" id="submit-reset" value="Reset everything"
+             class="default" disabled>
+      <a href="{{ changelist_url }}" class="button cancel-link">Cancel</a>
     </div>
   </form>
 

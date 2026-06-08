@@ -65,7 +65,7 @@ def test_view_get_renders_confirm_for_superuser(client, superuser, populated):
     client.force_login(superuser)
     resp = client.get(reverse("admin:pool_prediction_full_reset"))
     assert resp.status_code == 200
-    assert b"ZERAR" in resp.content
+    assert b"RESET" in resp.content
     # Nothing wiped by a GET.
     assert Prediction.objects.count() == 1
 
@@ -73,7 +73,7 @@ def test_view_get_renders_confirm_for_superuser(client, superuser, populated):
 def test_view_post_with_correct_word_wipes(client, superuser, populated):
     client.force_login(superuser)
     resp = client.post(
-        reverse("admin:pool_prediction_full_reset"), {"confirm": "ZERAR"}
+        reverse("admin:pool_prediction_full_reset"), {"confirm": "RESET"}
     )
     assert resp.status_code == 302
     assert Prediction.objects.count() == 0
@@ -95,7 +95,7 @@ def test_view_rejects_non_superuser(client, db, populated):
     )
     client.force_login(staff)
     resp = client.post(
-        reverse("admin:pool_prediction_full_reset"), {"confirm": "ZERAR"}
+        reverse("admin:pool_prediction_full_reset"), {"confirm": "RESET"}
     )
     # Redirected back, no wipe.
     assert resp.status_code == 302

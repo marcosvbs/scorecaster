@@ -8,7 +8,7 @@ from .services.reset import full_reset
 from .services.throttle import LOGIN_RATE_LIMIT, client_ip, is_rate_limited
 
 # Word the admin must type to confirm the destructive full reset.
-RESET_CONFIRM_WORD = "ZERAR"
+RESET_CONFIRM_WORD = "RESET"
 
 # The admin login form takes password guesses like any other; throttle it
 # with the SAME key as the site login so an IP gets one shared budget.
@@ -105,7 +105,7 @@ class PredictionAdmin(_ReadOnlyAdmin):
         if not request.user.is_superuser:
             self.message_user(
                 request,
-                "Apenas superusuários podem zerar os dados.",
+                "Only superusers can reset the data.",
                 level=messages.ERROR,
             )
             return redirect("admin:pool_prediction_changelist")
@@ -114,7 +114,7 @@ class PredictionAdmin(_ReadOnlyAdmin):
             if request.POST.get("confirm") != RESET_CONFIRM_WORD:
                 self.message_user(
                     request,
-                    "Confirmação incorreta. Nenhum dado foi alterado.",
+                    "Incorrect confirmation. No data was changed.",
                     level=messages.WARNING,
                 )
                 return redirect("admin:pool_prediction_full_reset")
@@ -122,16 +122,16 @@ class PredictionAdmin(_ReadOnlyAdmin):
             counts = full_reset()
             self.message_user(
                 request,
-                "Dados zerados: {predictions} palpites, {round_winners} "
-                "vencedores de rodada, {ranking_entries} posições do ranking "
-                "removidos; {matches} jogos reiniciados.".format(**counts),
+                "Reset done: {predictions} predictions, {round_winners} round "
+                "winners, {ranking_entries} ranking entries removed; "
+                "{matches} matches reopened.".format(**counts),
                 level=messages.SUCCESS,
             )
             return redirect("admin:pool_prediction_changelist")
 
         context = {
             **self.admin_site.each_context(request),
-            "title": "Zerar palpites e resultados",
+            "title": "Reset predictions and results",
             "confirm_word": RESET_CONFIRM_WORD,
             "counts": {
                 "predictions": Prediction.objects.count(),
