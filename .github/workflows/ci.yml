@@ -1,0 +1,58 @@
+name: CI
+
+# Gate for the Railway deploy. Railway's "Wait for CI" setting holds each push
+# to main until these checks pass; a red run blocks (and is skipped by) deploy.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Tests & Django checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # DEBUG=False + a real SECRET_KEY are required: settings.py refuses to
+      # boot on the insecure fallback key when DEBUG is False.
+      - name: Django deploy checks
+        env:
+          DEBUG: "False"
+          SECRET_KEY: ci-secret-key-not-used-at-runtime
+        run: |
+          python manage.py makemigrations --check --dry-run
+          python manage.py check --deploy
+
+      # DEBUG defaults to True here, so the dev fallback SECRET_KEY is fine.
+      # No --cov-fail-under gate yet (no baseline agreed); add later if wanted.
+      - name: pytest
+        run: pytest --cov=pool --cov-report=term-missing
+
+  docker:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Validates the production image (incl. collectstatic / WhiteNoise
+      # manifest) builds before deploy. Build only — never pushed.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

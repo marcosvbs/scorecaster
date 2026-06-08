@@ -231,6 +231,16 @@ For a Railway deployment:
    `CSRF_TRUSTED_ORIGINS`, `HTTPS_ONLY=True`, `SQLITE_PATH=/data/db.sqlite3`.
 4. After the first deploy, run `seed_world_cup` and `createsuperuser` once
    (e.g. from a Railway shell).
+5. In the service settings, enable **Wait for CI** so Railway holds each push
+   to `main` until the GitHub Actions checks pass (see below).
+
+### Continuous integration
+
+`.github/workflows/ci.yml` runs on every push to `main` and every pull request:
+the pytest suite (with coverage), `makemigrations --check` + `check --deploy`,
+and a production Docker image build. With **Wait for CI** enabled on the Railway
+service, a red run blocks the deploy — Railway never builds a broken commit. CI
+runs entirely on GitHub Actions; it adds no Railway usage.
 
 ### Resetting the database (for testing)
 
