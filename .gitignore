@@ -7,3 +7,6 @@ db.sqlite3
 /staticfiles/
 .coverage
 .pytest_cache/
+
+# collectstatic output (built in the Docker image, never committed)
+staticfiles/
