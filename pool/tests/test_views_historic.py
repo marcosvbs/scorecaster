@@ -17,8 +17,8 @@ def test_requires_login(client):
 
 def test_stats_and_entries(auth_client, make_match, user):
     now = timezone.now()
-    exact = make_match(starts_at=now - timezone.timedelta(days=2), round="Group Stage - 1")
-    wrong = make_match(starts_at=now - timezone.timedelta(days=1), round="Group Stage - 1")
+    exact = make_match(starts_at=now - timezone.timedelta(days=2), phase="Group Stage - 1")
+    wrong = make_match(starts_at=now - timezone.timedelta(days=1), phase="Group Stage - 1")
     Prediction.objects.create(user=user, match=exact, home_goals=2, away_goals=0)
     Prediction.objects.create(user=user, match=wrong, home_goals=0, away_goals=2)
     finish(exact, 2, 0)

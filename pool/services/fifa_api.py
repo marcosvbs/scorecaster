@@ -17,7 +17,7 @@ import requests
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 
-from pool.services.rounds import phase_from_round
+from pool.services.phases import stage_from_phase
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +33,11 @@ PAGE_COUNT = 500
 # 1 = not started). Overridable via settings once live codes are confirmed.
 FINISHED_MATCH_STATUSES = frozenset(getattr(settings, "FIFA_FINISHED_STATUSES", (0,)))
 
-# FIFA StageName -> True when each match of that stage is its own round set.
-# Group matches get a synthetic "Group Stage - N" round (per-group matchday).
+# FIFA StageName -> True when each match of that stage is its own phase set.
+# Group matches get a synthetic "Group Stage - N" phase (per-group matchday).
 _GROUP_STAGE_NAME = "First Stage"
 
-# FIFA 3-letter country code -> ISO-2 used by Team.flag_emoji.
+# FIFA 3-letter country code -> ISO-2 used by Team.flag_svg.
 FIFA_TO_ISO2 = {
     "ALG": "DZ", "ARG": "AR", "AUS": "AU", "AUT": "AT", "BEL": "BE",
     "BOL": "BO", "BRA": "BR", "CAN": "CA", "CHI": "CL", "COL": "CO",
@@ -163,8 +163,8 @@ def _team(side, placeholder):
     return {"external_id": None, "name": label, "flag": "", "is_placeholder": True}
 
 
-def _group_rounds(raw_matches):
-    """Map IdMatch -> 'Group Stage - N' (the pool round = a FIFA matchday).
+def _group_phases(raw_matches):
+    """Map IdMatch -> 'Group Stage - N' (the pool phase = a FIFA matchday).
 
     FIFA omits a matchday number, but group matches are numbered globally by
     MatchNumber in matchday order (matchday 1 first, etc.). The group stage
@@ -182,14 +182,14 @@ def _group_rounds(raw_matches):
     total = len(ordered)
     per_matchday = max(1, total // 3)  # 24 for the 48-team / 12-group format
 
-    rounds = {}
+    phases = {}
     for index, raw in enumerate(ordered):
         matchday = min(3, index // per_matchday + 1)
-        rounds[raw.get("IdMatch")] = f"Group Stage - {matchday}"
-    return rounds
+        phases[raw.get("IdMatch")] = f"Group Stage - {matchday}"
+    return phases
 
 
-def normalize_match(raw, group_rounds):
+def normalize_match(raw, group_phases):
     """Validate one raw FIFA match into a flat dict, or None to skip it."""
     id_match = raw.get("IdMatch")
     if id_match in (None, ""):
@@ -207,13 +207,13 @@ def normalize_match(raw, group_rounds):
         return None
 
     stage_name = _clean_str(_desc(raw.get("StageName")), 50)
-    round_str = group_rounds.get(id_match) or stage_name or "Group Stage - 1"
+    phase_str = group_phases.get(id_match) or stage_name or "Group Stage - 1"
 
     status = raw.get("MatchStatus")
     return {
         "external_id": external_id,
-        "round": round_str[:50],
-        "phase": phase_from_round(round_str),
+        "phase": phase_str[:50],
+        "stage": stage_from_phase(phase_str),
         "starts_at": starts_at,
         "status": _clean_str(status, 10),
         "is_finished": is_finished(status),
@@ -226,8 +226,8 @@ def normalize_match(raw, group_rounds):
 
 def normalize_matches(raw_matches):
     """Normalize the full match list, dropping any malformed entries."""
-    group_rounds = _group_rounds(raw_matches)
-    normalized = [normalize_match(raw, group_rounds) for raw in raw_matches]
+    group_phases = _group_phases(raw_matches)
+    normalized = [normalize_match(raw, group_phases) for raw in raw_matches]
     return [match for match in normalized if match is not None]
 
 

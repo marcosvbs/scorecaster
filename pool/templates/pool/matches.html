@@ -1,5 +1,5 @@
 {% extends "pool/base.html" %}
-{% load pool_extras %}
+{% load static pool_extras %}
 
 {% block title %}Bolão Copa 2026 — Jogos{% endblock %}
 
@@ -29,17 +29,17 @@
 
 {% block content %}
 
-  {# ── Round winner card (shown only if there's a winner from yesterday) ── #}
-  {% if round_winner %}
+  {# ── Phase winner card (shown only if there's a winner from yesterday) ── #}
+  {% if phase_winner %}
   <div class="winner-card p-5 text-center">
     <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color: var(--color-gold); opacity: 0.7;">
-      🏆 Vencedor da rodada · {{ round_winner.date|date:"d \d\e F" }}
+      🏆 Vencedor da fase · {{ phase_winner.date|date:"d \d\e F" }}
     </p>
-    <p class="barlow-condensed text-2xl uppercase tracking-wide mb-0.5 gold-shimmer">{{ round_winner.user.username }}</p>
-    <p class="barlow-condensed text-3xl" style="color: var(--color-gold);">{{ round_winner.points }} pts</p>
+    <p class="barlow-condensed text-2xl uppercase tracking-wide mb-0.5 gold-shimmer">{{ phase_winner.user.username }}</p>
+    <p class="barlow-condensed text-3xl" style="color: var(--color-gold);">{{ phase_winner.points }} pts</p>
     <p class="text-xs mt-1" style="color: var(--text-muted);">
-      {{ round_winner.exact_count }} palpite{{ round_winner.exact_count|pluralize }} exato{{ round_winner.exact_count|pluralize }} ·
-      {{ round_winner.partial_count }} parcial{{ round_winner.partial_count|pluralize:"is" }}
+      {{ phase_winner.exact_count }} palpite{{ phase_winner.exact_count|pluralize }} exato{{ phase_winner.exact_count|pluralize }} ·
+      {{ phase_winner.partial_count }} parcial{{ phase_winner.partial_count|pluralize:"is" }}
     </p>
   </div>
   {% endif %}
@@ -47,7 +47,7 @@
   {# ── Tabs ── #}
   <section>
     <div class="flex gap-1 p-1 rounded-xl mb-4" style="background: var(--bg-surface-alt);">
-      <button id="tab-today" onclick="switchTab('today')" class="flex-1 py-1.5 text-sm font-medium transition-colors tab-active">Rodada atual</button>
+      <button id="tab-today" onclick="switchTab('today')" class="flex-1 py-1.5 text-sm font-medium transition-colors tab-active">Fase atual</button>
       <button id="tab-upcoming" onclick="switchTab('upcoming')" class="flex-1 py-1.5 text-sm transition-colors tab-inactive">Próximos jogos</button>
     </div>
 
@@ -57,23 +57,23 @@
         {% if match.status == 'open' %}
         <div class="game-card p-4"
              {# escapejs: HTML autoescaping alone doesn't protect JS-in-attribute — the browser decodes entities before the JS parser runs #}
-             onclick="openModal({{ match.id }}, '{{ match.round|round_label|escapejs }}', '{{ match.starts_at|time:'H\hi'|escapejs }}', '{{ match.home_team.name|escapejs }}', '{{ match.away_team.name|escapejs }}', {{ match.user_prediction.home_goals|default:0 }}, {{ match.user_prediction.away_goals|default:0 }})">
+             onclick="openModal({{ match.id }}, '{{ match.phase|phase_label|escapejs }}', '{{ match.starts_at|time:'H\hi'|escapejs }}', '{{ match.home_team.name|escapejs }}', '{{ match.away_team.name|escapejs }}', {{ match.user_prediction.home_goals|default:0 }}, {{ match.user_prediction.away_goals|default:0 }})">
           <div class="flex items-center justify-between mb-3 gap-2">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="text-xs truncate" style="color: var(--text-muted);">{{ match.round|round_label }} · {{ match.starts_at|date:"d/m" }} {{ match.starts_at|time:"H\h" }}</span>
+              <span class="text-xs truncate" style="color: var(--text-muted);">{{ match.phase|phase_label }} · {{ match.starts_at|date:"d/m" }} {{ match.starts_at|time:"H\h" }}</span>
               {% if match.is_knockout %}<span class="badge-knockout">⚔️ Mata-mata</span>{% endif %}
             </div>
             <span class="badge-open">Palpitar</span>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 flex-1">
-              <span style="font-size: 1.25rem; line-height: 1;">{{ match.home_team.flag_emoji }}</span>
+              <img class="flag" src="{% static match.home_team.flag_svg %}" alt="{{ match.home_team.name }}">
               <span class="text-sm font-semibold" style="color: var(--text-primary);">{{ match.home_team.name }}</span>
             </div>
             <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
             <div class="flex items-center gap-2 flex-1 justify-end">
               <span class="text-sm font-semibold" style="color: var(--text-primary);">{{ match.away_team.name }}</span>
-              <span style="font-size: 1.25rem; line-height: 1;">{{ match.away_team.flag_emoji }}</span>
+              <img class="flag" src="{% static match.away_team.flag_svg %}" alt="{{ match.away_team.name }}">
             </div>
           </div>
           <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
@@ -83,17 +83,17 @@
 
         {% elif match.status == 'predicted' %}
         <div class="game-card p-4"
-             onclick="openModal({{ match.id }}, '{{ match.round|round_label|escapejs }}', '{{ match.starts_at|time:'H\hi'|escapejs }}', '{{ match.home_team.name|escapejs }}', '{{ match.away_team.name|escapejs }}', {{ match.user_prediction.home_goals }}, {{ match.user_prediction.away_goals }})">
+             onclick="openModal({{ match.id }}, '{{ match.phase|phase_label|escapejs }}', '{{ match.starts_at|time:'H\hi'|escapejs }}', '{{ match.home_team.name|escapejs }}', '{{ match.away_team.name|escapejs }}', {{ match.user_prediction.home_goals }}, {{ match.user_prediction.away_goals }})">
           <div class="flex items-center justify-between mb-3 gap-2">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="text-xs truncate" style="color: var(--text-muted);">{{ match.round|round_label }} · {{ match.starts_at|date:"d/m" }} {{ match.starts_at|time:"H\h" }}</span>
+              <span class="text-xs truncate" style="color: var(--text-muted);">{{ match.phase|phase_label }} · {{ match.starts_at|date:"d/m" }} {{ match.starts_at|time:"H\h" }}</span>
               {% if match.is_knockout %}<span class="badge-knockout">⚔️ Mata-mata</span>{% endif %}
             </div>
             <span class="badge-predicted">Palpitado</span>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 flex-1">
-              <span style="font-size: 1.25rem; line-height: 1;">{{ match.home_team.flag_emoji }}</span>
+              <img class="flag" src="{% static match.home_team.flag_svg %}" alt="{{ match.home_team.name }}">
               <span class="text-sm font-semibold" style="color: var(--text-primary);">{{ match.home_team.name }}</span>
             </div>
             <div class="flex items-center gap-1">
@@ -103,7 +103,7 @@
             </div>
             <div class="flex items-center gap-2 flex-1 justify-end">
               <span class="text-sm font-semibold" style="color: var(--text-primary);">{{ match.away_team.name }}</span>
-              <span style="font-size: 1.25rem; line-height: 1;">{{ match.away_team.flag_emoji }}</span>
+              <img class="flag" src="{% static match.away_team.flag_svg %}" alt="{{ match.away_team.name }}">
             </div>
           </div>
           <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
@@ -115,20 +115,20 @@
         <div class="game-card-locked p-4">
           <div class="flex items-center justify-between mb-3 gap-2">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="text-xs truncate" style="color: var(--text-muted);">{{ match.round|round_label }} · {{ match.starts_at|date:"d/m" }} {{ match.starts_at|time:"H\h" }}</span>
+              <span class="text-xs truncate" style="color: var(--text-muted);">{{ match.phase|phase_label }} · {{ match.starts_at|date:"d/m" }} {{ match.starts_at|time:"H\h" }}</span>
               {% if match.is_knockout %}<span class="badge-knockout">⚔️ Mata-mata</span>{% endif %}
             </div>
             <span class="badge-locked">Bloqueado</span>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 flex-1">
-              <span style="font-size: 1.25rem; line-height: 1;">{{ match.home_team.flag_emoji }}</span>
+              <img class="flag" src="{% static match.home_team.flag_svg %}" alt="{{ match.home_team.name }}">
               <span class="text-sm font-semibold" style="color: var(--text-muted);">{{ match.home_team.name }}</span>
             </div>
             <span class="text-xs font-bold px-3" style="color: rgba(245,240,232,0.2);">×</span>
             <div class="flex items-center gap-2 flex-1 justify-end">
               <span class="text-sm font-semibold" style="color: var(--text-muted);">{{ match.away_team.name }}</span>
-              <span style="font-size: 1.25rem; line-height: 1;">{{ match.away_team.flag_emoji }}</span>
+              <img class="flag" src="{% static match.away_team.flag_svg %}" alt="{{ match.away_team.name }}">
             </div>
           </div>
           <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">Palpites encerrados às {{ match.prediction_deadline|time:"H\hi" }}</p>
@@ -136,27 +136,27 @@
         {% endif %}
 
       {% empty %}
-        <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum jogo na rodada atual.</p>
+        <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum jogo na fase atual.</p>
       {% endfor %}
     </div>
 
     {# ── Upcoming tab ── #}
     <div id="panel-upcoming" class="space-y-3 hidden">
-      {% regroup upcoming_matches by round as matches_by_round %}
-      {% for round_group in matches_by_round %}
+      {% regroup upcoming_matches by phase as matches_by_phase %}
+      {% for phase_group in matches_by_phase %}
       <div class="card p-4">
-        <p class="text-xs mb-3" style="color: var(--color-gold);">{{ round_group.grouper|round_label }}</p>
+        <p class="text-xs mb-3" style="color: var(--color-gold);">{{ phase_group.grouper|phase_label }}</p>
         <div class="space-y-3">
-          {% for match in round_group.list %}
+          {% for match in phase_group.list %}
           <div class="flex items-center justify-between{% if not forloop.first %} border-t pt-3{% endif %}" style="border-color: var(--border-default);">
             <div class="flex items-center gap-2 flex-1">
-              <span style="font-size: 1.25rem; line-height: 1;">{{ match.home_team.flag_emoji }}</span>
+              <img class="flag" src="{% static match.home_team.flag_svg %}" alt="{{ match.home_team.name }}">
               <span class="text-sm" style="color: var(--text-secondary);">{{ match.home_team.name }}</span>
             </div>
             <span class="text-xs px-2" style="color: var(--text-muted);">× {{ match.starts_at|date:"d/m" }} {{ match.starts_at|time:"H\h" }}</span>
             <div class="flex items-center gap-2 flex-1 justify-end">
               <span class="text-sm" style="color: var(--text-secondary);">{{ match.away_team.name }}</span>
-              <span style="font-size: 1.25rem; line-height: 1;">{{ match.away_team.flag_emoji }}</span>
+              <img class="flag" src="{% static match.away_team.flag_svg %}" alt="{{ match.away_team.name }}">
             </div>
           </div>
           {% endfor %}

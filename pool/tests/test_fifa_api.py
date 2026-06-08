@@ -129,8 +129,8 @@ def test_is_finished_decodes_status():
 def test_normalize_match_full_fields():
     [m] = normalize_matches([fifa_match(100, home_score=2, away_score=1)])
     assert m["external_id"] == 100
-    assert m["round"] == "Group Stage - 1"
-    assert m["phase"] == "group"
+    assert m["phase"] == "Group Stage - 1"
+    assert m["stage"] == "group"
     assert m["is_finished"] is True
     assert m["home"]["external_id"] == 10
     assert m["home"]["flag"] == "BR"
@@ -164,7 +164,7 @@ def test_malicious_team_name_is_length_bounded_and_clean():
 def test_bad_country_code_does_not_break_flag():
     raw = fifa_match(100, home_country="'; DROP TABLE--")
     [m] = normalize_matches([raw])
-    assert m["home"]["flag"] == ""  # never fed unvalidated into flag_emoji
+    assert m["home"]["flag"] == ""  # never fed unvalidated into flag_svg
 
 
 def test_out_of_range_score_is_dropped_not_stored():

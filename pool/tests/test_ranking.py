@@ -32,32 +32,32 @@ def test_empty_ranking_lists_all_users_with_zero(users):
     assert [r.position for r in rows] == [1, 2, 3]
 
 
-def test_scored_matches_count_live_mid_round(make_match, users):
+def test_scored_matches_count_live_mid_phase(make_match, users):
     now = timezone.now()
-    closed = make_match(starts_at=now - timezone.timedelta(days=2), round="Group Stage - 1")
+    closed = make_match(starts_at=now - timezone.timedelta(days=2), phase="Group Stage - 1")
     Prediction.objects.create(user=users[0], match=closed, home_goals=2, away_goals=0)
     finish(closed, 2, 0)  # ana +10
 
-    in_progress = make_match(starts_at=now, round="Group Stage - 2")
+    in_progress = make_match(starts_at=now, phase="Group Stage - 2")
     pending = make_match(
-        starts_at=now + timezone.timedelta(days=1), round="Group Stage - 2"
+        starts_at=now + timezone.timedelta(days=1), phase="Group Stage - 2"
     )
     Prediction.objects.create(
         user=users[1], match=in_progress, home_goals=1, away_goals=0
     )
-    finish(in_progress, 1, 0)  # bruno +10 immediately, even though round 2 is open
+    finish(in_progress, 1, 0)  # bruno +10 immediately, even though phase 2 is open
 
     rows = {r.user.username: r for r in compute_ranking()}
     assert rows["ana"].total_points == 10
-    assert rows["bruno"].total_points == 10  # live: counts before round 2 closes
+    assert rows["bruno"].total_points == 10  # live: counts before phase 2 closes
 
-    finish(pending, 0, 0)  # round 2 fully scored, no extra points for bruno
+    finish(pending, 0, 0)  # phase 2 fully scored, no extra points for bruno
     rows = {r.user.username: r for r in compute_ranking()}
     assert rows["bruno"].total_points == 10
 
 
 def test_ordering_and_positions(make_match, users):
-    match = make_match(round="Group Stage - 1")
+    match = make_match(phase="Group Stage - 1")
     Prediction.objects.create(user=users[0], match=match, home_goals=2, away_goals=0)  # exact
     Prediction.objects.create(user=users[1], match=match, home_goals=1, away_goals=0)  # partial
     Prediction.objects.create(user=users[2], match=match, home_goals=0, away_goals=2)  # wrong
@@ -71,9 +71,9 @@ def test_ordering_and_positions(make_match, users):
 
 def test_tiebreak_more_exact_hits(make_match, users):
     now = timezone.now()
-    first = make_match(starts_at=now, round="Group Stage - 1")
+    first = make_match(starts_at=now, phase="Group Stage - 1")
     second = make_match(
-        starts_at=now + timezone.timedelta(hours=5), round="Group Stage - 1"
+        starts_at=now + timezone.timedelta(hours=5), phase="Group Stage - 1"
     )
     # ana: exact (10) + wrong (0). bruno: partial diff (7) + wrong... use:
     # ana = exact 10; bruno = partial 5 + partial 5 -> both 10 points.
@@ -92,9 +92,9 @@ def test_tiebreak_more_exact_hits(make_match, users):
 
 def test_tiebreak_fewer_skipped(make_match, users):
     now = timezone.now()
-    first = make_match(starts_at=now, round="Group Stage - 1")
+    first = make_match(starts_at=now, phase="Group Stage - 1")
     second = make_match(
-        starts_at=now + timezone.timedelta(hours=5), round="Group Stage - 1"
+        starts_at=now + timezone.timedelta(hours=5), phase="Group Stage - 1"
     )
     # Same points, same exact, same winner hits; carla skips one match.
     Prediction.objects.create(user=users[0], match=first, home_goals=1, away_goals=0)
@@ -111,7 +111,7 @@ def test_tiebreak_fewer_skipped(make_match, users):
 
 
 def test_user_without_predictions_has_high_skip_count(make_match, users):
-    match = make_match(round="Group Stage - 1")
+    match = make_match(phase="Group Stage - 1")
     Prediction.objects.create(user=users[0], match=match, home_goals=1, away_goals=0)
     finish(match, 1, 0)
 
@@ -123,12 +123,12 @@ def test_user_without_predictions_has_high_skip_count(make_match, users):
 # ── Pre-computed snapshot (RankingEntry) ──
 
 
-def test_round_close_rebuilds_snapshot(make_match, users):
-    match = make_match(round="Group Stage - 1")
+def test_phase_close_rebuilds_snapshot(make_match, users):
+    match = make_match(phase="Group Stage - 1")
     Prediction.objects.create(user=users[0], match=match, home_goals=2, away_goals=0)
 
     assert RankingEntry.objects.count() == 0
-    finish(match, 2, 0)  # closes the round -> snapshot written
+    finish(match, 2, 0)  # closes the phase -> snapshot written
 
     entries = list(RankingEntry.objects.all())
     assert len(entries) == 3
@@ -137,17 +137,17 @@ def test_round_close_rebuilds_snapshot(make_match, users):
     assert entries[0].position == 1
 
 
-def test_mid_round_score_rebuilds_snapshot(make_match, users):
-    """Scoring a single match rebuilds the snapshot, even while the round
+def test_mid_phase_score_rebuilds_snapshot(make_match, users):
+    """Scoring a single match rebuilds the snapshot, even while the phase
     still has pending matches (live per-match ranking)."""
     now = timezone.now()
-    scored = make_match(starts_at=now, round="Group Stage - 1")
+    scored = make_match(starts_at=now, phase="Group Stage - 1")
     make_match(
-        starts_at=now + timezone.timedelta(days=1), round="Group Stage - 1"
-    )  # pending -> round stays open
+        starts_at=now + timezone.timedelta(days=1), phase="Group Stage - 1"
+    )  # pending -> phase stays open
     Prediction.objects.create(user=users[0], match=scored, home_goals=2, away_goals=0)
 
-    finish(scored, 2, 0)  # round not closed, but snapshot must update
+    finish(scored, 2, 0)  # phase not closed, but snapshot must update
 
     entry = RankingEntry.objects.get(user=users[0])
     assert entry.total_points == 10
@@ -155,7 +155,7 @@ def test_mid_round_score_rebuilds_snapshot(make_match, users):
 
 
 def test_correction_updates_snapshot(make_match, users):
-    match = make_match(round="Group Stage - 1")
+    match = make_match(phase="Group Stage - 1")
     Prediction.objects.create(user=users[0], match=match, home_goals=2, away_goals=0)
     Prediction.objects.create(user=users[1], match=match, home_goals=0, away_goals=2)
 
@@ -168,7 +168,7 @@ def test_correction_updates_snapshot(make_match, users):
 
 
 def test_get_ranking_reads_snapshot_without_aggregating(make_match, users, monkeypatch):
-    match = make_match(round="Group Stage - 1")
+    match = make_match(phase="Group Stage - 1")
     Prediction.objects.create(user=users[0], match=match, home_goals=2, away_goals=0)
     finish(match, 2, 0)
 
@@ -186,7 +186,7 @@ def test_get_ranking_reads_snapshot_without_aggregating(make_match, users, monke
 
 
 def test_get_ranking_appends_users_created_after_snapshot(make_match, users):
-    match = make_match(round="Group Stage - 1")
+    match = make_match(phase="Group Stage - 1")
     Prediction.objects.create(user=users[0], match=match, home_goals=2, away_goals=0)
     finish(match, 2, 0)
 
@@ -207,7 +207,7 @@ def test_get_ranking_empty_snapshot_lists_all_users_at_zero(users):
 
 
 def test_rebuild_snapshot_is_idempotent(make_match, users):
-    match = make_match(round="Group Stage - 1")
+    match = make_match(phase="Group Stage - 1")
     Prediction.objects.create(user=users[0], match=match, home_goals=2, away_goals=0)
     finish(match, 2, 0)
 

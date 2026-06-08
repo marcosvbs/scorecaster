@@ -4,7 +4,7 @@ import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
 
-from pool.models import Match, Prediction, RankingEntry, RoundWinner, Team
+from pool.models import Match, Prediction, RankingEntry, PhaseWinner, Team
 from pool.services.reset import full_reset
 
 
@@ -16,13 +16,13 @@ def superuser(db):
 @pytest.fixture
 def populated(db, user, make_match):
     """A scored match with a prediction plus derived ranking/winner rows."""
-    match = make_match(round="Group Stage - 1", home_goals=2, away_goals=1)
+    match = make_match(phase="Group Stage - 1", home_goals=2, away_goals=1)
     Match.objects.filter(pk=match.pk).update(is_scored=True, api_status="FT")
     Prediction.objects.create(
         user=user, match=match, home_goals=2, away_goals=1, points=10, result="exact"
     )
-    RoundWinner.objects.create(
-        round="Group Stage - 1", user=user, points=10, exact_count=1, partial_count=0
+    PhaseWinner.objects.create(
+        phase="Group Stage - 1", user=user, points=10, exact_count=1, partial_count=0
     )
     RankingEntry.objects.create(
         user=user, position=1, total_points=10, exact_count=1, winner_hit_count=1
@@ -34,7 +34,7 @@ def test_full_reset_wipes_and_reopens(populated):
     counts = full_reset()
 
     assert Prediction.objects.count() == 0
-    assert RoundWinner.objects.count() == 0
+    assert PhaseWinner.objects.count() == 0
     assert RankingEntry.objects.count() == 0
     # Teams survive.
     assert Team.objects.count() == 2
@@ -46,7 +46,7 @@ def test_full_reset_wipes_and_reopens(populated):
 
     assert counts == {
         "predictions": 1,
-        "round_winners": 1,
+        "phase_winners": 1,
         "ranking_entries": 1,
         "matches": 1,
     }
@@ -55,7 +55,7 @@ def test_full_reset_wipes_and_reopens(populated):
 def test_full_reset_is_idempotent_on_empty_db(db):
     assert full_reset() == {
         "predictions": 0,
-        "round_winners": 0,
+        "phase_winners": 0,
         "ranking_entries": 0,
         "matches": 0,
     }

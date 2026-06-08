@@ -52,12 +52,12 @@ def teams(db):
 def make_match(teams):
     home, away = teams
 
-    def _make(starts_at=None, phase="group", round="", **kwargs):
+    def _make(starts_at=None, stage="group", phase="", **kwargs):
         return Match.objects.create(
             home_team=home,
             away_team=away,
+            stage=stage,
             phase=phase,
-            round=round,
             starts_at=starts_at or timezone.now() + timezone.timedelta(hours=2),
             **kwargs,
         )

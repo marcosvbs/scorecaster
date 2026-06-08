@@ -7,18 +7,18 @@ transaction so a failure leaves the database exactly as it was (non-corrupting).
 
 from django.db import transaction
 
-from pool.models import Match, Prediction, RankingEntry, RoundWinner
+from pool.models import Match, Prediction, RankingEntry, PhaseWinner
 
 
 @transaction.atomic
 def full_reset():
     """Delete all predictions + derived data and reset matches to pre-play.
 
-    Returns a dict of counts (predictions, round_winners, ranking_entries,
+    Returns a dict of counts (predictions, phase_winners, ranking_entries,
     matches) for the confirmation message.
     """
     predictions = Prediction.objects.all().delete()[0]
-    round_winners = RoundWinner.objects.all().delete()[0]
+    phase_winners = PhaseWinner.objects.all().delete()[0]
     ranking_entries = RankingEntry.objects.all().delete()[0]
     # Queryset update bypasses Match.save() — no scoring hook fires (it also
     # never would, since the goals are being set back to null).
@@ -27,7 +27,7 @@ def full_reset():
     )
     return {
         "predictions": predictions,
-        "round_winners": round_winners,
+        "phase_winners": phase_winners,
         "ranking_entries": ranking_entries,
         "matches": matches,
     }

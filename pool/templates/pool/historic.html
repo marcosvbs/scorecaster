@@ -1,5 +1,5 @@
 {% extends "pool/base.html" %}
-{% load pool_extras %}
+{% load static pool_extras %}
 
 {% block title %}Bolão Copa 2026 — Histórico{% endblock %}
 
@@ -47,7 +47,7 @@
 
         <div class="flex items-center justify-between mb-1.5">
           <span class="text-xs" style="color: var(--text-muted);">
-            {{ entry.match.starts_at|date:"d \d\e M" }} · {{ entry.match.round|round_label }}
+            {{ entry.match.starts_at|date:"d \d\e M" }} · {{ entry.match.phase|phase_label }}
           </span>
           {% if entry.result == 'exact' %}
             <span class="badge-exact">Exato · +{{ entry.points }} pts</span>
@@ -62,7 +62,7 @@
 
         <div class="flex items-center justify-between">
           <span class="text-sm flex-1" style="color: var(--text-secondary);">
-            {{ entry.match.home_team.flag_emoji }} {{ entry.match.home_team.name }}
+            <img class="flag" src="{% static entry.match.home_team.flag_svg %}" alt="{{ entry.match.home_team.name }}"> {{ entry.match.home_team.name }}
           </span>
 
           {% if entry.result != 'none' %}
@@ -79,7 +79,7 @@
           {% endif %}
 
           <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
-            {{ entry.match.away_team.name }} {{ entry.match.away_team.flag_emoji }}
+            {{ entry.match.away_team.name }} <img class="flag" src="{% static entry.match.away_team.flag_svg %}" alt="{{ entry.match.away_team.name }}">
           </span>
         </div>
 
