@@ -96,6 +96,25 @@ def test_match_past_deadline_is_locked(auth_client, teams):
     assert find(resp.context["today_matches"], match.id).status == "locked"
 
 
+def test_scored_match_is_locked_even_before_deadline(auth_client, teams):
+    # Future kickoff (deadline not passed) but already scored -> locked.
+    match = make_match(
+        teams, timezone.now() + timezone.timedelta(hours=2), round="Group Stage - 1"
+    )
+    # A pending sibling keeps the round current, so the scored match stays in
+    # the current-round tab instead of advancing out of it.
+    make_match(
+        teams, timezone.now() + timezone.timedelta(days=2), round="Group Stage - 1"
+    )
+    match.home_goals = 1
+    match.away_goals = 0
+    match.save()  # scores the match
+
+    resp = auth_client.get("/")
+
+    assert find(resp.context["today_matches"], match.id).status == "locked"
+
+
 def test_future_rounds_separated_from_current(auth_client, teams):
     current_match = make_match(
         teams, timezone.now() + timezone.timedelta(hours=2), round="Group Stage - 1"
