@@ -165,7 +165,7 @@ def test_tab_labels_renamed(auth_client, teams):
     html = resp.content.decode()
 
     assert "Fase atual" in html
-    assert "Próximos jogos" in html
+    assert "Próximas fases" in html
     assert ">Hoje<" not in html
 
 
