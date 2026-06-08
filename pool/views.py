@@ -9,12 +9,12 @@ from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.http import JsonResponse
 
-from pool.models import Match, Prediction, RoundWinner
+from pool.models import Match, Prediction, PhaseWinner
 from pool.services.ranking import get_ranking
-from pool.services.rounds import (
-    current_round_matches,
-    future_round_matches,
-    is_match_in_current_round,
+from pool.services.phases import (
+    current_phase_matches,
+    future_phase_matches,
+    is_match_in_current_phase,
 )
 from pool.services.throttle import (
     LOGIN_RATE_LIMIT,
@@ -45,21 +45,21 @@ class CustomLoginView(LoginView):
         return super().post(request, *args, **kwargs)
 
 
-def _round_winner_card(now):
-    """Winner card data for the most recently closed round (spec section 7).
+def _phase_winner_card(now):
+    """Winner card data for the most recently closed phase (spec section 7).
 
-    Shown from the moment the round is scored until the first match of the
-    next round kicks off. Multiple winners (spec 7.4) are listed together.
+    Shown from the moment the phase is scored until the first match of the
+    next phase kicks off. Multiple winners (spec 7.4) are listed together.
     """
-    closed_round = (
+    closed_phase = (
         Match.objects.filter(is_scored=True)
-        .exclude(round__in=Match.objects.filter(is_scored=False).values("round"))
-        .values("round")
+        .exclude(phase__in=Match.objects.filter(is_scored=False).values("phase"))
+        .values("phase")
         .annotate(last_start=Max("starts_at"))
         .order_by("-last_start")
         .first()
     )
-    if not closed_round:
+    if not closed_phase:
         return None
 
     next_first_start = (
@@ -72,7 +72,7 @@ def _round_winner_card(now):
         return None
 
     winners = list(
-        RoundWinner.objects.filter(round=closed_round["round"])
+        PhaseWinner.objects.filter(phase=closed_phase["phase"])
         .select_related("user")
         .order_by("user__username")
     )
@@ -87,7 +87,7 @@ def _round_winner_card(now):
         points=first.points,
         exact_count=first.exact_count,
         partial_count=first.partial_count,
-        date=closed_round["last_start"],
+        date=closed_phase["last_start"],
     )
 
 
@@ -96,13 +96,13 @@ def matches(request):
     now = timezone.now()
 
     today_matches = (
-        current_round_matches()
+        current_phase_matches()
         .order_by("starts_at")
         .select_related("home_team", "away_team")
     )
 
     upcoming_matches = (
-        future_round_matches()
+        future_phase_matches()
         .order_by("starts_at")
         .select_related("home_team", "away_team")
     )
@@ -128,7 +128,7 @@ def matches(request):
         "active_nav": "matches",
         "today_matches": today_matches,
         "upcoming_matches": upcoming_matches,
-        "round_winner": _round_winner_card(now),
+        "phase_winner": _phase_winner_card(now),
     }
 
     return render(request, "pool/matches.html", context)
@@ -216,17 +216,17 @@ def save_prediction(request):
 
     match = get_object_or_404(Match, id=match_id)
 
-    # A scored match is locked even if its round is still current and the
+    # A scored match is locked even if its phase is still current and the
     # deadline has not passed (e.g. an admin set the result early).
     if match.is_scored:
         return JsonResponse(
             {"ok": False, "error": "Match is already scored."}, status=400
         )
 
-    # Only the current round accepts predictions (spec section 4).
-    if not is_match_in_current_round(match):
+    # Only the current phase accepts predictions (spec section 4).
+    if not is_match_in_current_phase(match):
         return JsonResponse(
-            {"ok": False, "error": "Match is not in the current round."}, status=400
+            {"ok": False, "error": "Match is not in the current phase."}, status=400
         )
 
     if timezone.now() >= match.prediction_deadline:

@@ -35,8 +35,8 @@ def seed_match(match):
             "home_team": upsert_team(match["home"]),
             "away_team": upsert_team(match["away"]),
             "starts_at": match["starts_at"],
-            "round": match["round"],
             "phase": match["phase"],
+            "stage": match["stage"],
             "api_status": match["status"],
         },
     )[0]

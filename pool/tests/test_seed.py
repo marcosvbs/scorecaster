@@ -29,8 +29,8 @@ def test_seed_creates_teams_and_matches(db, mock_client):
     assert brasil.flag == "BR"
 
     match = Match.objects.get(external_id=100)
-    assert match.round == "Group Stage - 1"
-    assert match.phase == "group"
+    assert match.phase == "Group Stage - 1"
+    assert match.stage == "group"
     assert match.api_status == "1"
     assert match.is_scored is False
     assert match.starts_at.isoformat() == "2026-06-11T19:00:00+00:00"
@@ -44,9 +44,9 @@ def test_seed_derives_knockout_phase(db, mock_client):
     call_command("seed_world_cup")
 
     match = Match.objects.get(external_id=200)
-    assert match.phase == "round_of_16"
+    assert match.stage == "round_of_16"
     assert match.is_knockout is True
-    assert match.round == "Round of 16"
+    assert match.phase == "Round of 16"
 
 
 def test_seed_group_matchday_from_kickoff_order(db, mock_client):
@@ -59,9 +59,9 @@ def test_seed_group_matchday_from_kickoff_order(db, mock_client):
 
     call_command("seed_world_cup")
 
-    assert Match.objects.get(external_id=1).round == "Group Stage - 1"
-    assert Match.objects.get(external_id=2).round == "Group Stage - 2"
-    assert Match.objects.get(external_id=3).round == "Group Stage - 3"
+    assert Match.objects.get(external_id=1).phase == "Group Stage - 1"
+    assert Match.objects.get(external_id=2).phase == "Group Stage - 2"
+    assert Match.objects.get(external_id=3).phase == "Group Stage - 3"
 
 
 def test_seed_creates_placeholder_team_for_knockout(db, mock_client):

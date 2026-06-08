@@ -4,7 +4,7 @@ import pytest
 from django.core.management import call_command
 from django.utils import timezone
 
-from pool.models import Match, Prediction, RoundWinner, Team
+from pool.models import Match, Prediction, PhaseWinner, Team
 from pool.services.fifa_api import FifaApiError
 from pool.tests.fifa_factories import fifa_match
 
@@ -44,7 +44,7 @@ def test_finished_match_is_scored(make_match, mock_client, user):
     match = make_match(
         starts_at=timezone.now() - timezone.timedelta(hours=3),
         external_id=100,
-        round="Group Stage - 1",
+        phase="Group Stage - 1",
     )
     pred = Prediction.objects.create(user=user, match=match, home_goals=2, away_goals=1)
     mock_client.get_all_matches.return_value = [fifa_match(100, home_score=2, away_score=1)]
@@ -57,7 +57,7 @@ def test_finished_match_is_scored(make_match, mock_client, user):
     assert match.api_status == "0"
     assert match.is_scored is True
     assert pred.points == 10 and pred.result == "exact"
-    assert RoundWinner.objects.filter(round="Group Stage - 1").count() == 1
+    assert PhaseWinner.objects.filter(phase="Group Stage - 1").count() == 1
 
 
 def test_single_call_covers_all_due_matches(make_match, mock_client):
@@ -76,8 +76,8 @@ def test_knockout_waits_longer(make_match, mock_client):
     make_match(
         starts_at=timezone.now() - timezone.timedelta(hours=2),
         external_id=100,
-        phase="round_of_16",
-        round="Round of 16",
+        stage="round_of_16",
+        phase="Round of 16",
     )
 
     call_command("check_results")
@@ -130,7 +130,7 @@ def test_rerun_is_idempotent(make_match, mock_client, user):
     match = make_match(
         starts_at=timezone.now() - timezone.timedelta(hours=3),
         external_id=100,
-        round="Group Stage - 1",
+        phase="Group Stage - 1",
     )
     pred = Prediction.objects.create(user=user, match=match, home_goals=2, away_goals=1)
     mock_client.get_all_matches.return_value = [fifa_match(100)]
@@ -141,7 +141,7 @@ def test_rerun_is_idempotent(make_match, mock_client, user):
     assert mock_client.get_all_matches.call_count == 1
     pred.refresh_from_db()
     assert pred.points == 10
-    assert RoundWinner.objects.count() == 1
+    assert PhaseWinner.objects.count() == 1
 
 
 def test_scores_even_when_goals_already_filled(make_match, mock_client, user):
@@ -169,8 +169,8 @@ def test_penalties_score_as_draw(make_match, mock_client, user):
     match = make_match(
         starts_at=timezone.now() - timezone.timedelta(hours=4),
         external_id=100,
-        phase="round_of_16",
-        round="Round of 16",
+        stage="round_of_16",
+        phase="Round of 16",
     )
     pred = Prediction.objects.create(user=user, match=match, home_goals=0, away_goals=0)
     mock_client.get_all_matches.return_value = [
@@ -201,8 +201,8 @@ def test_knockout_placeholder_resolves_to_real_teams(make_match, mock_client):
     match = Match.objects.create(
         home_team=tbd_home,
         away_team=tbd_away,
-        phase="round_of_32",
-        round="Round of 32",
+        stage="round_of_32",
+        phase="Round of 32",
         starts_at=timezone.now() - timezone.timedelta(hours=4),
         external_id=200,
     )

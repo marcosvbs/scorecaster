@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import path, reverse
 
-from .models import Team, Match, Prediction, RankingEntry, RoundWinner
+from .models import Team, Match, Prediction, RankingEntry, PhaseWinner
 from .services.reset import full_reset
 from .services.throttle import LOGIN_RATE_LIMIT, client_ip, is_rate_limited
 
@@ -38,13 +38,13 @@ class TeamAdmin(admin.ModelAdmin):
 
 @admin.register(Match)
 class MatchAdmin(admin.ModelAdmin):
-    # Saving a result here triggers the same scoring + round-close pipeline as
+    # Saving a result here triggers the same scoring + phase-close pipeline as
     # the automatic flow (Match.save), so manual updates stay consistent.
     list_display = [
         "home_team",
         "away_team",
+        "stage",
         "phase",
-        "round",
         "starts_at",
         "home_goals",
         "away_goals",
@@ -54,10 +54,10 @@ class MatchAdmin(admin.ModelAdmin):
     ]
 
     # Edit results straight from the changelist; each row save runs Match.save()
-    # → the full scoring + round-close + ranking cascade.
+    # → the full scoring + phase-close + ranking cascade.
     list_editable = ["home_goals", "away_goals"]
 
-    list_filter = ["phase", "is_scored", "starts_at"]
+    list_filter = ["stage", "is_scored", "starts_at"]
 
     ordering = ["starts_at"]
 
@@ -122,7 +122,7 @@ class PredictionAdmin(_ReadOnlyAdmin):
             counts = full_reset()
             self.message_user(
                 request,
-                "Reset done: {predictions} predictions, {round_winners} round "
+                "Reset done: {predictions} predictions, {phase_winners} phase "
                 "winners, {ranking_entries} ranking entries removed; "
                 "{matches} matches reopened.".format(**counts),
                 level=messages.SUCCESS,
@@ -135,7 +135,7 @@ class PredictionAdmin(_ReadOnlyAdmin):
             "confirm_word": RESET_CONFIRM_WORD,
             "counts": {
                 "predictions": Prediction.objects.count(),
-                "round_winners": RoundWinner.objects.count(),
+                "phase_winners": PhaseWinner.objects.count(),
                 "ranking_entries": RankingEntry.objects.count(),
                 "scored_matches": Match.objects.filter(is_scored=True).count(),
             },
@@ -144,8 +144,8 @@ class PredictionAdmin(_ReadOnlyAdmin):
         return render(request, "admin/pool/prediction/full_reset_confirm.html", context)
 
 
-@admin.register(RoundWinner)
-class RoundWinnerAdmin(_ReadOnlyAdmin):
-    list_display = ["round", "user", "points", "exact_count", "partial_count"]
+@admin.register(PhaseWinner)
+class PhaseWinnerAdmin(_ReadOnlyAdmin):
+    list_display = ["phase", "user", "points", "exact_count", "partial_count"]
 
-    list_filter = ["round"]
+    list_filter = ["phase"]

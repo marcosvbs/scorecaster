@@ -2,12 +2,12 @@
 
 from django import template
 
-from pool.services.rounds import round_label as _round_label
+from pool.services.phases import phase_label as _phase_label
 
 register = template.Library()
 
 
 @register.filter
-def round_label(round_str):
-    """pt-BR round label, e.g. "Fase de Grupos · 1ª Rodada" / "Oitavas de Final"."""
-    return _round_label(round_str)
+def phase_label(phase_str):
+    """pt-BR phase label, e.g. "Fase de Grupos · 1ª Rodada" / "Oitavas de Final"."""
+    return _phase_label(phase_str)

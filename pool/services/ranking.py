@@ -1,12 +1,12 @@
 """General ranking with tiebreakers (spec section 8).
 
 Cumulative over every scored match (live, per-match): points from a match
-show up as soon as it is scored, even while its round is still in progress.
+show up as soon as it is scored, even while its phase is still in progress.
 Tiebreakers: total points, exact hits, winner hits (result exact or partial),
 fewer skipped matches; username as a final deterministic fallback.
 
 Request paths never aggregate: compute_ranking() runs only when a match is
-scored (and as the round-winner tiebreak); its result is persisted as
+scored (and as the phase-winner tiebreak); its result is persisted as
 RankingEntry rows, which get_ranking() reads back.
 """
 
@@ -89,7 +89,7 @@ def get_ranking():
     """Read the pre-computed ranking. No aggregation — request-path safe.
 
     Users created after the last snapshot are appended at the bottom with
-    zeros; before the first round closes (empty snapshot) everyone is listed
+    zeros; before the first phase closes (empty snapshot) everyone is listed
     at zero.
     """
     entries = list(RankingEntry.objects.select_related("user"))

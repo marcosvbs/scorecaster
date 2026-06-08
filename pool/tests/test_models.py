@@ -2,7 +2,7 @@ import pytest
 from django.db import IntegrityError
 from django.utils import timezone
 
-from pool.models import Prediction, RankingEntry, RoundWinner
+from pool.models import Prediction, RankingEntry, PhaseWinner, Team
 
 
 def test_prediction_deadline_is_30_minutes_before_start(make_match):
@@ -36,19 +36,34 @@ def test_prediction_updated_at_changes_on_save(make_match, user):
     assert prediction.updated_at >= first
 
 
-def test_round_winner_unique_per_round_and_user(db, user):
-    RoundWinner.objects.create(round="Group Stage - 1", user=user, points=10)
+def test_phase_winner_unique_per_phase_and_user(db, user):
+    PhaseWinner.objects.create(phase="Group Stage - 1", user=user, points=10)
 
     with pytest.raises(IntegrityError):
-        RoundWinner.objects.create(round="Group Stage - 1", user=user, points=12)
+        PhaseWinner.objects.create(phase="Group Stage - 1", user=user, points=12)
 
 
-def test_round_winner_allows_multiple_users_same_round(db, user, django_user_model):
+def test_phase_winner_allows_multiple_users_same_phase(db, user, django_user_model):
     other = django_user_model.objects.create_user(username="joca", password="x")
-    RoundWinner.objects.create(round="Group Stage - 1", user=user, points=0)
-    RoundWinner.objects.create(round="Group Stage - 1", user=other, points=0)
+    PhaseWinner.objects.create(phase="Group Stage - 1", user=user, points=0)
+    PhaseWinner.objects.create(phase="Group Stage - 1", user=other, points=0)
 
-    assert RoundWinner.objects.filter(round="Group Stage - 1").count() == 2
+    assert PhaseWinner.objects.filter(phase="Group Stage - 1").count() == 2
+
+
+@pytest.mark.parametrize(
+    "flag, expected",
+    [
+        ("BR", "pool/flags/br.svg"),
+        ("gb", "pool/flags/gb.svg"),
+        ("", "pool/flags/_placeholder.svg"),
+        ("X", "pool/flags/_placeholder.svg"),
+        ("BRA", "pool/flags/_placeholder.svg"),
+    ],
+)
+def test_flag_svg_maps_iso2_to_static_path(db, flag, expected):
+    team = Team.objects.create(name="T", flag=flag)
+    assert team.flag_svg == expected
 
 
 def test_match_defaults(make_match):
@@ -56,7 +71,7 @@ def test_match_defaults(make_match):
 
     assert match.is_scored is False
     assert match.api_status == "NS"
-    assert match.round == ""
+    assert match.phase == ""
 
 
 def test_str_representations(make_match, user):
@@ -64,7 +79,7 @@ def test_str_representations(make_match, user):
     prediction = Prediction.objects.create(
         user=user, match=match, home_goals=1, away_goals=0
     )
-    winner = RoundWinner.objects.create(round="Group Stage - 1", user=user, points=10)
+    winner = PhaseWinner.objects.create(phase="Group Stage - 1", user=user, points=10)
     entry = RankingEntry.objects.create(user=user, position=1, total_points=10)
 
     assert "Brasil" in str(match.home_team)

@@ -29,7 +29,7 @@ def open_match(db, teams):
     return Match.objects.create(
         home_team=home,
         away_team=away,
-        phase="group",
+        stage="group",
         starts_at=timezone.now() + timezone.timedelta(hours=2),
     )
 
@@ -40,7 +40,7 @@ def locked_match(db, teams):
     return Match.objects.create(
         home_team=home,
         away_team=away,
-        phase="group",
+        stage="group",
         starts_at=timezone.now() - timezone.timedelta(hours=1),
     )
 
@@ -146,21 +146,21 @@ def test_rejects_malformed_json(auth_client, open_match):
     assert resp.status_code == 400
 
 
-def test_rejects_future_round_match(auth_client, teams):
-    """Future rounds are view-only: no predicting ahead (spec section 4)."""
+def test_rejects_future_phase_match(auth_client, teams):
+    """Future phases are view-only: no predicting ahead (spec section 4)."""
     home, away = teams
     Match.objects.create(
         home_team=home,
         away_team=away,
-        phase="group",
-        round="Group Stage - 1",
+        stage="group",
+        phase="Group Stage - 1",
         starts_at=timezone.now() + timezone.timedelta(hours=2),
     )
     future_match = Match.objects.create(
         home_team=home,
         away_team=away,
-        phase="group",
-        round="Group Stage - 2",
+        stage="group",
+        phase="Group Stage - 2",
         starts_at=timezone.now() + timezone.timedelta(days=4),
     )
 
@@ -174,14 +174,14 @@ def test_rejects_future_round_match(auth_client, teams):
 
 
 def test_rejects_scored_match_even_before_deadline(auth_client, teams):
-    """A scored match is locked even while its round is current and its
+    """A scored match is locked even while its phase is current and its
     deadline is still in the future (admin set the result early)."""
     home, away = teams
     match = Match.objects.create(
         home_team=home,
         away_team=away,
-        phase="group",
-        round="Group Stage - 1",
+        stage="group",
+        phase="Group Stage - 1",
         starts_at=timezone.now() + timezone.timedelta(hours=2),
     )
     match.home_goals = 1
@@ -221,20 +221,20 @@ def test_rate_limit_is_per_user(auth_client, client, open_match):
     assert post(client, payload).status_code == 200
 
 
-def test_accepts_current_round_match(auth_client, teams):
+def test_accepts_current_phase_match(auth_client, teams):
     home, away = teams
     current = Match.objects.create(
         home_team=home,
         away_team=away,
-        phase="group",
-        round="Group Stage - 1",
+        stage="group",
+        phase="Group Stage - 1",
         starts_at=timezone.now() + timezone.timedelta(hours=2),
     )
     Match.objects.create(
         home_team=home,
         away_team=away,
-        phase="group",
-        round="Group Stage - 2",
+        stage="group",
+        phase="Group Stage - 2",
         starts_at=timezone.now() + timezone.timedelta(days=4),
     )
 

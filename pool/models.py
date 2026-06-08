@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
-KNOCKOUT_PHASES = [
+KNOCKOUT_STAGES = [
     "round_of_32",
     "round_of_16",
     "quarter_final",
@@ -19,21 +19,23 @@ class Team(models.Model):
     external_id = models.IntegerField(null=True, blank=True, unique=True)
 
     @property
-    def flag_emoji(self):
-        # Defensive: only a 2-letter ASCII code maps to a flag; anything else
-        # (placeholder team, unmapped country) renders nothing rather than
-        # garbage codepoints.
-        code = (self.flag or "").upper()
-        if len(code) != 2 or not (code.isascii() and code.isalpha()):
-            return ""
-        return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in code)
+    def flag_svg(self):
+        # Self-hosted SVG path (flag-icons). Defensive: only a 2-letter ASCII
+        # code maps to a flag; anything else (placeholder team, unmapped
+        # country) falls back to a neutral placeholder rather than a 404.
+        # SVGs are reliable across every OS/browser, unlike flag emoji (Windows
+        # has no flag glyphs and renders the bare letters).
+        code = (self.flag or "").lower()
+        if len(code) == 2 and code.isascii() and code.isalpha():
+            return f"pool/flags/{code}.svg"
+        return "pool/flags/_placeholder.svg"
 
     def __str__(self):
         return f"{self.flag} {self.name}"
 
 
 class Match(models.Model):
-    PHASE_CHOICES = [
+    STAGE_CHOICES = [
         ("group", "Fase de Grupos"),
         ("round_of_32", "32-avos de Final"),
         ("round_of_16", "Oitavas de Final"),
@@ -49,10 +51,10 @@ class Match(models.Model):
     away_team = models.ForeignKey(
         Team, on_delete=models.PROTECT, related_name="away_matches"
     )
-    phase = models.CharField(max_length=20, choices=PHASE_CHOICES)
-    # Round string (FIFA matchday), e.g. "Group Stage - 1", "Round of 16".
-    # Groups matches into rounds (spec sections 3 and 7).
-    round = models.CharField(max_length=50, blank=True, default="")
+    stage = models.CharField(max_length=20, choices=STAGE_CHOICES)
+    # Phase string (FIFA matchday), e.g. "Group Stage - 1", "Round of 16".
+    # Groups matches into phases (spec sections 3 and 7).
+    phase = models.CharField(max_length=50, blank=True, default="")
     starts_at = models.DateTimeField()
     home_goals = models.IntegerField(null=True, blank=True)
     away_goals = models.IntegerField(null=True, blank=True)
@@ -64,7 +66,7 @@ class Match(models.Model):
 
     @property
     def is_knockout(self):
-        return self.phase in KNOCKOUT_PHASES
+        return self.stage in KNOCKOUT_STAGES
 
     @property
     def prediction_deadline(self):
@@ -129,7 +131,7 @@ class Prediction(models.Model):
 class RankingEntry(models.Model):
     """Pre-computed general ranking snapshot (spec sections 3 and 8).
 
-    Rebuilt by rebuild_ranking_snapshot() whenever a round closes, so the
+    Rebuilt by rebuild_ranking_snapshot() whenever a phase closes, so the
     ranking page never aggregates predictions at request time.
     """
 
@@ -148,15 +150,15 @@ class RankingEntry(models.Model):
         return f"#{self.position} {self.user} — {self.total_points} pts"
 
 
-class RoundWinner(models.Model):
-    """Cached winner(s) of a closed round (spec section 7).
+class PhaseWinner(models.Model):
+    """Cached winner(s) of a closed phase (spec section 7).
 
-    Computed once when the round's last match is scored, so pages never
-    re-aggregate. A round may have multiple winners only when nobody scored
-    (spec 7.4) — hence unique on (round, user), not on round alone.
+    Computed once when the phase's last match is scored, so pages never
+    re-aggregate. A phase may have multiple winners only when nobody scored
+    (spec 7.4) — hence unique on (phase, user), not on phase alone.
     """
 
-    round = models.CharField(max_length=50)
+    phase = models.CharField(max_length=50)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     exact_count = models.IntegerField(default=0)
@@ -164,7 +166,7 @@ class RoundWinner(models.Model):
     computed_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = [("round", "user")]
+        unique_together = [("phase", "user")]
 
     def __str__(self):
-        return f"{self.round} — {self.user} — {self.points} pts"
+        return f"{self.phase} — {self.user} — {self.points} pts"
