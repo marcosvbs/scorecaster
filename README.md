@@ -232,6 +232,28 @@ For a Railway deployment:
 4. After the first deploy, run `seed_world_cup` and `createsuperuser` once
    (e.g. from a Railway shell).
 
+### Resetting the database (for testing)
+
+The deployed state is fully reproducible: seeded teams + 104 fixtures + an admin
+user, with **no predictions**. To wipe test data and return to that clean state,
+run these once on the live container (or via a temporary one-shot block in
+`start.sh`, removed afterwards):
+
+```bash
+python manage.py flush --noinput              # drop all rows, keep the schema
+python manage.py seed_world_cup               # re-import teams + fixtures
+python manage.py createsuperuser --noinput    # reads DJANGO_SUPERUSER_* env vars
+```
+
+`flush` clears predictions, test users and sessions but keeps the schema;
+`seed_world_cup` is idempotent. Because the tournament has not started,
+`check_results` is a no-op — there are no match scores to lose.
+
+When using the one-shot `start.sh` block, add `DJANGO_SUPERUSER_USERNAME`,
+`DJANGO_SUPERUSER_PASSWORD` and `DJANGO_SUPERUSER_EMAIL` env vars for the
+non-interactive `createsuperuser`, then remove the block and delete those vars
+once the reset is done.
+
 ## Testing
 
 ```bash
