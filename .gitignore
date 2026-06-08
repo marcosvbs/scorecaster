@@ -9,5 +9,4 @@ db.sqlite3
 .pytest_cache/
 
 # Local-only docs (kept out of the repo)
-CLAUDE.md
 PROJETO_BOLAO_COPA_2026.md
