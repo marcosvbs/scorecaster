@@ -126,7 +126,7 @@
     if (!cards.length) return;
 
     var LABELS = { all: 'Todos os palpites', exact: 'Palpites exatos', partial: 'Palpites parciais' };
-    var EMPTY  = { exact: 'Nenhum palpite exato ainda.', partial: 'Nenhum palpite parcial ainda.' };
+    var EMPTY_MSG = 'Nenhum palpite registrado ou computado ainda.';
 
     function apply(filter) {
       var firstVisible = null;
@@ -141,7 +141,7 @@
       if (empty) {
         // 'all'/empty is handled by the server-rendered {% templatetag openblock %} empty {% templatetag closeblock %} message; JS only covers filter-empty.
         if (filter !== 'all' && !firstVisible) {
-          empty.textContent = EMPTY[filter];
+          empty.textContent = EMPTY_MSG;
           empty.style.display = '';
         } else {
           empty.style.display = 'none';
