@@ -174,6 +174,7 @@ def historic(request):
     stats = {
         "total_points": sum(p.points or 0 for p in user_predictions),
         "exact_count": sum(1 for p in user_predictions if p.result == "exact"),
+        "partial_count": sum(1 for p in user_predictions if p.result == "partial"),
         "total_predictions": len(user_predictions),
     }
 

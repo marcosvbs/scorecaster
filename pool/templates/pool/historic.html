@@ -4,8 +4,13 @@
 {% block title %}Bolão Copa do Mundo 2026 — Histórico{% endblock %}
 
 {% block extra_styles %}
-  .stat-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; padding: 12px; text-align: center; }
+  .stat-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; padding: 12px 6px; text-align: center; }
+  .stat-card.filter-card { cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .stat-card.filter-card:hover { border-color: var(--border-strong); }
+  .stat-card.filter-card.selected { border-color: var(--border-strong); background: var(--bg-surface-alt); }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
   .divider { border-top: 1px solid var(--border-default); }
+  .hist-row.first-visible { border-top: none !important; }
   .badge-exact   { background: rgba(200,168,75,0.15);  color: var(--color-gold);       border: 1px solid rgba(200,168,75,0.3);   border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
   .badge-partial { background: rgba(245,240,232,0.07); color: var(--text-secondary);   border: 1px solid rgba(245,240,232,0.15); border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
   .badge-wrong   { background: rgba(232,0,61,0.1);     color: rgba(232,0,61,0.8);      border: 1px solid rgba(232,0,61,0.2);    border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; white-space: nowrap; }
@@ -19,31 +24,38 @@
     <p class="text-xs mt-0.5" style="color: var(--text-muted);">{{ request.user.username }}</p>
   </div>
 
-  {# ── Stats ── #}
-  <div class="grid grid-cols-3 gap-2">
+  {# ── Stats (palpites/exatos/parciais filter the list below) ── #}
+  <div class="stat-grid">
     <div class="stat-card">
       <p class="barlow-condensed text-2xl" style="color: var(--color-gold);">{{ stats.total_points }}</p>
       <p class="text-xs mt-0.5" style="color: var(--text-muted);">pontos</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card filter-card selected" data-filter="all" role="button" tabindex="0"
+         aria-label="Mostrar todos os palpites">
+      <p class="barlow-condensed text-2xl" style="color: var(--text-primary);">{{ stats.total_predictions }}</p>
+      <p class="text-xs mt-0.5" style="color: var(--text-muted);">palpites</p>
+    </div>
+    <div class="stat-card filter-card" data-filter="exact" role="button" tabindex="0"
+         aria-label="Filtrar palpites exatos">
       <p class="barlow-condensed text-2xl" style="color: #2DB87F;">{{ stats.exact_count }}</p>
       <p class="text-xs mt-0.5" style="color: var(--text-muted);">exatos</p>
     </div>
-    <div class="stat-card">
-      <p class="barlow-condensed text-2xl" style="color: var(--text-primary);">{{ stats.total_predictions }}</p>
-      <p class="text-xs mt-0.5" style="color: var(--text-muted);">palpites</p>
+    <div class="stat-card filter-card" data-filter="partial" role="button" tabindex="0"
+         aria-label="Filtrar palpites parciais">
+      <p class="barlow-condensed text-2xl" style="color: var(--text-secondary);">{{ stats.partial_count }}</p>
+      <p class="text-xs mt-0.5" style="color: var(--text-muted);">parciais</p>
     </div>
   </div>
 
   {# ── Prediction list ── #}
   <div class="card overflow-hidden">
     <div class="px-4 py-3 divider">
-      <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Todos os palpites</span>
+      <span id="hist-header" class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Todos os palpites</span>
     </div>
 
-    <div>
+    <div id="hist-list">
       {% for entry in predictions %}
-      <div class="px-4 py-3 {% if not forloop.first %}divider{% endif %} {% if entry.result == 'none' %}opacity-50{% endif %}">
+      <div class="hist-row px-4 py-3 divider {% if entry.result == 'none' %}opacity-50{% endif %}" data-result="{{ entry.result }}">
 
         <div class="flex items-center justify-between mb-1.5">
           <span class="text-xs" style="color: var(--text-muted);">
@@ -98,7 +110,52 @@
       {% empty %}
         <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum palpite registrado ainda.</p>
       {% endfor %}
+      <p id="hist-empty" class="text-center text-sm py-8" style="color: var(--text-muted); display: none;"></p>
     </div>
   </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function () {
+    var cards = document.querySelectorAll('.filter-card');
+    var rows = document.querySelectorAll('#hist-list .hist-row');
+    var header = document.getElementById('hist-header');
+    var empty = document.getElementById('hist-empty');
+    if (!cards.length) return;
+
+    var LABELS = { all: 'Todos os palpites', exact: 'Palpites exatos', partial: 'Palpites parciais' };
+    var EMPTY  = { all: 'Nenhum palpite registrado ainda.', exact: 'Nenhum palpite exato ainda.', partial: 'Nenhum palpite parcial ainda.' };
+
+    function apply(filter) {
+      var firstVisible = null;
+      rows.forEach(function (row) {
+        var show = (filter === 'all') || (row.getAttribute('data-result') === filter);
+        row.hidden = !show;
+        row.classList.remove('first-visible');
+        if (show && !firstVisible) firstVisible = row;
+      });
+      if (firstVisible) firstVisible.classList.add('first-visible');
+      if (header) header.textContent = LABELS[filter];
+      if (empty) {
+        empty.textContent = EMPTY[filter];
+        empty.style.display = firstVisible ? 'none' : '';
+      }
+      cards.forEach(function (c) {
+        c.classList.toggle('selected', c.getAttribute('data-filter') === filter);
+      });
+    }
+
+    cards.forEach(function (card) {
+      card.addEventListener('click', function () { apply(card.getAttribute('data-filter')); });
+      card.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); apply(card.getAttribute('data-filter')); }
+      });
+    });
+
+    // Initial state: 'all' selected, set first-visible border.
+    apply('all');
+  })();
+</script>
 {% endblock %}

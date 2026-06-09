@@ -29,6 +29,7 @@ def test_stats_and_entries(auth_client, make_match, user):
     stats = resp.context["stats"]
     assert stats["total_points"] == 10
     assert stats["exact_count"] == 1
+    assert stats["partial_count"] == 0
     assert stats["total_predictions"] == 2
     assert len(resp.context["predictions"]) == 2
 
