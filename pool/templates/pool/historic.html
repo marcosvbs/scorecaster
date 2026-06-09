@@ -139,8 +139,9 @@
       if (firstVisible) firstVisible.classList.add('first-visible');
       if (header) header.textContent = LABELS[filter];
       if (empty) {
-        // 'all'/empty is handled by the server-rendered {% templatetag openblock %} empty {% templatetag closeblock %} message; JS only covers filter-empty.
-        if (filter !== 'all' && !firstVisible) {
+        // 'all', and the zero-rows case, are handled by the server-rendered
+        // {% templatetag openblock %} empty {% templatetag closeblock %} message; JS only covers "rows exist but none match".
+        if (filter !== 'all' && !firstVisible && rows.length > 0) {
           empty.textContent = EMPTY_MSG;
           empty.style.display = '';
         } else {
