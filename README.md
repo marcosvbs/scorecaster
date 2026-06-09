@@ -7,7 +7,7 @@ dark-navy/gold UI, Brazilian-Portuguese interface.
 
 <!-- Badges: swap OWNER/REPO for your GitHub path. The CI badge points at the
      workflow already in .github/workflows/ci.yml -->
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/marcosvbs/scorecaster/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
 [![Django 6](https://img.shields.io/badge/django-6-092E20.svg)](https://www.djangoproject.com/)
