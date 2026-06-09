@@ -1,0 +1,40 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+  <div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{{ changelist_url }}">Matches</a>
+    &rsaquo; Simulate first phase
+  </div>
+{% endblock %}
+
+{% block content %}
+  {% if phase %}
+    <p>
+      This will fill the first phase — <strong>{{ phase }}</strong> — with
+      <strong>random</strong> goals and mark those matches as scored, running the
+      full scoring + ranking + phase-close pipeline (as if the matches were played).
+    </p>
+    <ul>
+      <li>{{ to_score }} match(es) will get random results and be scored</li>
+      <li>{{ already_scored }} match(es) are already scored and will be skipped</li>
+      <li>{{ total }} match(es) total in this phase</li>
+    </ul>
+    <p style="color:#666;">
+      For testing only. Reversible with "Reset predictions and results" on the
+      Predictions page.
+    </p>
+
+    <form method="post" action="{% url 'admin:pool_match_simulate_first_phase' %}">
+      {% csrf_token %}
+      <div class="submit-row">
+        <input type="submit" value="Simulate first phase" class="default">
+        <a href="{{ changelist_url }}" class="button cancel-link">Cancel</a>
+      </div>
+    </form>
+  {% else %}
+    <p>There are no matches to simulate.</p>
+    <p><a href="{{ changelist_url }}" class="button">Back to matches</a></p>
+  {% endif %}
+{% endblock %}
