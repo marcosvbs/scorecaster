@@ -56,6 +56,16 @@ CSRF_TRUSTED_ORIGINS = [
     for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
     if o.strip()
 ]
+# Defensive defaults from ALLOWED_HOSTS so production never 403s a POST on a
+# missing env var (custom domains should still be added via CSRF_TRUSTED_ORIGINS).
+if not DEBUG:
+    for _host in ALLOWED_HOSTS:
+        _origin = f"https://*{_host}" if _host.startswith(".") else f"https://{_host}"
+        if _origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_origin)
+
+# Friendly pt-BR retry page instead of the raw Django 403 on CSRF failure.
+CSRF_FAILURE_VIEW = "pool.views.csrf_failure"
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

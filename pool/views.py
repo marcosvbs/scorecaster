@@ -2,7 +2,10 @@ import json
 from types import SimpleNamespace
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
 from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
+from django.utils.decorators import method_decorator
 from django.contrib.auth.views import LoginView
 from django.db.models import Max
 from django.shortcuts import render, get_object_or_404
@@ -24,7 +27,11 @@ from pool.services.throttle import (
 )
 
 
+@method_decorator(never_cache, name="dispatch")
 class CustomLoginView(LoginView):
+    # never_cache: the login form must never be served from the browser/bfcache.
+    # Django rotates the CSRF token on login, so a stale cached form would carry
+    # an outdated token and POST back a "CSRF verification failed" 403.
     template_name = "pool/login.html"
     redirect_authenticated_user = True
 
@@ -43,6 +50,21 @@ class CustomLoginView(LoginView):
             )
             return self.render_to_response(context, status=429)
         return super().post(request, *args, **kwargs)
+
+
+@never_cache
+def csrf_failure(request, reason=""):
+    """Friendly CSRF-failure page (Django CSRF_FAILURE_VIEW).
+
+    Instead of the raw Django 403, re-render the login form with a fresh
+    {% csrf_token %} (new cookie + token) and a pt-BR retry message, so the
+    user can simply log in again. Wired via CSRF_FAILURE_VIEW in settings.
+    """
+    context = {
+        "form": AuthenticationForm(),
+        "csrf_error": "Sua sessão expirou. Atualize a página e tente novamente.",
+    }
+    return render(request, "pool/login.html", context, status=403)
 
 
 def _phase_winner_card(now):
