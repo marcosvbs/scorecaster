@@ -66,9 +66,15 @@
         🏆
         <span class="barlow-condensed text-base uppercase tracking-wider">Bolão Copa 2026</span>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="text-xs" style="color: var(--text-muted);">{{ request.user.username }}</span>
-        <button onclick="abrirLogout()" style="color: var(--text-muted);" class="hover:opacity-80">
+      <div class="flex items-center gap-1">
+        <button id="rules-trigger" onclick="abrirRegras()" type="button"
+                aria-label="Como funciona a pontuação" title="Como funciona a pontuação"
+                style="color: var(--text-muted); padding: 8px;"
+                class="hover:opacity-80 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.15em;height:1.15em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 17l0 .01"/><path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4"/></svg>
+        </button>
+        <span class="text-xs ml-1" style="color: var(--text-muted);">{{ request.user.username }}</span>
+        <button onclick="abrirLogout()" style="color: var(--text-muted); padding: 8px;" class="hover:opacity-80">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></svg>
         </button>
       </div>
@@ -113,26 +119,113 @@
     </div>
   </div>
 
+  {# ── Scoring-rules modal ── #}
+  <div id="rules-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
+       style="background: rgba(0,0,0,0.7);" onclick="if(event.target===this)fecharRegras()">
+    <div class="logout-card w-full p-6"
+         style="max-width: 28rem; max-height: 85vh; overflow-y: auto;"
+         role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <div class="flex items-start justify-between mb-1">
+        <div class="flex items-center gap-2">
+          <span style="color: var(--color-gold);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 17l0 .01"/><path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4"/></svg>
+          </span>
+          <p id="rules-title" class="text-base font-semibold" style="color: var(--text-primary);">Como funciona a pontuação</p>
+        </div>
+        <button onclick="fecharRegras()" aria-label="Fechar" style="color: var(--text-muted); flex-shrink: 0;" class="hover:opacity-80 p-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.15em;height:1.15em;display:block"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="text-xs mb-4" style="color: var(--text-muted);">Cada jogo vale pontos conforme o acerto do seu palpite:</p>
+
+      <ul class="space-y-0">
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Placar exato <span class="block text-xs" style="color: var(--text-muted);">Acertou os gols dos dois times</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">10 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Vencedor + saldo de gols <span class="block text-xs" style="color: var(--text-muted);">Acertou quem venceu e a diferença de gols</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">7 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Empate correto <span class="block text-xs" style="color: var(--text-muted);">Previu empate e o jogo empatou (placar diferente)</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">5 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Apenas o vencedor <span class="block text-xs" style="color: var(--text-muted);">Acertou só quem venceu</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">5 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-muted);">Errou o resultado</span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--text-muted);">0 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default); border-bottom: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-muted);">Não palpitou <span class="block text-xs" style="color: var(--text-muted);">Sem penalidade</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--text-muted);">0 pts</span>
+        </li>
+      </ul>
+
+      <button onclick="fecharRegras()" class="btn-cancel w-full" style="margin-top: 1.25rem;">Fechar</button>
+    </div>
+  </div>
+
   <script>
     function abrirLogout() { document.getElementById('logout-modal').classList.remove('hidden'); }
     function fecharLogout() { document.getElementById('logout-modal').classList.add('hidden'); }
 
+    function abrirRegras() {
+      document.getElementById('rules-modal').classList.remove('hidden');
+      // Move focus into the dialog for keyboard/screen-reader users.
+      document.querySelector('#rules-modal [aria-label="Fechar"]').focus();
+    }
+    function fecharRegras() {
+      document.getElementById('rules-modal').classList.add('hidden');
+      // Return focus to the trigger.
+      var t = document.getElementById('rules-trigger');
+      if (t) t.focus();
+    }
+    // Esc closes whichever modal is open.
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (!document.getElementById('rules-modal').classList.contains('hidden')) fecharRegras();
+      if (!document.getElementById('logout-modal').classList.contains('hidden')) fecharLogout();
+    });
+
     // Populate decorative side-gutter flag banners (desktop only).
     (function () {
-      // Derive the flags dir from any static URL so it honors STATIC_URL.
-      var FLAG_BASE = "{% static 'pool/flags/_placeholder.svg' %}".replace('_placeholder.svg', '');
-      var CODES = ['br','ar','fr','de','es','pt','it','nl','gb','us','mx','jp','kr','ca',
-                   'be','hr','ma','sn','co','uy','ch','pl','rs','dk','no','se','au','za',
-                   'ec','cr','tn','eg','ir','sa','qa','cl','pe','ng','gh','jm','pa','cz'];
+      // URLs emitted via the static template tag so they resolve under the
+      // WhiteNoise manifest (hashed filenames in production); never build in JS.
+      var FLAGS = [
+        "{% static 'pool/flags/br.svg' %}", "{% static 'pool/flags/ar.svg' %}",
+        "{% static 'pool/flags/fr.svg' %}", "{% static 'pool/flags/de.svg' %}",
+        "{% static 'pool/flags/es.svg' %}", "{% static 'pool/flags/pt.svg' %}",
+        "{% static 'pool/flags/it.svg' %}", "{% static 'pool/flags/nl.svg' %}",
+        "{% static 'pool/flags/gb.svg' %}", "{% static 'pool/flags/us.svg' %}",
+        "{% static 'pool/flags/mx.svg' %}", "{% static 'pool/flags/jp.svg' %}",
+        "{% static 'pool/flags/kr.svg' %}", "{% static 'pool/flags/ca.svg' %}",
+        "{% static 'pool/flags/be.svg' %}", "{% static 'pool/flags/hr.svg' %}",
+        "{% static 'pool/flags/ma.svg' %}", "{% static 'pool/flags/sn.svg' %}",
+        "{% static 'pool/flags/co.svg' %}", "{% static 'pool/flags/uy.svg' %}",
+        "{% static 'pool/flags/ch.svg' %}", "{% static 'pool/flags/pl.svg' %}",
+        "{% static 'pool/flags/rs.svg' %}", "{% static 'pool/flags/dk.svg' %}",
+        "{% static 'pool/flags/no.svg' %}", "{% static 'pool/flags/se.svg' %}",
+        "{% static 'pool/flags/au.svg' %}", "{% static 'pool/flags/za.svg' %}",
+        "{% static 'pool/flags/ec.svg' %}", "{% static 'pool/flags/cr.svg' %}",
+        "{% static 'pool/flags/tn.svg' %}", "{% static 'pool/flags/eg.svg' %}",
+        "{% static 'pool/flags/ir.svg' %}", "{% static 'pool/flags/sa.svg' %}",
+        "{% static 'pool/flags/qa.svg' %}", "{% static 'pool/flags/cl.svg' %}",
+        "{% static 'pool/flags/pe.svg' %}", "{% static 'pool/flags/ng.svg' %}",
+        "{% static 'pool/flags/gh.svg' %}", "{% static 'pool/flags/jm.svg' %}",
+        "{% static 'pool/flags/pa.svg' %}", "{% static 'pool/flags/cz.svg' %}"
+      ];
       var strips = document.querySelectorAll('.side-flags .flag-strip');
       if (!strips.length || window.matchMedia('(max-width: 1023px)').matches) return;
       var needed = Math.ceil((window.innerHeight + 200) / 100) + 2; // ~100px per flag (80 + gap)
       strips.forEach(function (strip, s) {
         for (var i = 0; i < needed; i++) {
           // Offset each side so left/right don't mirror identically.
-          var code = CODES[(i + s * 7) % CODES.length];
           var img = document.createElement('img');
-          img.src = FLAG_BASE + code + '.svg';
+          img.src = FLAGS[(i + s * 7) % FLAGS.length];
           img.alt = '';
           strip.appendChild(img);
         }
