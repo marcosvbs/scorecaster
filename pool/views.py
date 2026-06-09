@@ -87,6 +87,7 @@ def _phase_winner_card(now):
         points=first.points,
         exact_count=first.exact_count,
         partial_count=first.partial_count,
+        phase=closed_phase["phase"],
         date=closed_phase["last_start"],
     )
 

@@ -33,13 +33,13 @@
   {% if phase_winner %}
   <div class="winner-card p-5 text-center">
     <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color: var(--color-gold); opacity: 0.7;">
-      🏆 Vencedor da fase · {{ phase_winner.date|date:"d \d\e F" }}
+      🏆 Vencedor da fase · {{ phase_winner.phase|phase_label }}
     </p>
     <p class="barlow-condensed text-2xl uppercase tracking-wide mb-0.5 gold-shimmer">{{ phase_winner.user.username }}</p>
     <p class="barlow-condensed text-3xl" style="color: var(--color-gold);">{{ phase_winner.points }} pts</p>
     <p class="text-xs mt-1" style="color: var(--text-muted);">
       {{ phase_winner.exact_count }} palpite{{ phase_winner.exact_count|pluralize }} exato{{ phase_winner.exact_count|pluralize }} ·
-      {{ phase_winner.partial_count }} parcial{{ phase_winner.partial_count|pluralize:"is" }}
+      {{ phase_winner.partial_count }} parcia{{ phase_winner.partial_count|pluralize:"l,is" }}
     </p>
   </div>
   {% endif %}
