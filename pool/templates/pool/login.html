@@ -4,13 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bolão Copa 2026 — Entrar</title>
+  <title>Bolão Copa do Mundo 2026 — Entrar</title>
   <link rel="stylesheet" href="{% static 'pool/tailwind.css' %}">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --color-gold: #C8A84B; --color-navy: #0A0F2C; --color-white: #F5F0E8;
-      --color-sandstone: #D4B896; --bg-surface: #111829; --bg-surface-alt: #1A2340;
+      --color-sandstone: #D4B896; --bg-primary: #0A0F2C; --bg-surface: #111829; --bg-surface-alt: #1A2340;
       --text-primary: var(--color-white); --text-secondary: var(--color-sandstone);
       --text-muted: rgba(245,240,232,0.45); --accent-hover: #DFC05A;
       --border-default: rgba(200,168,75,0.2); --border-strong: rgba(200,168,75,0.5);
@@ -40,15 +40,29 @@
     }
     .trophy-bg { background: radial-gradient(ellipse at center, rgba(200,168,75,0.15) 0%, transparent 70%); }
     .error-msg { color: #E8003D; font-size: 0.75rem; margin-top: 4px; }
+    /* ── Decorative country-flag side banners (desktop gutters only) ── */
+    .side-flags { position: fixed; top: 0; bottom: 0; z-index: 0; overflow: hidden; pointer-events: none; width: calc((100vw - 28rem) / 2); display: none; }
+    .side-flags.left  { left: 0; }
+    .side-flags.right { right: 0; }
+    @media (min-width: 1024px) { .side-flags { display: block; } }
+    .flag-strip { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 28px 0; }
+    .flag-strip img { width: 120px; height: 80px; object-fit: cover; border-radius: 4px; opacity: 0.55; box-shadow: 0 2px 10px rgba(0,0,0,0.45); }
+    .side-flags::after { content: ''; position: absolute; inset: 0; }
+    .side-flags.left::after  { background: linear-gradient(to right, rgba(10,15,44,0.45) 0%, rgba(10,15,44,0.85) 65%, var(--bg-primary) 100%); }
+    .side-flags.right::after { background: linear-gradient(to left,  rgba(10,15,44,0.45) 0%, rgba(10,15,44,0.85) 65%, var(--bg-primary) 100%); }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center px-4" style="background: linear-gradient(180deg, #060A1A 0%, #0A0F2C 100%);">
 
-  <div class="w-full max-w-sm">
+  {# ── Decorative flag banners in the desktop side gutters (purely visual) ── #}
+  <div class="side-flags left"  aria-hidden="true"><div class="flag-strip"></div></div>
+  <div class="side-flags right" aria-hidden="true"><div class="flag-strip"></div></div>
 
-    <div class="text-center mb-8 trophy-bg py-6">
+  <div class="w-full max-w-sm" style="position: relative; z-index: 1;">
+
+    <div class="text-center mb-6 trophy-bg py-6">
       <img src="{% static 'pool/scorecaster_logo.svg' %}" alt="Scorecaster" class="mb-4" style="display: inline-block; width: 64px; height: 64px; object-fit: contain;" />
-      <h1 class="barlow-condensed text-3xl uppercase tracking-wider gold-shimmer">Bolão Copa 2026</h1>
+      <h1 class="barlow-condensed text-3xl uppercase tracking-wider gold-shimmer">Bolão Copa do Mundo 2026</h1>
       <p class="text-xs mt-1" style="color: var(--text-muted);">Canadá · México · Estados Unidos</p>
     </div>
 
@@ -109,6 +123,49 @@
     </p>
 
   </div>
+
+  <script>
+    // Populate decorative side-gutter flag banners (desktop only).
+    (function () {
+      // URLs emitted via the static template tag so they resolve under the
+      // WhiteNoise manifest (hashed filenames in production); never build in JS.
+      var FLAGS = [
+        "{% static 'pool/flags/br.svg' %}", "{% static 'pool/flags/ar.svg' %}",
+        "{% static 'pool/flags/fr.svg' %}", "{% static 'pool/flags/de.svg' %}",
+        "{% static 'pool/flags/es.svg' %}", "{% static 'pool/flags/pt.svg' %}",
+        "{% static 'pool/flags/it.svg' %}", "{% static 'pool/flags/nl.svg' %}",
+        "{% static 'pool/flags/gb.svg' %}", "{% static 'pool/flags/us.svg' %}",
+        "{% static 'pool/flags/mx.svg' %}", "{% static 'pool/flags/jp.svg' %}",
+        "{% static 'pool/flags/kr.svg' %}", "{% static 'pool/flags/ca.svg' %}",
+        "{% static 'pool/flags/be.svg' %}", "{% static 'pool/flags/hr.svg' %}",
+        "{% static 'pool/flags/ma.svg' %}", "{% static 'pool/flags/sn.svg' %}",
+        "{% static 'pool/flags/co.svg' %}", "{% static 'pool/flags/uy.svg' %}",
+        "{% static 'pool/flags/ch.svg' %}", "{% static 'pool/flags/pl.svg' %}",
+        "{% static 'pool/flags/rs.svg' %}", "{% static 'pool/flags/dk.svg' %}",
+        "{% static 'pool/flags/no.svg' %}", "{% static 'pool/flags/se.svg' %}",
+        "{% static 'pool/flags/au.svg' %}", "{% static 'pool/flags/za.svg' %}",
+        "{% static 'pool/flags/ec.svg' %}", "{% static 'pool/flags/cr.svg' %}",
+        "{% static 'pool/flags/tn.svg' %}", "{% static 'pool/flags/eg.svg' %}",
+        "{% static 'pool/flags/ir.svg' %}", "{% static 'pool/flags/sa.svg' %}",
+        "{% static 'pool/flags/qa.svg' %}", "{% static 'pool/flags/cl.svg' %}",
+        "{% static 'pool/flags/pe.svg' %}", "{% static 'pool/flags/ng.svg' %}",
+        "{% static 'pool/flags/gh.svg' %}", "{% static 'pool/flags/jm.svg' %}",
+        "{% static 'pool/flags/pa.svg' %}", "{% static 'pool/flags/cz.svg' %}"
+      ];
+      var strips = document.querySelectorAll('.side-flags .flag-strip');
+      if (!strips.length || window.matchMedia('(max-width: 1023px)').matches) return;
+      var needed = Math.ceil((window.innerHeight + 200) / 100) + 2; // ~100px per flag (80 + gap)
+      strips.forEach(function (strip, s) {
+        for (var i = 0; i < needed; i++) {
+          // Offset each side so left/right don't mirror identically.
+          var img = document.createElement('img');
+          img.src = FLAGS[(i + s * 7) % FLAGS.length];
+          img.alt = '';
+          strip.appendChild(img);
+        }
+      });
+    })();
+  </script>
 
 </body>
 </html>
