@@ -1,12 +1,43 @@
 # Bolão Copa 2026 ⚽
 
 A mobile-first **World Cup 2026 prediction pool** (*bolão*). Friends predict the
-score of every match, earn points by how close they get, and climb a live
-ranking that updates as results come in. Server-rendered Django, dark-navy/gold
-UI, Brazilian-Portuguese interface.
+score of every match, earn points by how close they get, and climb a **live
+ranking that updates the moment each match is decided**. Server-rendered Django,
+dark-navy/gold UI, Brazilian-Portuguese interface.
+
+<!-- Badges: swap OWNER/REPO for your GitHub path. The CI badge points at the
+     workflow already in .github/workflows/ci.yml -->
+[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](LICENSE)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
+[![Django 6](https://img.shields.io/badge/django-6-092E20.svg)](https://www.djangoproject.com/)
+
+> The bolão started as a WhatsApp tradition with my coworkers back in the 2022
+> World Cup — scores tracked by hand, rivalry too good to die in a group chat.
+> This year, after a few years studying my way into software and finally
+> becoming a developer, I turned it into the thing I always wanted: a proper
+> app, online 24/7, that keeps the competition going on its own. It's
+> **self-hostable**: clone it, point it at your group, and run your own private
+> bolão. No accounts on my server, no data leaving your instance.
 
 > **Status:** built and ready for the 2026 tournament. Fixtures and live results
-> are sourced automatically from the official FIFA match-centre feed.
+> are sourced automatically from FIFA's public match-centre feed — no manual
+> data entry, no API key.
+
+---
+
+## Screenshots
+
+<!-- Replace the placeholders below with real images committed under docs/img/.
+     Recommended: 3 mobile-framed shots (portrait, ~390px wide) so the
+     mobile-first UI reads instantly. A short GIF of a prediction being saved
+     and the ranking updating is even stronger — drop it in first. -->
+
+| Predictions | Live ranking | History |
+|:---:|:---:|:---:|
+| ![Tela de palpites](docs/img/predictions.png) | ![Ranking ao vivo](docs/img/ranking.png) | ![Histórico](docs/img/history.png) |
+
+> _Dark-navy / gold theme, Barlow typography, fully in Brazilian Portuguese._
 
 ---
 
@@ -19,11 +50,13 @@ UI, Brazilian-Portuguese interface.
 - [Project structure](#project-structure)
 - [Getting started (local)](#getting-started-local)
 - [Configuration](#configuration)
+- [Keeping the FIFA feed healthy](#keeping-the-fifa-feed-healthy)
 - [Management commands](#management-commands)
 - [Running with Docker](#running-with-docker)
 - [Deployment (Railway)](#deployment-railway)
 - [Testing](#testing)
 - [Regenerating the CSS](#regenerating-the-css)
+- [Contributing](#contributing)
 - [License](#license)
 
 ---
@@ -34,8 +67,9 @@ UI, Brazilian-Portuguese interface.
   before kickoff**.
 - **Automatic scoring** — results are fetched from FIFA and points are awarded the
   moment a match is decided. No manual data entry.
-- **Live general ranking** with a deterministic tiebreak chain (points → exact
-  hits → winner hits → fewer skips).
+- **Live general ranking** — points appear as soon as a match is scored, even
+  mid-round, with a deterministic tiebreak chain (points → exact hits → winner
+  hits → fewer skips).
 - **Per-round winners** — the platform highlights who won each round.
 - **History** — every user's past predictions and points, including matches they
   skipped ("Não palpitou").
@@ -61,22 +95,26 @@ scores as a draw):
 | Wrong | **0** |
 | No prediction (skipped) | **0** (no penalty) |
 
-A **round** is the set of matches sharing the same round label (e.g. group
-matchday 1, "Round of 16"). The ranking accumulates over **closed rounds only**
-and is recomputed once when a round closes, then read from a stored snapshot —
-pages never aggregate predictions on a request.
+The **general ranking is live and cumulative over every scored match**: the
+moment a match is scored, points are recomputed and persisted as `RankingEntry`
+rows, so a player's standing can move *mid-round*. Pages always read the stored
+snapshot — **predictions are never aggregated in a request path**. A **round**
+(group matchday, "Round of 16", …) groups matches sharing the same round label
+and drives per-round winners; the current round advances automatically once all
+its matches are scored.
 
 ## Tech stack
 
 - **Python 3.12+ / Django 6** — server-rendered templates, no SPA, no DRF.
 - **SQLite** in both development and production (Railway volume), WAL mode.
 - **Tailwind CSS v3** — pre-built and committed; no runtime or CI build step.
+  Barlow / Barlow Condensed type, inline SVG icons.
 - **Gunicorn + WhiteNoise** for production serving.
 - **requests** for the FIFA HTTP client.
 - **pytest + pytest-django** for tests.
 - **Data source:** [`api.fifa.com`](https://api.fifa.com/api/v3) v3 (`calendar/matches`)
-  — free, no API key. One request returns the whole tournament (all 104 matches
-  plus the knockout bracket).
+  — free, no API key, undocumented public JSON. One request returns the whole
+  tournament (all 104 matches plus the knockout bracket).
 
 ## Architecture
 
@@ -89,7 +127,7 @@ FIFA API is **never** touched in a request path.
 | Scoring rules | `pool/utils/scoring.py` | Frozen point/winner formulas (the table above). |
 | Rounds | `pool/services/rounds.py` | Round semantics; derives matchdays; tracks the current round. |
 | Scoring pipeline | `pool/services/scoring_service.py` | Idempotent `score_match`, round closing, `RoundWinner` upsert. |
-| Ranking | `pool/services/ranking.py` | Computes the ranking when a round closes and persists `RankingEntry` rows. |
+| Ranking | `pool/services/ranking.py` | Recomputes the live ranking each time a match is scored and persists `RankingEntry` rows. |
 | Rate limiting | `pool/services/throttle.py` | Fixed-window limiter on Django's LocMem cache (no Redis). |
 | FIFA client | `pool/services/fifa_api.py` | Thin HTTP client; **normalizes/validates every field** from the undocumented feed; no DB writes. |
 | Fixtures | `pool/services/fixtures.py` | The only place normalized matches become `Team`/`Match` rows. |
@@ -180,6 +218,25 @@ use; set real values in production).
 
 Create a local `.env` (it is gitignored) for development overrides.
 
+## Keeping the FIFA feed healthy
+
+The data source is FIFA's **public but undocumented** match-centre JSON. It needs
+no API key, but because it isn't a contracted API, identifiers and status codes
+*can* shift. Everything that might move is an environment variable — you never
+touch code to repair the feed:
+
+- **`FIFA_COMPETITION_ID` / `FIFA_SEASON_ID`** identify World Cup 2026. If the
+  feed returns no matches, open the official match-centre URL in your browser,
+  read the competition/season IDs from the request path (or the network tab),
+  and set them.
+- **`FIFA_FINISHED_STATUSES`** is the `MatchStatus` code that means "finished"
+  (reverse-engineered as `0`). If a result fails to score during the cup,
+  inspect a finished match in the feed and add the correct code (comma-separated).
+- The client is defensive by design: every field is validated in
+  `normalize_*` before it can reach the DB, and a malformed match is **skipped,
+  never crashes the run**. A bad feed degrades gracefully; it doesn't take the
+  site down.
+
 ## Management commands
 
 ```bash
@@ -242,7 +299,8 @@ and a production Docker image build. With **Wait for CI** enabled on the Railway
 service, a red run blocks the deploy — Railway never builds a broken commit. CI
 runs entirely on GitHub Actions; it adds no Railway usage.
 
-### Resetting the database (for testing)
+<details>
+<summary><strong>Resetting the database (for testing)</strong></summary>
 
 The deployed state is fully reproducible: seeded teams + 104 fixtures + an admin
 user, with **no predictions**. To wipe test data and return to that clean state,
@@ -264,6 +322,8 @@ When using the one-shot `start.sh` block, add `DJANGO_SUPERUSER_USERNAME`,
 non-interactive `createsuperuser`, then remove the block and delete those vars
 once the reset is done.
 
+</details>
+
 ## Testing
 
 ```bash
@@ -281,6 +341,13 @@ change, using the standalone Tailwind v3 CLI:
 # https://github.com/tailwindlabs/tailwindcss/releases
 tailwindcss -c tailwind.config.js -o pool/static/pool/tailwind.css --minify
 ```
+
+## Contributing
+
+Issues and pull requests are welcome. If you spin up your own bolão for a
+different competition (or fix the FIFA IDs for a future tournament), a PR is the
+nicest way to share it back. Before opening one, run `pytest` and
+`python manage.py check --deploy` so CI stays green.
 
 ## License
 
