@@ -1,4 +1,8 @@
-# Bolão Copa 2026 ⚽
+<p align="center">
+  <img src="docs/img/scorecaster_logo.svg" alt="Scorecaster" width="140">
+</p>
+
+<h1 align="center">Bolão Copa 2026 ⚽</h1>
 
 A mobile-first **World Cup 2026 prediction pool** (*bolão*). Friends predict the
 score of every match, earn points by how close they get, and climb a **live
