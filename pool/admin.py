@@ -5,6 +5,7 @@ from django.urls import path, reverse
 
 from .models import Team, Match, Prediction, RankingEntry, PhaseWinner
 from .services.reset import full_reset
+from .services.simulate import simulate_first_phase
 from .services.throttle import LOGIN_RATE_LIMIT, client_ip, is_rate_limited
 
 # Word the admin must type to confirm the destructive full reset.
@@ -62,6 +63,63 @@ class MatchAdmin(admin.ModelAdmin):
     ordering = ["starts_at"]
 
     search_fields = ["home_team__name", "away_team__name"]
+
+    # Adds the "Simulate first phase" test button to the changelist toolbar.
+    change_list_template = "admin/pool/match/change_list.html"
+
+    def get_urls(self):
+        # admin_view enforces staff login; the view adds a superuser check on
+        # top, since simulating writes results across the whole first phase.
+        custom = [
+            path(
+                "simulate-first-phase/",
+                self.admin_site.admin_view(self.simulate_first_phase_view),
+                name="pool_match_simulate_first_phase",
+            ),
+        ]
+        return custom + super().get_urls()
+
+    def simulate_first_phase_view(self, request):
+        if not request.user.is_superuser:
+            self.message_user(
+                request,
+                "Only superusers can simulate matches.",
+                level=messages.ERROR,
+            )
+            return redirect("admin:pool_match_changelist")
+
+        if request.method == "POST":
+            result = simulate_first_phase()
+            if result["phase"] is None:
+                self.message_user(
+                    request,
+                    "No matches to simulate.",
+                    level=messages.WARNING,
+                )
+            else:
+                self.message_user(
+                    request,
+                    "Simulated {phase}: {scored} match(es) scored with random "
+                    "results, {skipped} already scored.".format(**result),
+                    level=messages.SUCCESS,
+                )
+            return redirect("admin:pool_match_changelist")
+
+        first = Match.objects.order_by("starts_at").first()
+        phase = first.phase if first else None
+        phase_matches = Match.objects.filter(phase=phase) if phase else Match.objects.none()
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Simulate first phase",
+            "phase": phase,
+            "total": phase_matches.count(),
+            "already_scored": phase_matches.filter(is_scored=True).count(),
+            "to_score": phase_matches.filter(is_scored=False).count(),
+            "changelist_url": reverse("admin:pool_match_changelist"),
+        }
+        return render(
+            request, "admin/pool/match/simulate_first_phase_confirm.html", context
+        )
 
 
 class _ReadOnlyAdmin(admin.ModelAdmin):
