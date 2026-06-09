@@ -108,7 +108,7 @@
 
       </div>
       {% empty %}
-        <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum palpite registrado ainda.</p>
+        <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum palpite registrado ou computado ainda.</p>
       {% endfor %}
       <p id="hist-empty" class="text-center text-sm py-8" style="color: var(--text-muted); display: none;"></p>
     </div>
@@ -126,7 +126,7 @@
     if (!cards.length) return;
 
     var LABELS = { all: 'Todos os palpites', exact: 'Palpites exatos', partial: 'Palpites parciais' };
-    var EMPTY  = { all: 'Nenhum palpite registrado ainda.', exact: 'Nenhum palpite exato ainda.', partial: 'Nenhum palpite parcial ainda.' };
+    var EMPTY  = { exact: 'Nenhum palpite exato ainda.', partial: 'Nenhum palpite parcial ainda.' };
 
     function apply(filter) {
       var firstVisible = null;
@@ -139,8 +139,13 @@
       if (firstVisible) firstVisible.classList.add('first-visible');
       if (header) header.textContent = LABELS[filter];
       if (empty) {
-        empty.textContent = EMPTY[filter];
-        empty.style.display = firstVisible ? 'none' : '';
+        // 'all'/empty is handled by the server-rendered {% templatetag openblock %} empty {% templatetag closeblock %} message; JS only covers filter-empty.
+        if (filter !== 'all' && !firstVisible) {
+          empty.textContent = EMPTY[filter];
+          empty.style.display = '';
+        } else {
+          empty.style.display = 'none';
+        }
       }
       cards.forEach(function (c) {
         c.classList.toggle('selected', c.getAttribute('data-filter') === filter);
