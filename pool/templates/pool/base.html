@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Bolão Copa 2026{% endblock %}</title>
+  <title>{% block title %}Bolão Copa do Mundo 2026{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'pool/tailwind.css' %}">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -64,14 +64,15 @@
     <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <img src="{% static 'pool/scorecaster_logo.svg' %}" alt="Scorecaster" style="width: 28px; height: 28px;" />
-        <span class="barlow-condensed text-base uppercase tracking-wider">Bolão Copa 2026</span>
+        <span class="barlow-condensed text-base uppercase tracking-wider">Bolão Copa do Mundo 2026</span>
       </div>
       <div class="flex items-center gap-1">
         <button id="rules-trigger" onclick="abrirRegras()" type="button"
                 aria-label="Como funciona a pontuação" title="Como funciona a pontuação"
-                style="color: var(--text-muted); padding: 8px;"
+                style="color: var(--text-muted); padding: 6px 8px; gap: 5px;"
                 class="hover:opacity-80 flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.15em;height:1.15em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 17l0 .01"/><path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4"/></svg>
+          <span class="text-xs">Pontuação</span>
         </button>
         <span class="text-xs ml-1" style="color: var(--text-muted);">{{ request.user.username }}</span>
         <button onclick="abrirLogout()" style="color: var(--text-muted); padding: 8px;" class="hover:opacity-80">
