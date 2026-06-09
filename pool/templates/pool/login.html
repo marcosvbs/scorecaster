@@ -58,7 +58,9 @@
       <form method="post" action="{% url 'pool:login' %}" class="space-y-4">
         {% csrf_token %}
 
-        {% if throttle_error %}
+        {% if csrf_error %}
+          <div class="error-msg text-center">{{ csrf_error }}</div>
+        {% elif throttle_error %}
           <div class="error-msg text-center">{{ throttle_error }}</div>
         {% elif form.non_field_errors %}
           <div class="error-msg text-center">Usuário ou senha incorretos.</div>
