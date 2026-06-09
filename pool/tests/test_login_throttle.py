@@ -1,3 +1,22 @@
+from unittest.mock import patch
+
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def _pin_throttle_window():
+    """Freeze the rate limiter's clock for every test in this module.
+
+    The limiter buckets by a fixed window: ``int(time.time() // window)``.
+    A burst of 10+ attempts that happens to straddle a 300s boundary lands in
+    two buckets, resetting the counter — so the Nth attempt slips through as
+    200 instead of the expected 429. That made these tests flaky on CI. Pinning
+    the clock keeps every attempt in one window without touching production.
+    """
+    with patch("pool.services.throttle.time.time", return_value=1_000_000.0):
+        yield
+
+
 def attempt_login(client, ip="198.51.100.1"):
     return client.post(
         "/login/",
