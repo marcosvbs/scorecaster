@@ -5,8 +5,7 @@ score of every match, earn points by how close they get, and climb a **live
 ranking that updates the moment each match is decided**. Server-rendered Django,
 dark-navy/gold UI, Brazilian-Portuguese interface.
 
-<!-- Badges: swap OWNER/REPO for your GitHub path. The CI badge points at the
-     workflow already in .github/workflows/ci.yml -->
+<!-- CI badge renders once the workflow has run at least once on the default branch. -->
 [![CI](https://github.com/marcosvbs/scorecaster/actions/workflows/ci.yml/badge.svg)](https://github.com/marcosvbs/scorecaster/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
@@ -53,7 +52,7 @@ dark-navy/gold UI, Brazilian-Portuguese interface.
 - [Keeping the FIFA feed healthy](#keeping-the-fifa-feed-healthy)
 - [Management commands](#management-commands)
 - [Running with Docker](#running-with-docker)
-- [Deployment (Railway)](#deployment-railway)
+- [Deployment](#deployment)
 - [Testing](#testing)
 - [Regenerating the CSS](#regenerating-the-css)
 - [Contributing](#contributing)
@@ -63,14 +62,14 @@ dark-navy/gold UI, Brazilian-Portuguese interface.
 
 ## Features
 
-- **Score predictions** for every match of the current round, locked **30 minutes
+- **Score predictions** for every match of the current phase, locked **30 minutes
   before kickoff**.
 - **Automatic scoring** — results are fetched from FIFA and points are awarded the
   moment a match is decided. No manual data entry.
 - **Live general ranking** — points appear as soon as a match is scored, even
-  mid-round, with a deterministic tiebreak chain (points → exact hits → winner
+  mid-phase, with a deterministic tiebreak chain (points → exact hits → winner
   hits → fewer skips).
-- **Per-round winners** — the platform highlights who won each round.
+- **Per-phase winners** — the platform highlights who won each phase.
 - **History** — every user's past predictions and points, including matches they
   skipped ("Não palpitou").
 - **Invite-only** — no public sign-up; accounts are created by an admin. Sessions
@@ -78,7 +77,7 @@ dark-navy/gold UI, Brazilian-Portuguese interface.
 - **Hardened by default** — per-user/per-IP rate limiting, validated external
   data, HTTPS/HSTS/secure-cookie switches for production.
 - **Runs on a shoebox** — single SQLite file, single container, no Redis, no
-  build pipeline. Designed for a Railway Hobby plan.
+  build pipeline. Runs comfortably on a small VM or any container host.
 
 ## How scoring works
 
@@ -89,24 +88,24 @@ scores as a draw):
 | Outcome | Points |
 |---|---:|
 | Exact score | **10** |
-| Correct draw (wrong exact score) | **5** |
 | Right winner **and** right goal difference | **7** |
+| Correct draw (wrong exact score) | **5** |
 | Right winner only | **5** |
 | Wrong | **0** |
 | No prediction (skipped) | **0** (no penalty) |
 
 The **general ranking is live and cumulative over every scored match**: the
 moment a match is scored, points are recomputed and persisted as `RankingEntry`
-rows, so a player's standing can move *mid-round*. Pages always read the stored
-snapshot — **predictions are never aggregated in a request path**. A **round**
-(group matchday, "Round of 16", …) groups matches sharing the same round label
-and drives per-round winners; the current round advances automatically once all
+rows, so a player's standing can move *mid-phase*. Pages always read the stored
+snapshot — **predictions are never aggregated in a request path**. A **phase**
+(group matchday, "Round of 16", …) groups matches sharing the same phase label
+and drives per-phase winners; the current phase advances automatically once all
 its matches are scored.
 
 ## Tech stack
 
 - **Python 3.12+ / Django 6** — server-rendered templates, no SPA, no DRF.
-- **SQLite** in both development and production (Railway volume), WAL mode.
+- **SQLite** in both development and production (persistent volume), WAL mode.
 - **Tailwind CSS v3** — pre-built and committed; no runtime or CI build step.
   Barlow / Barlow Condensed type, inline SVG icons.
 - **Gunicorn + WhiteNoise** for production serving.
@@ -123,10 +122,10 @@ FIFA API is **never** touched in a request path.
 
 | Area | Module | Responsibility |
 |---|---|---|
-| Data model | `pool/models.py` | `Team`, `Match`, `Prediction`, `RankingEntry`, `RoundWinner`. `Match.save()` triggers scoring when goals change. |
+| Data model | `pool/models.py` | `Team`, `Match`, `Prediction`, `RankingEntry`, `PhaseWinner`. `Match.save()` triggers scoring when goals change. |
 | Scoring rules | `pool/utils/scoring.py` | Frozen point/winner formulas (the table above). |
-| Rounds | `pool/services/rounds.py` | Round semantics; derives matchdays; tracks the current round. |
-| Scoring pipeline | `pool/services/scoring_service.py` | Idempotent `score_match`, round closing, `RoundWinner` upsert. |
+| Phases | `pool/services/phases.py` | Phase semantics; derives matchdays; tracks the current phase. |
+| Scoring pipeline | `pool/services/scoring_service.py` | Idempotent `score_match`, phase closing, `PhaseWinner` upsert. |
 | Ranking | `pool/services/ranking.py` | Recomputes the live ranking each time a match is scored and persists `RankingEntry` rows. |
 | Rate limiting | `pool/services/throttle.py` | Fixed-window limiter on Django's LocMem cache (no Redis). |
 | FIFA client | `pool/services/fifa_api.py` | Thin HTTP client; **normalizes/validates every field** from the undocumented feed; no DB writes. |
@@ -151,7 +150,7 @@ pool/
 ├── urls.py
 ├── admin.py           account & data management (also wraps admin login throttle)
 ├── utils/scoring.py   frozen scoring formulas
-├── services/          fifa_api, fixtures, rounds, scoring_service, ranking, throttle
+├── services/          fifa_api, fixtures, phases, scoring_service, ranking, throttle
 ├── management/commands/
 │   ├── seed_world_cup.py   one-off pre-launch import (teams + 104 fixtures)
 │   ├── check_results.py    result fetch + scoring (run on a schedule)
@@ -160,7 +159,7 @@ pool/
 ├── templatetags/      template helpers
 ├── static/pool/       committed, pre-built tailwind.css
 └── tests/             pytest suite
-Dockerfile, docker-compose.yml, start.sh   container + Railway setup
+Dockerfile, docker-compose.yml, start.sh   container setup
 ```
 
 ## Getting started (local)
@@ -169,8 +168,8 @@ Dockerfile, docker-compose.yml, start.sh   container + Railway setup
 
 ```bash
 # 1. Clone
-git clone <your-fork-url> world-cup-26
-cd world-cup-26
+git clone https://github.com/marcosvbs/scorecaster.git
+cd scorecaster
 
 # 2. Virtual environment
 python -m venv .venv
@@ -256,18 +255,22 @@ that is due and advances the bracket.
 # Development: runserver, DEBUG on, code mounted from the host
 docker compose up web
 
-# Railway simulation: gunicorn + WhiteNoise, DEBUG off, migrations on boot,
-# SQLite on a named volume (mirrors a Railway volume mount at /data)
+# Production simulation: gunicorn + WhiteNoise, DEBUG off, migrations on boot,
+# SQLite on a named volume mounted at /data
 docker compose --profile railway up --build railway
 ```
 
 Both serve on <http://localhost:8000>.
 
-## Deployment (Railway)
+> The `railway` compose profile is just a label for the production-like setup —
+> rename it in `docker-compose.yml` if you prefer.
 
-The app runs as a **single container** — there is no separate cron service,
-because a Railway volume mounts on only one service and the SQLite file must be
-reachable from the web process.
+## Deployment
+
+The app runs as a **single container** — the scheduler and the web process live
+together rather than as separate services, because the SQLite file must be
+reachable from the web process and a persistent volume typically mounts on a
+single service/host.
 
 `start.sh` (the container entrypoint) does, in order:
 
@@ -280,24 +283,24 @@ A single worker keeps the in-memory rate limiter exact; threads provide
 concurrency. SQLite runs in WAL mode with a 20s lock timeout so the background
 writers don't block page reads.
 
-For a Railway deployment:
+To deploy (Railway, Render, Fly.io, or a plain VM all work the same way):
 
-1. Create a service from this repo (it builds the `Dockerfile`).
-2. Add a **volume** mounted at `/data`.
+1. Build and run the `Dockerfile` as a service on your host.
+2. Attach a **persistent volume** mounted at `/data`.
 3. Set environment variables: `SECRET_KEY`, `DEBUG=False`, `ALLOWED_HOSTS`,
    `CSRF_TRUSTED_ORIGINS`, `HTTPS_ONLY=True`, `SQLITE_PATH=/data/db.sqlite3`.
 4. After the first deploy, run `seed_world_cup` and `createsuperuser` once
-   (e.g. from a Railway shell).
-5. In the service settings, enable **Wait for CI** so Railway holds each push
-   to `main` until the GitHub Actions checks pass (see below).
+   (e.g. from a one-off shell on the host).
+5. If your platform can gate deploys on CI status, enable it so a red run on
+   `main` blocks the deploy (see below).
 
 ### Continuous integration
 
 `.github/workflows/ci.yml` runs on every push to `main` and every pull request:
 the pytest suite (with coverage), `makemigrations --check` + `check --deploy`,
-and a production Docker image build. With **Wait for CI** enabled on the Railway
-service, a red run blocks the deploy — Railway never builds a broken commit. CI
-runs entirely on GitHub Actions; it adds no Railway usage.
+and a production Docker image build. If your host can hold a deploy until CI
+passes, a red run blocks it so a broken commit never ships. CI runs entirely on
+GitHub Actions.
 
 <details>
 <summary><strong>Resetting the database (for testing)</strong></summary>
