@@ -39,10 +39,26 @@
     .logout-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 24px; }
     .btn-cancel { background: var(--bg-surface-alt); color: var(--text-secondary); border: 1px solid var(--border-default); border-radius: 10px; font-size: 0.875rem; padding: 10px; font-family: 'Barlow', sans-serif; cursor: pointer; }
     .btn-logout-confirm { background: var(--danger); color: white; border: none; border-radius: 10px; font-size: 0.875rem; font-weight: 600; padding: 10px; font-family: 'Barlow', sans-serif; cursor: pointer; }
+    /* ── Decorative country-flag side banners (desktop gutters only) ── */
+    .side-flags { position: fixed; top: 0; bottom: 0; z-index: 0; overflow: hidden; pointer-events: none; width: calc((100vw - 34rem) / 2); display: none; }
+    .side-flags.left  { left: 0; }
+    .side-flags.right { right: 0; }
+    /* Only show where real gutter space exists (content column is max-w-lg). */
+    @media (min-width: 1024px) { .side-flags { display: block; } }
+    .flag-strip { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 28px 0; }
+    .flag-strip img { width: 120px; height: 80px; object-fit: cover; border-radius: 4px; opacity: 0.55; box-shadow: 0 2px 10px rgba(0,0,0,0.45); }
+    /* Deep-navy filter so flags read as subtle texture and fade into content. */
+    .side-flags::after { content: ''; position: absolute; inset: 0; }
+    .side-flags.left::after  { background: linear-gradient(to right, rgba(10,15,44,0.45) 0%, rgba(10,15,44,0.85) 65%, var(--bg-primary) 100%); }
+    .side-flags.right::after { background: linear-gradient(to left,  rgba(10,15,44,0.45) 0%, rgba(10,15,44,0.85) 65%, var(--bg-primary) 100%); }
     {% block extra_styles %}{% endblock %}
   </style>
 </head>
 <body class="min-h-screen pb-24">
+
+  {# ── Decorative flag banners in the desktop side gutters (purely visual) ── #}
+  <div class="side-flags left"  aria-hidden="true"><div class="flag-strip"></div></div>
+  <div class="side-flags right" aria-hidden="true"><div class="flag-strip"></div></div>
 
   <header style="background: var(--bg-surface); border-bottom: 1px solid var(--border-default);" class="sticky top-0 z-10">
     <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
@@ -100,6 +116,28 @@
   <script>
     function abrirLogout() { document.getElementById('logout-modal').classList.remove('hidden'); }
     function fecharLogout() { document.getElementById('logout-modal').classList.add('hidden'); }
+
+    // Populate decorative side-gutter flag banners (desktop only).
+    (function () {
+      // Derive the flags dir from any static URL so it honors STATIC_URL.
+      var FLAG_BASE = "{% static 'pool/flags/_placeholder.svg' %}".replace('_placeholder.svg', '');
+      var CODES = ['br','ar','fr','de','es','pt','it','nl','gb','us','mx','jp','kr','ca',
+                   'be','hr','ma','sn','co','uy','ch','pl','rs','dk','no','se','au','za',
+                   'ec','cr','tn','eg','ir','sa','qa','cl','pe','ng','gh','jm','pa','cz'];
+      var strips = document.querySelectorAll('.side-flags .flag-strip');
+      if (!strips.length || window.matchMedia('(max-width: 1023px)').matches) return;
+      var needed = Math.ceil((window.innerHeight + 200) / 100) + 2; // ~100px per flag (80 + gap)
+      strips.forEach(function (strip, s) {
+        for (var i = 0; i < needed; i++) {
+          // Offset each side so left/right don't mirror identically.
+          var code = CODES[(i + s * 7) % CODES.length];
+          var img = document.createElement('img');
+          img.src = FLAG_BASE + code + '.svg';
+          img.alt = '';
+          strip.appendChild(img);
+        }
+      });
+    })();
   </script>
 
   {% block extra_scripts %}{% endblock %}
