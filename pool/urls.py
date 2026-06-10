@@ -6,6 +6,7 @@ app_name = "pool"
 
 urlpatterns = [
     path("login/", views.CustomLoginView.as_view(), name="login"),
+    path("demo-login/<str:username>/", views.demo_login, name="demo_login"),
     path("logout/", LogoutView.as_view(next_page="pool:login"), name="logout"),
     path("", views.matches, name="matches"),
     path("ranking/", views.ranking, name="ranking"),

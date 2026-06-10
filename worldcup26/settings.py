@@ -36,6 +36,10 @@ SECRET_KEY = os.environ.get("SECRET_KEY", _INSECURE_DEFAULT_SECRET_KEY)
 # default only serves local development.
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
+# Demo mode: serves a frozen, offline mock snapshot (see seed_demo). When on,
+# prediction saves are blocked and a one-click "view as" login is exposed.
+DEMO_MODE = os.environ.get("DEMO_MODE", "False") == "True"
+
 if not DEBUG and SECRET_KEY == _INSECURE_DEFAULT_SECRET_KEY:
     raise ImproperlyConfigured(
         "SECRET_KEY environment variable must be set when DEBUG is False."
@@ -128,6 +132,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "pool.context_processors.demo_mode",
             ],
         },
     },

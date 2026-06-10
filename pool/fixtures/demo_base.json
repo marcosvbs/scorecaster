@@ -1,0 +1,2674 @@
+[
+{
+  "model": "pool.team",
+  "pk": 1,
+  "fields": {
+    "name": "México",
+    "flag": "MX",
+    "external_id": 43911
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 2,
+  "fields": {
+    "name": "África do Sul",
+    "flag": "ZA",
+    "external_id": 43883
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 3,
+  "fields": {
+    "name": "Coreia do Sul",
+    "flag": "KR",
+    "external_id": 43822
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 4,
+  "fields": {
+    "name": "Tchéquia",
+    "flag": "CZ",
+    "external_id": 43995
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 5,
+  "fields": {
+    "name": "Canadá",
+    "flag": "CA",
+    "external_id": 43899
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 6,
+  "fields": {
+    "name": "Bósnia e Herzegovina",
+    "flag": "BA",
+    "external_id": 44037
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 7,
+  "fields": {
+    "name": "Estados Unidos",
+    "flag": "US",
+    "external_id": 43921
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 8,
+  "fields": {
+    "name": "Paraguai",
+    "flag": "PY",
+    "external_id": 43928
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 9,
+  "fields": {
+    "name": "Catar",
+    "flag": "QA",
+    "external_id": 43834
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 10,
+  "fields": {
+    "name": "Suíça",
+    "flag": "CH",
+    "external_id": 43971
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 11,
+  "fields": {
+    "name": "Brasil",
+    "flag": "BR",
+    "external_id": 43924
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 12,
+  "fields": {
+    "name": "Marrocos",
+    "flag": "MA",
+    "external_id": 43872
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 13,
+  "fields": {
+    "name": "Haiti",
+    "flag": "HT",
+    "external_id": 43908
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 14,
+  "fields": {
+    "name": "Escócia",
+    "flag": "GB",
+    "external_id": 43967
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 15,
+  "fields": {
+    "name": "Austrália",
+    "flag": "AU",
+    "external_id": 43976
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 16,
+  "fields": {
+    "name": "Turquia",
+    "flag": "TR",
+    "external_id": 43972
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 17,
+  "fields": {
+    "name": "Alemanha",
+    "flag": "DE",
+    "external_id": 43948
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 18,
+  "fields": {
+    "name": "Curaçao",
+    "flag": "CW",
+    "external_id": 1895293
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 19,
+  "fields": {
+    "name": "Países Baixos",
+    "flag": "NL",
+    "external_id": 43960
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 20,
+  "fields": {
+    "name": "Japão",
+    "flag": "JP",
+    "external_id": 43819
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 21,
+  "fields": {
+    "name": "Costa do Marfim",
+    "flag": "CI",
+    "external_id": 43854
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 22,
+  "fields": {
+    "name": "Equador",
+    "flag": "EC",
+    "external_id": 43927
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 23,
+  "fields": {
+    "name": "Suécia",
+    "flag": "SE",
+    "external_id": 43970
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 24,
+  "fields": {
+    "name": "Tunísia",
+    "flag": "TN",
+    "external_id": 43888
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 25,
+  "fields": {
+    "name": "Espanha",
+    "flag": "ES",
+    "external_id": 43969
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 26,
+  "fields": {
+    "name": "Cabo Verde",
+    "flag": "CV",
+    "external_id": 43850
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 27,
+  "fields": {
+    "name": "Bélgica",
+    "flag": "BE",
+    "external_id": 43935
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 28,
+  "fields": {
+    "name": "Egito",
+    "flag": "EG",
+    "external_id": 43855
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 29,
+  "fields": {
+    "name": "Arábia Saudita",
+    "flag": "SA",
+    "external_id": 43835
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 30,
+  "fields": {
+    "name": "Uruguai",
+    "flag": "UY",
+    "external_id": 43930
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 31,
+  "fields": {
+    "name": "Irã",
+    "flag": "IR",
+    "external_id": 43817
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 32,
+  "fields": {
+    "name": "Nova Zelândia",
+    "flag": "NZ",
+    "external_id": 43978
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 33,
+  "fields": {
+    "name": "França",
+    "flag": "FR",
+    "external_id": 43946
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 34,
+  "fields": {
+    "name": "Senegal",
+    "flag": "SN",
+    "external_id": 43879
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 35,
+  "fields": {
+    "name": "Iraque",
+    "flag": "IQ",
+    "external_id": 43818
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 36,
+  "fields": {
+    "name": "Noruega",
+    "flag": "NO",
+    "external_id": 43961
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 37,
+  "fields": {
+    "name": "Argentina",
+    "flag": "AR",
+    "external_id": 43922
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 38,
+  "fields": {
+    "name": "Argélia",
+    "flag": "DZ",
+    "external_id": 43843
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 39,
+  "fields": {
+    "name": "Áustria",
+    "flag": "AT",
+    "external_id": 43934
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 40,
+  "fields": {
+    "name": "Jordânia",
+    "flag": "JO",
+    "external_id": 43820
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 41,
+  "fields": {
+    "name": "Portugal",
+    "flag": "PT",
+    "external_id": 43963
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 42,
+  "fields": {
+    "name": "República Democrática do Congo",
+    "flag": "CD",
+    "external_id": 20014
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 43,
+  "fields": {
+    "name": "Inglaterra",
+    "flag": "GB",
+    "external_id": 43942
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 44,
+  "fields": {
+    "name": "Croácia",
+    "flag": "HR",
+    "external_id": 43938
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 45,
+  "fields": {
+    "name": "Gana",
+    "flag": "GH",
+    "external_id": 43860
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 46,
+  "fields": {
+    "name": "Panamá",
+    "flag": "PA",
+    "external_id": 43914
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 47,
+  "fields": {
+    "name": "Uzbequistão",
+    "flag": "UZ",
+    "external_id": 44005
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 48,
+  "fields": {
+    "name": "Colômbia",
+    "flag": "CO",
+    "external_id": 43926
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 49,
+  "fields": {
+    "name": "2A",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 50,
+  "fields": {
+    "name": "2B",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 51,
+  "fields": {
+    "name": "1C",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 52,
+  "fields": {
+    "name": "2F",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 53,
+  "fields": {
+    "name": "1E",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 54,
+  "fields": {
+    "name": "3ABCDF",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 55,
+  "fields": {
+    "name": "1F",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 56,
+  "fields": {
+    "name": "2C",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 57,
+  "fields": {
+    "name": "2E",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 58,
+  "fields": {
+    "name": "2I",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 59,
+  "fields": {
+    "name": "1I",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 60,
+  "fields": {
+    "name": "3CDFGH",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 61,
+  "fields": {
+    "name": "1A",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 62,
+  "fields": {
+    "name": "3CEFHI",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 63,
+  "fields": {
+    "name": "1L",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 64,
+  "fields": {
+    "name": "3EHIJK",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 65,
+  "fields": {
+    "name": "1G",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 66,
+  "fields": {
+    "name": "3AEHIJ",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 67,
+  "fields": {
+    "name": "1D",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 68,
+  "fields": {
+    "name": "3BEFIJ",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 69,
+  "fields": {
+    "name": "1H",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 70,
+  "fields": {
+    "name": "2J",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 71,
+  "fields": {
+    "name": "2K",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 72,
+  "fields": {
+    "name": "2L",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 73,
+  "fields": {
+    "name": "1B",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 74,
+  "fields": {
+    "name": "3EFGIJ",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 75,
+  "fields": {
+    "name": "2D",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 76,
+  "fields": {
+    "name": "2G",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 77,
+  "fields": {
+    "name": "1J",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 78,
+  "fields": {
+    "name": "2H",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 79,
+  "fields": {
+    "name": "1K",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 80,
+  "fields": {
+    "name": "3DEIJL",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 81,
+  "fields": {
+    "name": "W73",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 82,
+  "fields": {
+    "name": "W75",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 83,
+  "fields": {
+    "name": "W74",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 84,
+  "fields": {
+    "name": "W77",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 85,
+  "fields": {
+    "name": "W76",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 86,
+  "fields": {
+    "name": "W78",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 87,
+  "fields": {
+    "name": "W79",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 88,
+  "fields": {
+    "name": "W80",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 89,
+  "fields": {
+    "name": "W83",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 90,
+  "fields": {
+    "name": "W84",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 91,
+  "fields": {
+    "name": "W81",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 92,
+  "fields": {
+    "name": "W82",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 93,
+  "fields": {
+    "name": "W86",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 94,
+  "fields": {
+    "name": "W88",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 95,
+  "fields": {
+    "name": "W85",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 96,
+  "fields": {
+    "name": "W87",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 97,
+  "fields": {
+    "name": "W89",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 98,
+  "fields": {
+    "name": "W90",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 99,
+  "fields": {
+    "name": "W93",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 100,
+  "fields": {
+    "name": "W94",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 101,
+  "fields": {
+    "name": "W91",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 102,
+  "fields": {
+    "name": "W92",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 103,
+  "fields": {
+    "name": "W95",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 104,
+  "fields": {
+    "name": "W96",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 105,
+  "fields": {
+    "name": "W97",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 106,
+  "fields": {
+    "name": "W98",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 107,
+  "fields": {
+    "name": "W99",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 108,
+  "fields": {
+    "name": "W100",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 109,
+  "fields": {
+    "name": "RU101",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 110,
+  "fields": {
+    "name": "RU102",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 111,
+  "fields": {
+    "name": "W101",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.team",
+  "pk": 112,
+  "fields": {
+    "name": "W102",
+    "flag": "",
+    "external_id": null
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 1,
+  "fields": {
+    "home_team": 1,
+    "away_team": 2,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-11T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021443,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 2,
+  "fields": {
+    "home_team": 3,
+    "away_team": 4,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-12T02:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021441,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 3,
+  "fields": {
+    "home_team": 5,
+    "away_team": 6,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-12T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021449,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 4,
+  "fields": {
+    "home_team": 7,
+    "away_team": 8,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-13T01:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021458,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 5,
+  "fields": {
+    "home_team": 9,
+    "away_team": 10,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-13T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021447,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 6,
+  "fields": {
+    "home_team": 11,
+    "away_team": 12,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-13T22:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021456,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 7,
+  "fields": {
+    "home_team": 13,
+    "away_team": 14,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-14T01:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021453,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 8,
+  "fields": {
+    "home_team": 15,
+    "away_team": 16,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-14T04:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021463,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 9,
+  "fields": {
+    "home_team": 17,
+    "away_team": 18,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-14T17:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021464,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 10,
+  "fields": {
+    "home_team": 19,
+    "away_team": 20,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-14T20:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021470,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 11,
+  "fields": {
+    "home_team": 21,
+    "away_team": 22,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-14T23:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021467,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 12,
+  "fields": {
+    "home_team": 23,
+    "away_team": 24,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-15T02:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021474,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 13,
+  "fields": {
+    "home_team": 25,
+    "away_team": 26,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-15T16:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021482,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 14,
+  "fields": {
+    "home_team": 27,
+    "away_team": 28,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-15T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021478,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 15,
+  "fields": {
+    "home_team": 29,
+    "away_team": 30,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-15T22:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021486,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 16,
+  "fields": {
+    "home_team": 31,
+    "away_team": 32,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-16T01:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021476,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 17,
+  "fields": {
+    "home_team": 33,
+    "away_team": 34,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-16T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021490,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 18,
+  "fields": {
+    "home_team": 35,
+    "away_team": 36,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-16T22:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021488,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 19,
+  "fields": {
+    "home_team": 37,
+    "away_team": 38,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-17T01:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021496,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 20,
+  "fields": {
+    "home_team": 39,
+    "away_team": 40,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-17T04:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021498,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 21,
+  "fields": {
+    "home_team": 41,
+    "away_team": 42,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-17T17:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021502,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 22,
+  "fields": {
+    "home_team": 43,
+    "away_team": 44,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-17T20:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021507,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 23,
+  "fields": {
+    "home_team": 45,
+    "away_team": 46,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-17T23:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021510,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 24,
+  "fields": {
+    "home_team": 47,
+    "away_team": 48,
+    "stage": "group",
+    "phase": "Group Stage - 1",
+    "starts_at": "2026-06-18T02:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021504,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 25,
+  "fields": {
+    "home_team": 4,
+    "away_team": 2,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-18T16:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021440,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 26,
+  "fields": {
+    "home_team": 10,
+    "away_team": 6,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-18T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021446,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 27,
+  "fields": {
+    "home_team": 5,
+    "away_team": 9,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-18T22:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021450,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 28,
+  "fields": {
+    "home_team": 1,
+    "away_team": 3,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-19T01:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021442,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 29,
+  "fields": {
+    "home_team": 7,
+    "away_team": 15,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-19T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021462,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 30,
+  "fields": {
+    "home_team": 14,
+    "away_team": 12,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-19T22:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021454,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 31,
+  "fields": {
+    "home_team": 11,
+    "away_team": 13,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-20T00:30:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021457,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 32,
+  "fields": {
+    "home_team": 16,
+    "away_team": 8,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-20T03:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021460,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 33,
+  "fields": {
+    "home_team": 19,
+    "away_team": 23,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-20T17:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021472,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 34,
+  "fields": {
+    "home_team": 17,
+    "away_team": 21,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-20T20:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021469,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 35,
+  "fields": {
+    "home_team": 22,
+    "away_team": 18,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-21T00:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021465,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 36,
+  "fields": {
+    "home_team": 24,
+    "away_team": 20,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-21T04:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021475,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 37,
+  "fields": {
+    "home_team": 25,
+    "away_team": 29,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-21T16:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021483,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 38,
+  "fields": {
+    "home_team": 27,
+    "away_team": 31,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-21T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021477,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 39,
+  "fields": {
+    "home_team": 30,
+    "away_team": 26,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-21T22:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021487,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 40,
+  "fields": {
+    "home_team": 32,
+    "away_team": 28,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-22T01:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021480,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 41,
+  "fields": {
+    "home_team": 37,
+    "away_team": 39,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-22T17:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021494,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 42,
+  "fields": {
+    "home_team": 33,
+    "away_team": 35,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-22T21:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021492,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 43,
+  "fields": {
+    "home_team": 36,
+    "away_team": 34,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-23T00:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021491,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 44,
+  "fields": {
+    "home_team": 40,
+    "away_team": 38,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-23T03:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021499,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 45,
+  "fields": {
+    "home_team": 41,
+    "away_team": 47,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-23T17:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021503,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 46,
+  "fields": {
+    "home_team": 43,
+    "away_team": 45,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-23T20:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021506,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 47,
+  "fields": {
+    "home_team": 46,
+    "away_team": 44,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-23T23:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021511,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 48,
+  "fields": {
+    "home_team": 48,
+    "away_team": 42,
+    "stage": "group",
+    "phase": "Group Stage - 2",
+    "starts_at": "2026-06-24T02:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021501,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 49,
+  "fields": {
+    "home_team": 6,
+    "away_team": 9,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-24T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021448,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 50,
+  "fields": {
+    "home_team": 10,
+    "away_team": 5,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-24T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021451,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 51,
+  "fields": {
+    "home_team": 12,
+    "away_team": 13,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-24T22:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021452,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 52,
+  "fields": {
+    "home_team": 14,
+    "away_team": 11,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-24T22:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021455,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 53,
+  "fields": {
+    "home_team": 2,
+    "away_team": 3,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-25T01:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021445,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 54,
+  "fields": {
+    "home_team": 4,
+    "away_team": 1,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-25T01:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021444,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 55,
+  "fields": {
+    "home_team": 18,
+    "away_team": 21,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-25T20:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021468,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 56,
+  "fields": {
+    "home_team": 22,
+    "away_team": 17,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-25T20:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021466,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 57,
+  "fields": {
+    "home_team": 24,
+    "away_team": 19,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-25T23:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021473,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 58,
+  "fields": {
+    "home_team": 20,
+    "away_team": 23,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-25T23:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021471,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 59,
+  "fields": {
+    "home_team": 8,
+    "away_team": 15,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-26T02:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021461,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 60,
+  "fields": {
+    "home_team": 16,
+    "away_team": 7,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-26T02:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021459,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 61,
+  "fields": {
+    "home_team": 34,
+    "away_team": 35,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-26T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021493,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 62,
+  "fields": {
+    "home_team": 36,
+    "away_team": 33,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-26T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021489,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 63,
+  "fields": {
+    "home_team": 30,
+    "away_team": 25,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-27T00:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021484,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 64,
+  "fields": {
+    "home_team": 26,
+    "away_team": 29,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-27T00:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021485,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 65,
+  "fields": {
+    "home_team": 32,
+    "away_team": 27,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-27T03:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021481,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 66,
+  "fields": {
+    "home_team": 28,
+    "away_team": 31,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-27T03:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021479,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 67,
+  "fields": {
+    "home_team": 46,
+    "away_team": 43,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-27T21:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021508,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 68,
+  "fields": {
+    "home_team": 44,
+    "away_team": 45,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-27T21:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021509,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 69,
+  "fields": {
+    "home_team": 42,
+    "away_team": 47,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-27T23:30:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021500,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 70,
+  "fields": {
+    "home_team": 48,
+    "away_team": 41,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-27T23:30:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021505,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 71,
+  "fields": {
+    "home_team": 38,
+    "away_team": 39,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-28T02:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021497,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 72,
+  "fields": {
+    "home_team": 40,
+    "away_team": 37,
+    "stage": "group",
+    "phase": "Group Stage - 3",
+    "starts_at": "2026-06-28T02:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021495,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 73,
+  "fields": {
+    "home_team": 49,
+    "away_team": 50,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-06-28T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021518,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 74,
+  "fields": {
+    "home_team": 51,
+    "away_team": 52,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-06-29T17:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021516,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 75,
+  "fields": {
+    "home_team": 53,
+    "away_team": 54,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-06-29T20:30:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021513,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 76,
+  "fields": {
+    "home_team": 55,
+    "away_team": 56,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-06-30T01:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021522,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 77,
+  "fields": {
+    "home_team": 57,
+    "away_team": 58,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-06-30T17:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021514,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 78,
+  "fields": {
+    "home_team": 59,
+    "away_team": 60,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-06-30T21:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021523,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 79,
+  "fields": {
+    "home_team": 61,
+    "away_team": 62,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-07-01T01:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021520,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 80,
+  "fields": {
+    "home_team": 63,
+    "away_team": 64,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-07-01T16:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021512,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 81,
+  "fields": {
+    "home_team": 65,
+    "away_team": 66,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-07-01T20:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021525,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 82,
+  "fields": {
+    "home_team": 67,
+    "away_team": 68,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-07-02T00:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021524,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 83,
+  "fields": {
+    "home_team": 69,
+    "away_team": 70,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-07-02T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021519,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 84,
+  "fields": {
+    "home_team": 71,
+    "away_team": 72,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-07-02T23:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021526,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 85,
+  "fields": {
+    "home_team": 73,
+    "away_team": 74,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-07-03T03:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021527,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 86,
+  "fields": {
+    "home_team": 75,
+    "away_team": 76,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-07-03T18:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021515,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 87,
+  "fields": {
+    "home_team": 77,
+    "away_team": 78,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-07-03T22:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021521,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 88,
+  "fields": {
+    "home_team": 79,
+    "away_team": 80,
+    "stage": "round_of_32",
+    "phase": "Round of 32",
+    "starts_at": "2026-07-04T01:30:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021517,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 89,
+  "fields": {
+    "home_team": 81,
+    "away_team": 82,
+    "stage": "round_of_16",
+    "phase": "Round of 16",
+    "starts_at": "2026-07-04T17:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021530,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 90,
+  "fields": {
+    "home_team": 83,
+    "away_team": 84,
+    "stage": "round_of_16",
+    "phase": "Round of 16",
+    "starts_at": "2026-07-04T21:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021533,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 91,
+  "fields": {
+    "home_team": 85,
+    "away_team": 86,
+    "stage": "round_of_16",
+    "phase": "Round of 16",
+    "starts_at": "2026-07-05T20:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021532,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 92,
+  "fields": {
+    "home_team": 87,
+    "away_team": 88,
+    "stage": "round_of_16",
+    "phase": "Round of 16",
+    "starts_at": "2026-07-06T00:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021531,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 93,
+  "fields": {
+    "home_team": 89,
+    "away_team": 90,
+    "stage": "round_of_16",
+    "phase": "Round of 16",
+    "starts_at": "2026-07-06T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021529,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 94,
+  "fields": {
+    "home_team": 91,
+    "away_team": 92,
+    "stage": "round_of_16",
+    "phase": "Round of 16",
+    "starts_at": "2026-07-07T00:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021534,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 95,
+  "fields": {
+    "home_team": 93,
+    "away_team": 94,
+    "stage": "round_of_16",
+    "phase": "Round of 16",
+    "starts_at": "2026-07-07T16:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021528,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 96,
+  "fields": {
+    "home_team": 95,
+    "away_team": 96,
+    "stage": "round_of_16",
+    "phase": "Round of 16",
+    "starts_at": "2026-07-07T20:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021535,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 97,
+  "fields": {
+    "home_team": 97,
+    "away_team": 98,
+    "stage": "quarter_final",
+    "phase": "Quarter-final",
+    "starts_at": "2026-07-09T20:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021536,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 98,
+  "fields": {
+    "home_team": 99,
+    "away_team": 100,
+    "stage": "quarter_final",
+    "phase": "Quarter-final",
+    "starts_at": "2026-07-10T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021538,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 99,
+  "fields": {
+    "home_team": 101,
+    "away_team": 102,
+    "stage": "quarter_final",
+    "phase": "Quarter-final",
+    "starts_at": "2026-07-11T21:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021539,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 100,
+  "fields": {
+    "home_team": 103,
+    "away_team": 104,
+    "stage": "quarter_final",
+    "phase": "Quarter-final",
+    "starts_at": "2026-07-12T01:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021537,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 101,
+  "fields": {
+    "home_team": 105,
+    "away_team": 106,
+    "stage": "semi_final",
+    "phase": "Semi-final",
+    "starts_at": "2026-07-14T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021541,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 102,
+  "fields": {
+    "home_team": 107,
+    "away_team": 108,
+    "stage": "semi_final",
+    "phase": "Semi-final",
+    "starts_at": "2026-07-15T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021540,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 103,
+  "fields": {
+    "home_team": 109,
+    "away_team": 110,
+    "stage": "third_place",
+    "phase": "Play-off for third place",
+    "starts_at": "2026-07-18T21:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021542,
+    "api_status": "1",
+    "is_scored": false
+  }
+},
+{
+  "model": "pool.match",
+  "pk": 104,
+  "fields": {
+    "home_team": 111,
+    "away_team": 112,
+    "stage": "final",
+    "phase": "Final",
+    "starts_at": "2026-07-19T19:00:00Z",
+    "home_goals": null,
+    "away_goals": null,
+    "external_id": 400021543,
+    "api_status": "1",
+    "is_scored": false
+  }
+}
+]

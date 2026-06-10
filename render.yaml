@@ -1,0 +1,24 @@
+# Render free-tier deploy for the DEMO (this `demo` branch only).
+# Ephemeral disk + re-seed on boot → no persistent volume, zero cost.
+# Free web services sleep after ~15 min idle; the next request cold-starts
+# (~30s) and re-seeds, which keeps the demo fresh.
+services:
+  - type: web
+    name: bolao-copa-2026-demo
+    runtime: docker
+    plan: free
+    branch: demo
+    dockerfilePath: ./Dockerfile
+    # Override the production CMD (start.sh) with the demo entrypoint.
+    dockerCommand: sh ./start-demo.sh
+    envVars:
+      - key: DEMO_MODE
+        value: "True"
+      - key: DEBUG
+        value: "False"
+      - key: HTTPS_ONLY
+        value: "True"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: SECRET_KEY
+        generateValue: true

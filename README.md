@@ -9,6 +9,9 @@ score of every match, earn points by how close they get, and climb a **live
 ranking that updates the moment each match is decided**. Server-rendered Django,
 dark-navy/gold UI, Brazilian-Portuguese interface.
 
+> **Demo:** want to see it running with mock data, no setup? See [`DEMO.md`](DEMO.md)
+> — a frozen, offline snapshot (5 users, Phase 1 scored) that deploys free on Render.
+
 <!-- CI badge renders once the workflow has run at least once on the default branch. -->
 [![CI](https://github.com/marcosvbs/scorecaster/actions/workflows/ci.yml/badge.svg)](https://github.com/marcosvbs/scorecaster/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-gold.svg)](LICENSE)

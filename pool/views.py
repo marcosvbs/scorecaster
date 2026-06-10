@@ -1,14 +1,19 @@
 import json
 from types import SimpleNamespace
 
+from django.conf import settings
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 from django.contrib.auth.views import LoginView
 from django.db.models import Max
-from django.shortcuts import render, get_object_or_404
+from django.http import Http404
+from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 from django.http import JsonResponse
 
@@ -35,6 +40,15 @@ class CustomLoginView(LoginView):
     template_name = "pool/login.html"
     redirect_authenticated_user = True
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if settings.DEMO_MODE:
+            # One-click "view as" buttons, one per fictional competitor.
+            context["demo_users"] = list(
+                User.objects.order_by("id").values_list("username", flat=True)
+            )
+        return context
+
     def post(self, request, *args, **kwargs):
         max_requests, window = LOGIN_RATE_LIMIT
         if is_rate_limited(f"login:{client_ip(request)}", max_requests, window):
@@ -50,6 +64,21 @@ class CustomLoginView(LoginView):
             )
             return self.render_to_response(context, status=429)
         return super().post(request, *args, **kwargs)
+
+
+@never_cache
+def demo_login(request, username):
+    """One-click password-less login as a demo user (DEMO_MODE only).
+
+    404 when demo mode is off, so this can never become an auth bypass in a
+    real deployment. The login throttle is intentionally skipped — the demo
+    has no secrets to brute-force.
+    """
+    if not settings.DEMO_MODE:
+        raise Http404()
+    user = get_object_or_404(User, username=username)
+    login(request, user)
+    return redirect(reverse("pool:matches"))
 
 
 @never_cache
@@ -204,6 +233,12 @@ def historic(request):
 @login_required
 @require_POST
 def save_prediction(request):
+    if settings.DEMO_MODE:
+        # Frozen demo: show the prediction UI but never persist anything.
+        return JsonResponse(
+            {"ok": False, "error": "Modo demonstração: palpites não são salvos."}
+        )
+
     max_requests, window = PREDICTION_RATE_LIMIT
     if is_rate_limited(f"prediction:{request.user.id}", max_requests, window):
         return JsonResponse(
