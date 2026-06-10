@@ -31,14 +31,9 @@ dark-navy/gold UI, Brazilian-Portuguese interface.
 
 ## Screenshots
 
-<!-- Replace the placeholders below with real images committed under docs/img/.
-     Recommended: 3 mobile-framed shots (portrait, ~390px wide) so the
-     mobile-first UI reads instantly. A short GIF of a prediction being saved
-     and the ranking updating is even stronger — drop it in first. -->
-
-| Predictions | Live ranking | History |
-|:---:|:---:|:---:|
-| ![Tela de palpites](docs/img/predictions.png) | ![Ranking ao vivo](docs/img/ranking.png) | ![Histórico](docs/img/history.png) |
+| Login | Predictions | Live ranking | History |
+|:---:|:---:|:---:|:---:|
+| ![Tela de login](docs/img/login.jpeg) | ![Tela de palpites](docs/img/predictions.jpeg) | ![Ranking ao vivo](docs/img/ranking.jpeg) | ![Histórico](docs/img/history.jpeg) |
 
 > _Dark-navy / gold theme, Barlow typography, fully in Brazilian Portuguese._
 
