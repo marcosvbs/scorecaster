@@ -153,8 +153,12 @@ def test_finished_card_mirrors_history(auth_client, teams, user):
 
     html = auth_client.get("/").content.decode()
 
+    assert "Finalizado" in html  # status tag alongside the result badge
     assert "Exato · +10 pts" in html
     assert "Resultado: 1 × 0" in html
+    # Django {# #} comments are single-line only; a multi-line one would leak as
+    # text. Guard against the comment ever rendering on the page.
+    assert "full mirror of a Histórico row" not in html
 
 
 def test_finished_card_skipped_shows_nao_palpitou(auth_client, teams, user):
