@@ -118,9 +118,7 @@
         </div>
 
         {% elif match.status == 'locked' or match.status == 'live' %}
-        {# Bloqueado (deadline passed, before kickoff) and Em andamento (after kickoff,
-           not scored) share a dimmed, non-clickable layout that keeps showing the saved
-           prediction. No live score exists — FIFA only delivers final scores. #}
+        {# Bloqueado / Em andamento: dimmed, non-clickable, keep showing the saved prediction (no live score — FIFA only delivers final scores). #}
         <div class="game-card-locked p-4">
           <div class="flex items-center justify-between mb-3 gap-2">
             <div class="flex items-center gap-2 min-w-0">
@@ -156,25 +154,27 @@
         </div>
 
         {% else %}
-        {# Finalizado — full mirror of a Histórico row: result badge, saved prediction,
-           and the real match result line. "Não palpitou" when the user skipped it. #}
+        {# Finalizado — full mirror of a Histórico row: result badge, saved prediction, real result line. "Não palpitou" when skipped. #}
         <div class="game-card-locked p-4">
           <div class="flex items-center justify-between mb-3 gap-2">
             <div class="flex items-center gap-2 min-w-0">
               <span class="text-xs truncate" style="color: var(--text-muted);">{{ match.phase|phase_label }} · {{ match.starts_at|date:"d/m" }} {{ match.starts_at|time:"H\h" }}</span>
               {% if match.is_knockout %}<span class="badge-knockout">⚔️ Mata-mata</span>{% endif %}
             </div>
-            {% with pred=match.user_prediction %}
-              {% if pred.result == 'exact' %}
-                <span class="badge-exact">Exato · +{{ pred.points }} pts</span>
-              {% elif pred.result == 'partial' %}
-                <span class="badge-partial">Parcial · +{{ pred.points }} pts</span>
-              {% elif pred.result == 'wrong' %}
-                <span class="badge-wrong">Errou · 0 pts</span>
-              {% else %}
-                <span class="badge-none">Não palpitou</span>
-              {% endif %}
-            {% endwith %}
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="badge-locked">Finalizado</span>
+              {% with pred=match.user_prediction %}
+                {% if pred.result == 'exact' %}
+                  <span class="badge-exact">Exato · +{{ pred.points }} pts</span>
+                {% elif pred.result == 'partial' %}
+                  <span class="badge-partial">Parcial · +{{ pred.points }} pts</span>
+                {% elif pred.result == 'wrong' %}
+                  <span class="badge-wrong">Errou · 0 pts</span>
+                {% else %}
+                  <span class="badge-none">Não palpitou</span>
+                {% endif %}
+              {% endwith %}
+            </div>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 flex-1">

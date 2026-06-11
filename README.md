@@ -62,7 +62,12 @@ dark-navy/gold UI, Brazilian-Portuguese interface.
 ## Features
 
 - **Score predictions** for every match of the current phase, locked **30 minutes
-  before kickoff**.
+  before kickoff**. A saved prediction stays visible on the card after it locks.
+- **Match-card lifecycle** — each card reflects the match's live state:
+  *Palpitar* (open), *Palpitado* (open, prediction saved), *Bloqueado* (past the
+  deadline, before kickoff), *Em andamento* (kickoff passed, not yet scored), and
+  *Finalizado* (scored — shows the final result, your prediction, and points
+  earned, exactly like the History tab).
 - **Automatic scoring** — results are fetched from FIFA and points are awarded the
   moment a match is decided. No manual data entry.
 - **Live general ranking** — points appear as soon as a match is scored, even
