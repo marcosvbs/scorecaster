@@ -87,17 +87,27 @@ def test_cards_show_ptbr_phase_label_and_date(auth_client, teams):
     assert "Group Stage" not in html             # raw English phase never leaks
 
 
-def test_match_past_deadline_is_locked(auth_client, teams):
-    # Started an hour ago: still today, but the 30-min deadline has passed.
-    match = make_match(teams, timezone.now() - timezone.timedelta(hours=1))
+def test_match_past_deadline_before_kickoff_is_locked(auth_client, teams):
+    # Kickoff in 15 min: the 30-min deadline has passed but the match has not
+    # started -> "locked" (Bloqueado).
+    match = make_match(teams, timezone.now() + timezone.timedelta(minutes=15))
 
     resp = auth_client.get("/")
 
     assert find(resp.context["today_matches"], match.id).status == "locked"
 
 
-def test_scored_match_is_locked_even_before_deadline(auth_client, teams):
-    # Future kickoff (deadline not passed) but already scored -> locked.
+def test_match_after_kickoff_unscored_is_live(auth_client, teams):
+    # Kickoff an hour ago, not yet scored -> "live" (Em andamento).
+    match = make_match(teams, timezone.now() - timezone.timedelta(hours=1))
+
+    resp = auth_client.get("/")
+
+    assert find(resp.context["today_matches"], match.id).status == "live"
+
+
+def test_scored_match_is_finished_even_before_deadline(auth_client, teams):
+    # Future kickoff (deadline not passed) but already scored -> "finished".
     match = make_match(
         teams, timezone.now() + timezone.timedelta(hours=2), phase="Group Stage - 1"
     )
@@ -112,7 +122,56 @@ def test_scored_match_is_locked_even_before_deadline(auth_client, teams):
 
     resp = auth_client.get("/")
 
-    assert find(resp.context["today_matches"], match.id).status == "locked"
+    assert find(resp.context["today_matches"], match.id).status == "finished"
+
+
+def test_locked_card_keeps_saved_prediction(auth_client, teams, user):
+    # Deadline passed (kickoff in 15 min), prediction saved earlier -> the card
+    # is Bloqueado but still shows the saved score.
+    match = make_match(teams, timezone.now() + timezone.timedelta(minutes=15))
+    Prediction.objects.create(user=user, match=match, home_goals=3, away_goals=1)
+
+    html = auth_client.get("/").content.decode()
+
+    assert "Bloqueado" in html
+    assert ">3<" in html and ">1<" in html
+
+
+def test_finished_card_mirrors_history(auth_client, teams, user):
+    # Scored match in the still-current phase shows the full result mirror:
+    # result badge + saved prediction + real result line.
+    match = make_match(
+        teams, timezone.now() + timezone.timedelta(hours=2), phase="Group Stage - 1"
+    )
+    make_match(
+        teams, timezone.now() + timezone.timedelta(days=2), phase="Group Stage - 1"
+    )
+    Prediction.objects.create(user=user, match=match, home_goals=1, away_goals=0)
+    match.home_goals = 1
+    match.away_goals = 0
+    match.save()  # exact hit -> 10 pts
+
+    html = auth_client.get("/").content.decode()
+
+    assert "Exato · +10 pts" in html
+    assert "Resultado: 1 × 0" in html
+
+
+def test_finished_card_skipped_shows_nao_palpitou(auth_client, teams, user):
+    match = make_match(
+        teams, timezone.now() + timezone.timedelta(hours=2), phase="Group Stage - 1"
+    )
+    make_match(
+        teams, timezone.now() + timezone.timedelta(days=2), phase="Group Stage - 1"
+    )
+    match.home_goals = 2
+    match.away_goals = 2
+    match.save()  # no prediction for this user
+
+    html = auth_client.get("/").content.decode()
+
+    assert "Não palpitou" in html
+    assert "Resultado: 2 × 2" in html
 
 
 def test_future_phases_separated_from_current(auth_client, teams):
