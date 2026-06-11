@@ -140,7 +140,14 @@ def matches(request):
         user_pred = predictions_by_match.get(match.id)
         match.user_prediction = user_pred
 
-        if match.is_scored or now >= match.prediction_deadline:
+        # Lifecycle order, most-terminal first: a scored match is "finished";
+        # past kickoff but unscored is "live"; past the 30-min deadline but
+        # before kickoff is "locked"; otherwise it still accepts predictions.
+        if match.is_scored:
+            match.status = "finished"
+        elif now >= match.starts_at:
+            match.status = "live"
+        elif now >= match.prediction_deadline:
             match.status = "locked"
         elif user_pred:
             match.status = "predicted"
