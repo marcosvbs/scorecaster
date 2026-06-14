@@ -11,4 +11,9 @@ urlpatterns = [
     path("ranking/", views.ranking, name="ranking"),
     path("historic/", views.historic, name="historic"),
     path("predictions/save/", views.save_prediction, name="save_prediction"),
+    path(
+        "matches/<int:match_id>/predictions/",
+        views.match_predictions,
+        name="match_predictions",
+    ),
 ]
