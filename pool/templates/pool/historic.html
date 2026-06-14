@@ -60,6 +60,8 @@
       <div class="hist-row px-4 py-3 divider {% if entry.result == 'none' %}opacity-50{% endif %}" data-result="{{ entry.result }}"
            onclick="openOthersModal({{ entry.match.id }}, '{{ entry.match.phase|phase_label|escapejs }}', '{{ entry.match.starts_at|time:'H\hi'|escapejs }}', '{{ entry.match.home_team.name|escapejs }} × {{ entry.match.away_team.name|escapejs }}', 'Resultado: {{ entry.match.home_goals }} × {{ entry.match.away_goals }}')">
 
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between mb-1.5">
           <span class="text-xs" style="color: var(--text-muted);">
             {{ entry.match.starts_at|date:"d \d\e M" }} · {{ entry.match.phase|phase_label }}
@@ -108,6 +110,10 @@
             <p class="text-xs mt-1" style="color: rgba(232,0,61,0.8);">Resultado: {{ entry.match.home_goals }} × {{ entry.match.away_goals }}</p>
           {% endif %}
         {% endif %}
+        </div>
+        {# tappable cue: opens the Palpites modal #}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
 
       </div>
       {% empty %}

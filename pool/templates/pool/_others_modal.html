@@ -1,9 +1,9 @@
 {% load static %}
-{# ── "Outros palpites" detail modal — shared by Jogos & Histórico ──
-   Opened from live/finished cards. Repeats the card header, then lists other
-   users' predictions fetched on demand from pool:match_predictions (DB-only,
-   server-side reveal guard). Reuses .modal-card + badge-* classes defined in
-   the including template's extra_styles. #}
+{# ── "Palpites" detail modal — shared by Jogos & Histórico ──
+   Opened from locked/live/finished cards. Repeats the card header, then lists
+   the viewer's own palpite (pinned + highlighted) plus other users', fetched on
+   demand from pool:match_predictions (DB-only, server-side reveal guard).
+   Reuses .modal-card + .spinner + badge-* classes from base / including template. #}
 <div id="others-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
      style="background: rgba(0,0,0,0.7);" onclick="if(event.target===this)closeOthersModal()">
   <div class="modal-card w-full max-w-sm p-5 space-y-4" role="dialog" aria-modal="true" aria-labelledby="others-teams"
@@ -18,7 +18,7 @@
     </div>
     <div class="border-t" style="border-color: var(--border-default);"></div>
     <div>
-      <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color: var(--text-muted);">Outros palpites</p>
+      <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color: var(--text-muted);">Palpites</p>
       <div id="others-list" class="space-y-2"></div>
     </div>
   </div>
@@ -34,6 +34,16 @@
     var phaseEl = document.getElementById('others-phase');
     var teamsEl = document.getElementById('others-teams');
     var resultEl = document.getElementById('others-result');
+
+    function setLoading() {
+      listEl.replaceChildren();
+      var wrap = document.createElement('div');
+      wrap.className = 'flex justify-center py-4';
+      var sp = document.createElement('div');
+      sp.className = 'spinner';
+      wrap.appendChild(sp);
+      listEl.appendChild(wrap);
+    }
 
     function setMessage(text) {
       listEl.replaceChildren();
@@ -52,44 +62,67 @@
       return null;
     }
 
-    function renderRows(data) {
-      var preds = data.predictions || [];
-      if (!preds.length) { setMessage('Nenhum outro palpite.'); return; }
-      listEl.replaceChildren();
-      preds.forEach(function (p) {
-        var row = document.createElement('div');
-        row.className = 'flex items-center justify-between gap-3';
+    // One row: name + score grouped on the LEFT (read as one unit), result
+    // badge (finished only) pushed to the right. Viewer row is pinned/highlighted.
+    function makeRow(entry, isViewer, isFinished) {
+      var row = document.createElement('div');
+      row.className = 'flex items-center gap-2';
+      if (isViewer) {
+        row.style.borderLeft = '3px solid var(--color-gold)';
+        row.style.padding = '2px 0 2px 8px';
+        row.style.borderRadius = '2px';
+      }
 
-        var name = document.createElement('span');
-        name.className = 'text-sm truncate';
-        name.style.color = 'var(--text-secondary)';
-        name.textContent = p.username;  // textContent: never innerHTML user data
+      var name = document.createElement('span');
+      name.className = 'text-sm truncate';
+      name.style.color = isViewer ? 'var(--color-gold)' : 'var(--text-secondary)';
+      if (isViewer) name.style.fontWeight = '600';
+      name.textContent = isViewer ? 'Você' : entry.username;  // textContent: never innerHTML user data
+      row.appendChild(name);
 
-        var right = document.createElement('div');
-        right.className = 'flex items-center gap-2 flex-shrink-0';
+      // Viewer who skipped: muted "Não palpitou", no score/badge.
+      if (isViewer && entry.predicted === false) {
+        var skip = document.createElement('span');
+        skip.className = 'text-sm';
+        skip.style.color = 'var(--text-muted)';
+        skip.textContent = 'Não palpitou';
+        row.appendChild(skip);
+        return row;
+      }
 
-        // Result badge (finished matches only).
-        if (data.is_finished) {
-          var b = badgeFor(p.result, Number(p.points) || 0);
-          if (b) {
-            var badge = document.createElement('span');
-            badge.className = b[0];
-            badge.textContent = b[1];
-            right.appendChild(badge);
-          }
+      var score = document.createElement('span');
+      score.className = 'text-sm font-bold flex-shrink-0';
+      score.style.color = 'var(--color-gold)';
+      // Coerce to number so only digits ever reach the DOM.
+      score.textContent = (Number(entry.home_goals) || 0) + ' × ' + (Number(entry.away_goals) || 0);
+      row.appendChild(score);
+
+      if (isFinished) {
+        var b = badgeFor(entry.result, Number(entry.points) || 0);
+        if (b) {
+          var badge = document.createElement('span');
+          badge.className = b[0];
+          badge.style.marginLeft = 'auto';  // push badge to the right edge
+          badge.textContent = b[1];
+          row.appendChild(badge);
         }
+      }
+      return row;
+    }
 
-        var score = document.createElement('span');
-        score.className = 'text-sm font-bold';
-        score.style.color = 'var(--color-gold)';
-        // Coerce to number so only digits ever reach the DOM.
-        score.textContent = (Number(p.home_goals) || 0) + ' × ' + (Number(p.away_goals) || 0);
-        right.appendChild(score);
-
-        row.appendChild(name);
-        row.appendChild(right);
-        listEl.appendChild(row);
-      });
+    function render(data) {
+      listEl.replaceChildren();
+      // Viewer first (pinned + highlighted).
+      listEl.appendChild(makeRow(data.viewer, true, data.is_finished));
+      var others = data.predictions || [];
+      others.forEach(function (p) { listEl.appendChild(makeRow(p, false, data.is_finished)); });
+      if (!others.length) {
+        var none = document.createElement('p');
+        none.className = 'text-xs pt-1';
+        none.style.color = 'var(--text-muted)';
+        none.textContent = 'Nenhum outro palpite ainda.';
+        listEl.appendChild(none);
+      }
     }
 
     window.openOthersModal = function (matchId, phase, time, teams, resultLine) {
@@ -101,14 +134,14 @@
       } else {
         resultEl.style.display = 'none';
       }
-      setMessage('Carregando…');
+      setLoading();
       overlay.classList.remove('hidden');
 
       var url = URL_TEMPLATE.replace('/0/', '/' + encodeURIComponent(matchId) + '/');
       fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(function (resp) { return resp.json().catch(function () { return { ok: false }; }); })
         .then(function (data) {
-          if (data && data.ok) { renderRows(data); }
+          if (data && data.ok) { render(data); }
           else { setMessage('Não foi possível carregar os palpites.'); }
         })
         .catch(function () { setMessage('Erro de conexão. Tente novamente.'); });

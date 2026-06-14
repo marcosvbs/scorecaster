@@ -38,6 +38,11 @@
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
     .logout-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 24px; }
+    /* ── Shared loading spinner (reused: Palpites modal, prediction save, login, logout) ── */
+    .spinner { width: 24px; height: 24px; border: 2.5px solid rgba(200,168,75,0.25); border-top-color: var(--color-gold); border-radius: 50%; animation: spin 0.7s linear infinite; box-sizing: border-box; }
+    .spinner-sm { width: 16px; height: 16px; border-width: 2px; display: inline-block; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    button:disabled { opacity: 0.7; cursor: not-allowed; }
     .btn-cancel { background: var(--bg-surface-alt); color: var(--text-secondary); border: 1px solid var(--border-default); border-radius: 10px; font-size: 0.875rem; padding: 10px; font-family: 'Barlow', sans-serif; cursor: pointer; }
     .btn-logout-confirm { background: var(--danger); color: white; border: none; border-radius: 10px; font-size: 0.875rem; font-weight: 600; padding: 10px; font-family: 'Barlow', sans-serif; cursor: pointer; }
     /* ── Decorative country-flag side banners (desktop gutters only) ── */
@@ -109,9 +114,9 @@
       <p class="text-sm mb-6" style="color: var(--text-muted);">Você precisará entrar novamente para fazer palpites.</p>
       <div class="flex gap-3">
         <button onclick="fecharLogout()" class="btn-cancel flex-1">Cancelar</button>
-        <form method="post" action="{% url 'pool:logout' %}" class="flex-1">
+        <form method="post" action="{% url 'pool:logout' %}" class="flex-1" id="logout-form">
           {% csrf_token %}
-          <button type="submit" class="btn-logout-confirm w-full">Sair</button>
+          <button type="submit" id="logout-submit" class="btn-logout-confirm w-full">Sair</button>
         </form>
       </div>
     </div>
@@ -168,6 +173,18 @@
   <script>
     function abrirLogout() { document.getElementById('logout-modal').classList.remove('hidden'); }
     function fecharLogout() { document.getElementById('logout-modal').classList.add('hidden'); }
+
+    // Lock the logout action on submit: spinner + disabled, no double-tap.
+    (function () {
+      var form = document.getElementById('logout-form');
+      if (!form) return;
+      form.addEventListener('submit', function () {
+        var btn = document.getElementById('logout-submit');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-sm"></span> Saindo…'; }
+        var cancel = document.querySelector('#logout-modal .btn-cancel');
+        if (cancel) cancel.disabled = true;
+      });
+    })();
 
     function abrirRegras() {
       document.getElementById('rules-modal').classList.remove('hidden');

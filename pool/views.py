@@ -230,12 +230,23 @@ def match_predictions(request, match_id):
         Match.objects.select_related("home_team", "away_team"), id=match_id
     )
 
-    # Reveal guard — mirrors the live/finished lifecycle in matches(). The
-    # `locked` state (past deadline, before kickoff) is deliberately excluded.
-    if not (match.is_scored or timezone.now() >= match.starts_at):
+    # Reveal guard — palpites become visible once they can no longer change:
+    # at the 30-min prediction deadline (covers locked + live) or once scored.
+    # A still-open match (before its deadline) stays hidden so nobody can copy.
+    if not (match.is_scored or timezone.now() >= match.prediction_deadline):
         return JsonResponse(
             {"ok": False, "error": "Predictions not yet visible."}, status=403
         )
+
+    def serialize(prediction):
+        return {
+            "username": prediction.user.username,
+            "home_goals": prediction.home_goals,
+            "away_goals": prediction.away_goals,
+            # result/points only meaningful once the match is scored.
+            "result": prediction.result if match.is_scored else None,
+            "points": prediction.points if match.is_scored else None,
+        }
 
     others = (
         Prediction.objects.filter(match=match)
@@ -247,20 +258,28 @@ def match_predictions(request, match_id):
         *(("-points", "user__username") if match.is_scored else ("user__username",))
     )
 
-    predictions = [
-        {
-            "username": p.user.username,
-            "home_goals": p.home_goals,
-            "away_goals": p.away_goals,
-            # result/points only meaningful once the match is scored.
-            "result": p.result if match.is_scored else None,
-            "points": p.points if match.is_scored else None,
+    viewer_pred = Prediction.objects.filter(match=match, user=request.user).first()
+    if viewer_pred is not None:
+        viewer = serialize(viewer_pred)
+        viewer["predicted"] = True
+    else:
+        # The viewer skipped this match — still surface a self row.
+        viewer = {
+            "username": request.user.username,
+            "predicted": False,
+            "home_goals": None,
+            "away_goals": None,
+            "result": None,
+            "points": None,
         }
-        for p in others
-    ]
 
     return JsonResponse(
-        {"ok": True, "is_finished": match.is_scored, "predictions": predictions}
+        {
+            "ok": True,
+            "is_finished": match.is_scored,
+            "viewer": viewer,
+            "predictions": [serialize(p) for p in others],
+        }
     )
 
 

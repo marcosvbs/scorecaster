@@ -137,6 +137,17 @@ def test_locked_card_keeps_saved_prediction(auth_client, teams, user):
     assert ">3<" in html and ">1<" in html
 
 
+def test_locked_card_is_clickable_for_palpites(auth_client, teams):
+    # Bloqueado cards now open the Palpites modal (palpites are revealed once
+    # the deadline passes) and advertise the tap.
+    make_match(teams, timezone.now() + timezone.timedelta(minutes=15))
+
+    html = auth_client.get("/").content.decode()
+
+    assert "openOthersModal(" in html
+    assert "Toque para ver os palpites" in html
+
+
 def test_finished_card_mirrors_history(auth_client, teams, user):
     # Scored match in the still-current phase shows the full result mirror:
     # result badge + saved prediction + real result line.
