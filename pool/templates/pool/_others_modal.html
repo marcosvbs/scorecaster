@@ -1,9 +1,12 @@
 {% load static %}
-{# ── "Palpites" detail modal — shared by Jogos & Histórico ──
-   Opened from locked/live/finished cards. Repeats the card header, then lists
-   the viewer's own palpite (pinned + highlighted) plus other users', fetched on
-   demand from pool:match_predictions (DB-only, server-side reveal guard).
-   Reuses .modal-card + .spinner + badge-* classes from base / including template. #}
+{% comment %}
+"Palpites" detail modal — shared by Jogos & Histórico.
+Opened from locked/live/finished cards. Repeats the card header, then lists the
+viewer's own palpite (pinned + highlighted) plus other users', fetched on demand
+from pool:match_predictions (DB-only, server-side reveal guard). Reuses
+.modal-card + .spinner + badge-* classes from base / including template.
+(Use {% comment %}, not {# #}: {# #} is single-line only and leaks if wrapped.)
+{% endcomment %}
 <div id="others-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
      style="background: rgba(0,0,0,0.7);" onclick="if(event.target===this)closeOthersModal()">
   <div class="modal-card w-full max-w-sm p-5 space-y-4" role="dialog" aria-modal="true" aria-labelledby="others-teams"
@@ -19,7 +22,7 @@
     <div class="border-t" style="border-color: var(--border-default);"></div>
     <div>
       <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color: var(--text-muted);">Palpites</p>
-      <div id="others-list" class="space-y-2"></div>
+      <div id="others-list"></div>
     </div>
   </div>
 </div>
@@ -62,64 +65,63 @@
       return null;
     }
 
-    // One row: name + score grouped on the LEFT (read as one unit), result
-    // badge (finished only) pushed to the right. Viewer row is pinned/highlighted.
-    function makeRow(entry, isViewer, isFinished) {
-      var row = document.createElement('div');
-      row.className = 'flex items-center gap-2';
-      if (isViewer) {
-        row.style.borderLeft = '3px solid var(--color-gold)';
-        row.style.padding = '2px 0 2px 8px';
-        row.style.borderRadius = '2px';
-      }
-
+    // Emit one prediction as 3 grid cells (name | score | points). A single
+    // grid owns all rows, so columns align vertically across every row.
+    function appendRow(grid, entry, isViewer, isFinished) {
       var name = document.createElement('span');
       name.className = 'text-sm truncate';
       name.style.color = isViewer ? 'var(--color-gold)' : 'var(--text-secondary)';
       if (isViewer) name.style.fontWeight = '600';
       name.textContent = isViewer ? 'Você' : entry.username;  // textContent: never innerHTML user data
-      row.appendChild(name);
-
-      // Viewer who skipped: muted "Não palpitou", no score/badge.
-      if (isViewer && entry.predicted === false) {
-        var skip = document.createElement('span');
-        skip.className = 'text-sm';
-        skip.style.color = 'var(--text-muted)';
-        skip.textContent = 'Não palpitou';
-        row.appendChild(skip);
-        return row;
-      }
+      grid.appendChild(name);
 
       var score = document.createElement('span');
-      score.className = 'text-sm font-bold flex-shrink-0';
+      score.className = 'text-sm font-bold';
       score.style.color = 'var(--color-gold)';
-      // Coerce to number so only digits ever reach the DOM.
-      score.textContent = (Number(entry.home_goals) || 0) + ' × ' + (Number(entry.away_goals) || 0);
-      row.appendChild(score);
+      score.style.justifySelf = 'end';
+      score.style.whiteSpace = 'nowrap';
 
-      if (isFinished) {
-        var b = badgeFor(entry.result, Number(entry.points) || 0);
-        if (b) {
-          var badge = document.createElement('span');
-          badge.className = b[0];
-          badge.style.marginLeft = 'auto';  // push badge to the right edge
-          badge.textContent = b[1];
-          row.appendChild(badge);
+      var points = document.createElement('span');
+      points.style.justifySelf = 'end';
+
+      if (isViewer && entry.predicted === false) {
+        // Skipped viewer: empty score cell (keeps the column), muted note in points.
+        points.className = 'badge-none';
+        points.textContent = 'Não palpitou';
+      } else {
+        // Coerce to number so only digits ever reach the DOM.
+        score.textContent = (Number(entry.home_goals) || 0) + ' × ' + (Number(entry.away_goals) || 0);
+        if (isFinished) {
+          var b = badgeFor(entry.result, Number(entry.points) || 0);
+          if (b) { points.className = b[0]; points.textContent = b[1]; }
         }
       }
-      return row;
+
+      grid.appendChild(score);
+      grid.appendChild(points);
     }
 
     function render(data) {
-      listEl.replaceChildren();
-      // Viewer first (pinned + highlighted).
-      listEl.appendChild(makeRow(data.viewer, true, data.is_finished));
-      var others = data.predictions || [];
-      others.forEach(function (p) { listEl.appendChild(makeRow(p, false, data.is_finished)); });
-      if (!others.length) {
+      var grid = document.createElement('div');
+      grid.style.display = 'grid';
+      grid.style.gridTemplateColumns = 'minmax(0,1fr) auto auto';
+      grid.style.columnGap = '12px';
+      grid.style.rowGap = '16px';
+      grid.style.alignItems = 'center';
+
+      // Viewer first (pinned + highlighted via gold name).
+      appendRow(grid, data.viewer, true, data.is_finished);
+      (data.predictions || []).forEach(function (p) {
+        appendRow(grid, p, false, data.is_finished);
+      });
+
+      listEl.replaceChildren(grid);
+
+      if (!(data.predictions || []).length) {
         var none = document.createElement('p');
-        none.className = 'text-xs pt-1';
+        none.className = 'text-xs';
         none.style.color = 'var(--text-muted)';
+        none.style.marginTop = '16px';
         none.textContent = 'Nenhum outro palpite ainda.';
         listEl.appendChild(none);
       }
