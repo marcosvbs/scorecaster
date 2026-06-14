@@ -13,6 +13,9 @@ from django.core.cache import cache
 PREDICTION_RATE_LIMIT = (20, 60)  # max requests, window seconds
 # Shared by the site login view and the admin login (same key, one budget).
 LOGIN_RATE_LIMIT = (10, 300)
+# Read-only "other users' predictions" endpoint: generous for tapping cards,
+# tight enough to deter scripted enumeration.
+OTHERS_RATE_LIMIT = (60, 60)
 
 
 def is_rate_limited(key, max_requests, window_seconds):

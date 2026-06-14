@@ -1,0 +1,123 @@
+{% load static %}
+{# ── "Outros palpites" detail modal — shared by Jogos & Histórico ──
+   Opened from live/finished cards. Repeats the card header, then lists other
+   users' predictions fetched on demand from pool:match_predictions (DB-only,
+   server-side reveal guard). Reuses .modal-card + badge-* classes defined in
+   the including template's extra_styles. #}
+<div id="others-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
+     style="background: rgba(0,0,0,0.7);" onclick="if(event.target===this)closeOthersModal()">
+  <div class="modal-card w-full max-w-sm p-5 space-y-4" role="dialog" aria-modal="true" aria-labelledby="others-teams"
+       style="max-height: 85vh; overflow-y: auto;">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <p class="text-xs" id="others-phase" style="color: var(--text-muted);"></p>
+        <p class="text-base font-semibold mt-0.5 truncate" id="others-teams" style="color: var(--text-primary);"></p>
+        <p class="text-xs mt-0.5" id="others-result" style="color: var(--text-muted); display: none;"></p>
+      </div>
+      <button onclick="closeOthersModal()" aria-label="Fechar" style="color: var(--text-muted); flex-shrink: 0;" class="hover:opacity-70 text-lg leading-none">✕</button>
+    </div>
+    <div class="border-t" style="border-color: var(--border-default);"></div>
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color: var(--text-muted);">Outros palpites</p>
+      <div id="others-list" class="space-y-2"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    // URL template with a sentinel id (0); swapped per match. Built via {% templatetag openblock %} url {% templatetag closeblock %}
+    // so it survives any path change — never hardcode the route in JS.
+    var URL_TEMPLATE = '{% url "pool:match_predictions" 0 %}';
+    var overlay = document.getElementById('others-overlay');
+    var listEl = document.getElementById('others-list');
+    var phaseEl = document.getElementById('others-phase');
+    var teamsEl = document.getElementById('others-teams');
+    var resultEl = document.getElementById('others-result');
+
+    function setMessage(text) {
+      listEl.replaceChildren();
+      var p = document.createElement('p');
+      p.className = 'text-sm py-2 text-center';
+      p.style.color = 'var(--text-muted)';
+      p.textContent = text;
+      listEl.appendChild(p);
+    }
+
+    // result code → [badge class, label]. Built only for finished matches.
+    function badgeFor(result, points) {
+      if (result === 'exact')   return ['badge-exact',   'Exato · +' + points + ' pts'];
+      if (result === 'partial') return ['badge-partial', 'Parcial · +' + points + ' pts'];
+      if (result === 'wrong')   return ['badge-wrong',   'Errou · 0 pts'];
+      return null;
+    }
+
+    function renderRows(data) {
+      var preds = data.predictions || [];
+      if (!preds.length) { setMessage('Nenhum outro palpite.'); return; }
+      listEl.replaceChildren();
+      preds.forEach(function (p) {
+        var row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-3';
+
+        var name = document.createElement('span');
+        name.className = 'text-sm truncate';
+        name.style.color = 'var(--text-secondary)';
+        name.textContent = p.username;  // textContent: never innerHTML user data
+
+        var right = document.createElement('div');
+        right.className = 'flex items-center gap-2 flex-shrink-0';
+
+        // Result badge (finished matches only).
+        if (data.is_finished) {
+          var b = badgeFor(p.result, Number(p.points) || 0);
+          if (b) {
+            var badge = document.createElement('span');
+            badge.className = b[0];
+            badge.textContent = b[1];
+            right.appendChild(badge);
+          }
+        }
+
+        var score = document.createElement('span');
+        score.className = 'text-sm font-bold';
+        score.style.color = 'var(--color-gold)';
+        // Coerce to number so only digits ever reach the DOM.
+        score.textContent = (Number(p.home_goals) || 0) + ' × ' + (Number(p.away_goals) || 0);
+        right.appendChild(score);
+
+        row.appendChild(name);
+        row.appendChild(right);
+        listEl.appendChild(row);
+      });
+    }
+
+    window.openOthersModal = function (matchId, phase, time, teams, resultLine) {
+      phaseEl.textContent = time ? (phase + ' · ' + time) : phase;
+      teamsEl.textContent = teams;
+      if (resultLine) {
+        resultEl.textContent = resultLine;
+        resultEl.style.display = '';
+      } else {
+        resultEl.style.display = 'none';
+      }
+      setMessage('Carregando…');
+      overlay.classList.remove('hidden');
+
+      var url = URL_TEMPLATE.replace('/0/', '/' + encodeURIComponent(matchId) + '/');
+      fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (resp) { return resp.json().catch(function () { return { ok: false }; }); })
+        .then(function (data) {
+          if (data && data.ok) { renderRows(data); }
+          else { setMessage('Não foi possível carregar os palpites.'); }
+        })
+        .catch(function () { setMessage('Erro de conexão. Tente novamente.'); });
+    };
+
+    window.closeOthersModal = function () { overlay.classList.add('hidden'); };
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeOthersModal();
+    });
+  })();
+</script>

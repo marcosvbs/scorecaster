@@ -11,6 +11,8 @@
   .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
   .divider { border-top: 1px solid var(--border-default); }
   .hist-row.first-visible { border-top: none !important; }
+  .hist-row { cursor: pointer; transition: background 0.15s; }
+  .hist-row:hover { background: var(--bg-surface-alt); }
   .badge-exact   { background: rgba(200,168,75,0.15);  color: var(--color-gold);       border: 1px solid rgba(200,168,75,0.3);   border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
   .badge-partial { background: rgba(245,240,232,0.07); color: var(--text-secondary);   border: 1px solid rgba(245,240,232,0.15); border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
   .badge-wrong   { background: rgba(232,0,61,0.1);     color: rgba(232,0,61,0.8);      border: 1px solid rgba(232,0,61,0.2);    border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; white-space: nowrap; }
@@ -55,7 +57,8 @@
 
     <div id="hist-list">
       {% for entry in predictions %}
-      <div class="hist-row px-4 py-3 divider {% if entry.result == 'none' %}opacity-50{% endif %}" data-result="{{ entry.result }}">
+      <div class="hist-row px-4 py-3 divider {% if entry.result == 'none' %}opacity-50{% endif %}" data-result="{{ entry.result }}"
+           onclick="openOthersModal({{ entry.match.id }}, '{{ entry.match.phase|phase_label|escapejs }}', '{{ entry.match.starts_at|time:'H\hi'|escapejs }}', '{{ entry.match.home_team.name|escapejs }} × {{ entry.match.away_team.name|escapejs }}', 'Resultado: {{ entry.match.home_goals }} × {{ entry.match.away_goals }}')">
 
         <div class="flex items-center justify-between mb-1.5">
           <span class="text-xs" style="color: var(--text-muted);">
@@ -117,6 +120,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
+{% include "pool/_others_modal.html" %}
 <script>
   (function () {
     var cards = document.querySelectorAll('.filter-card');

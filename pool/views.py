@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 from django.contrib.auth.views import LoginView
@@ -21,6 +21,7 @@ from pool.services.phases import (
 )
 from pool.services.throttle import (
     LOGIN_RATE_LIMIT,
+    OTHERS_RATE_LIMIT,
     PREDICTION_RATE_LIMIT,
     client_ip,
     is_rate_limited,
@@ -206,6 +207,61 @@ def historic(request):
         "predictions": entries,
     }
     return render(request, "pool/historic.html", context)
+
+
+@login_required
+@require_GET
+def match_predictions(request, match_id):
+    """Other users' predictions for a match (the "Outros palpites" modal).
+
+    Read-only, DB-only. Predictions are revealed ONLY once the match is live
+    (kicked off) or finished (scored) — never before kickoff, so it can't leak
+    guesses while betting is still open. This guard is the privacy invariant and
+    lives here (not the template): the client cannot request it early.
+    """
+    max_requests, window = OTHERS_RATE_LIMIT
+    if is_rate_limited(f"others:{request.user.id}", max_requests, window):
+        return JsonResponse(
+            {"ok": False, "error": "Too many requests. Try again soon."},
+            status=429,
+        )
+
+    match = get_object_or_404(
+        Match.objects.select_related("home_team", "away_team"), id=match_id
+    )
+
+    # Reveal guard — mirrors the live/finished lifecycle in matches(). The
+    # `locked` state (past deadline, before kickoff) is deliberately excluded.
+    if not (match.is_scored or timezone.now() >= match.starts_at):
+        return JsonResponse(
+            {"ok": False, "error": "Predictions not yet visible."}, status=403
+        )
+
+    others = (
+        Prediction.objects.filter(match=match)
+        .exclude(user=request.user)
+        .select_related("user")
+    )
+    # Finished: rank by points so the best guesses surface first.
+    others = others.order_by(
+        *(("-points", "user__username") if match.is_scored else ("user__username",))
+    )
+
+    predictions = [
+        {
+            "username": p.user.username,
+            "home_goals": p.home_goals,
+            "away_goals": p.away_goals,
+            # result/points only meaningful once the match is scored.
+            "result": p.result if match.is_scored else None,
+            "points": p.points if match.is_scored else None,
+        }
+        for p in others
+    ]
+
+    return JsonResponse(
+        {"ok": True, "is_finished": match.is_scored, "predictions": predictions}
+    )
 
 
 @login_required

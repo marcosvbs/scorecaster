@@ -22,6 +22,8 @@
   .game-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; transition: border-color 0.2s, box-shadow 0.2s; cursor: pointer; }
   .game-card:hover { border-color: var(--border-strong); box-shadow: 0 0 20px rgba(200,168,75,0.08); }
   .game-card-locked { background: rgba(17,24,41,0.6); border: 1px solid rgba(200,168,75,0.08); border-radius: 16px; opacity: 0.55; }
+  .game-card-locked.clickable { cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s; }
+  .game-card-locked.clickable:hover { border-color: var(--border-strong); box-shadow: 0 0 20px rgba(200,168,75,0.08); opacity: 0.8; }
   .tab-active   { background: var(--bg-surface-alt); color: var(--text-primary); border-radius: 10px; }
   .tab-inactive { color: var(--text-muted); border-radius: 10px; }
   .modal-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 24px; }
@@ -118,8 +120,9 @@
         </div>
 
         {% elif match.status == 'locked' or match.status == 'live' %}
-        {# Bloqueado / Em andamento: dimmed, non-clickable, keep showing the saved prediction (no live score — FIFA only delivers final scores). #}
-        <div class="game-card-locked p-4">
+        {# Bloqueado / Em andamento: dimmed, keep showing the saved prediction (no live score). Em andamento is tappable (palpites revealed at kickoff); Bloqueado is not. #}
+        <div class="game-card-locked p-4{% if match.status == 'live' %} clickable{% endif %}"
+             {% if match.status == 'live' %}onclick="openOthersModal({{ match.id }}, '{{ match.phase|phase_label|escapejs }}', '{{ match.starts_at|time:'H\hi'|escapejs }}', '{{ match.home_team.name|escapejs }} × {{ match.away_team.name|escapejs }}', '')"{% endif %}>
           <div class="flex items-center justify-between mb-3 gap-2">
             <div class="flex items-center gap-2 min-w-0">
               <span class="text-xs truncate" style="color: var(--text-muted);">{{ match.phase|phase_label }} · {{ match.starts_at|date:"d/m" }} {{ match.starts_at|time:"H\h" }}</span>
@@ -154,8 +157,9 @@
         </div>
 
         {% else %}
-        {# Finalizado — full mirror of a Histórico row: result badge, saved prediction, real result line. "Não palpitou" when skipped. #}
-        <div class="game-card-locked p-4">
+        {# Finalizado — full mirror of a Histórico row: result badge, saved prediction, real result line. "Não palpitou" when skipped. Tappable for Outros palpites. #}
+        <div class="game-card-locked p-4 clickable"
+             onclick="openOthersModal({{ match.id }}, '{{ match.phase|phase_label|escapejs }}', '{{ match.starts_at|time:'H\hi'|escapejs }}', '{{ match.home_team.name|escapejs }} × {{ match.away_team.name|escapejs }}', 'Resultado: {{ match.home_goals }} × {{ match.away_goals }}')">
           <div class="flex items-center justify-between mb-3 gap-2">
             <div class="flex items-center gap-2 min-w-0">
               <span class="text-xs truncate" style="color: var(--text-muted);">{{ match.phase|phase_label }} · {{ match.starts_at|date:"d/m" }} {{ match.starts_at|time:"H\h" }}</span>
@@ -247,6 +251,7 @@
 
 
 {% block extra_scripts %}
+{% include "pool/_others_modal.html" %}
 <div id="modal-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4" style="background: rgba(0,0,0,0.7);">
   <div class="modal-card w-full max-w-sm p-5 space-y-5">
     <div class="flex items-start justify-between gap-3">
