@@ -69,20 +69,22 @@ def test_hidden_before_kickoff(auth_client, teams, alice, others):
     assert "predictions" not in resp.json()
 
 
-def test_hidden_when_locked_before_kickoff(auth_client, teams, others):
-    """Locked state (past deadline, before kickoff) is also hidden — only
-    live/finished reveal."""
+def test_revealed_after_deadline_before_kickoff(auth_client, teams, others):
+    """Locked state (past the 30-min deadline, before kickoff) reveals palpites:
+    they can no longer change, so nothing leaks."""
     bob, _ = others
-    # 10 min from now: past the 30-min deadline is false here; use a time that
-    # is past the deadline but before kickoff.
+    # Kickoff in 10 min -> deadline (kickoff - 30min) already passed.
     match = make_match(
         teams, starts_at=timezone.now() + timezone.timedelta(minutes=10)
     )
     Prediction.objects.create(user=bob, match=match, home_goals=1, away_goals=0)
 
     resp = auth_client.get(url(match))
+    data = resp.json()
 
-    assert resp.status_code == 403
+    assert resp.status_code == 200
+    assert data["ok"] is True
+    assert {p["username"] for p in data["predictions"]} == {"bob"}
 
 
 # ── Live (kicked off, not scored) ───────────────────────────────────────────
@@ -102,20 +104,25 @@ def test_live_reveals_others_without_result(auth_client, teams, alice, others):
     assert data["ok"] is True
     assert data["is_finished"] is False
     usernames = {p["username"] for p in data["predictions"]}
-    assert usernames == {"bob", "carol"}  # self (alice) excluded
+    assert usernames == {"bob", "carol"}  # self (alice) not in others
     for p in data["predictions"]:
         assert p["result"] is None
         assert p["points"] is None
 
 
-def test_self_is_excluded(auth_client, teams, alice):
+def test_self_in_viewer_not_in_others(auth_client, teams, alice):
     match = make_match(teams, starts_at=timezone.now() - timezone.timedelta(hours=1))
     Prediction.objects.create(user=alice, match=match, home_goals=1, away_goals=1)
 
     resp = auth_client.get(url(match))
+    data = resp.json()
 
     assert resp.status_code == 200
-    assert resp.json()["predictions"] == []
+    assert data["predictions"] == []  # self never appears in others
+    assert data["viewer"]["username"] == "alice"
+    assert data["viewer"]["predicted"] is True
+    assert data["viewer"]["home_goals"] == 1
+    assert data["viewer"]["away_goals"] == 1
 
 
 # ── Finished (scored) ───────────────────────────────────────────────────────
@@ -137,12 +144,35 @@ def test_finished_includes_result_and_points(auth_client, teams, alice, others):
 
     assert resp.status_code == 200
     assert data["is_finished"] is True
+    # Viewer (alice) carries her own result/points.
+    assert data["viewer"]["username"] == "alice"
+    assert data["viewer"]["predicted"] is True
+    assert data["viewer"]["result"] == "wrong"  # 0-0 vs 2-1
     by_name = {p["username"]: p for p in data["predictions"]}
     assert set(by_name) == {"bob", "carol"}
     assert by_name["bob"]["result"] == "exact"
     assert by_name["bob"]["points"] == 10
     # Ordered by points desc: bob (exact) before carol.
     assert [p["username"] for p in data["predictions"]] == ["bob", "carol"]
+
+
+def test_viewer_skipped_has_predicted_false(auth_client, teams, alice, others):
+    bob, _ = others
+    match = make_match(teams, starts_at=timezone.now() - timezone.timedelta(hours=3))
+    Prediction.objects.create(user=bob, match=match, home_goals=1, away_goals=0)
+    match.home_goals = 1
+    match.away_goals = 0
+    match.save()  # scores -> finished; alice never predicted
+
+    resp = auth_client.get(url(match))
+    data = resp.json()
+
+    assert resp.status_code == 200
+    assert data["viewer"]["username"] == "alice"
+    assert data["viewer"]["predicted"] is False
+    assert data["viewer"]["home_goals"] is None
+    assert data["viewer"]["result"] is None
+    assert {p["username"] for p in data["predictions"]} == {"bob"}
 
 
 # ── Misc / hardening ────────────────────────────────────────────────────────

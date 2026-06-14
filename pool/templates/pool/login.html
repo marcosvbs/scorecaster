@@ -35,6 +35,9 @@
     }
     .btn-primary:hover { background: var(--accent-hover); }
     .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(10,15,44,0.3); border-top-color: var(--color-navy); border-radius: 50%; animation: spin 0.7s linear infinite; box-sizing: border-box; display: inline-block; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .gold-shimmer {
       background: linear-gradient(135deg, #A8851E 0%, #C8A84B 40%, #EDD97A 70%, #C8A84B 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
@@ -68,7 +71,7 @@
     </div>
 
     <div class="card p-6">
-      <form method="post" action="{% url 'pool:login' %}" class="space-y-4">
+      <form method="post" action="{% url 'pool:login' %}" class="space-y-4" id="login-form">
         {% csrf_token %}
 
         {% if csrf_error %}
@@ -114,7 +117,7 @@
           <input type="hidden" name="next" value="{{ next }}">
         {% endif %}
 
-        <button type="submit" class="btn-primary mt-2">Entrar</button>
+        <button type="submit" id="login-submit" class="btn-primary mt-2">Entrar</button>
 
       </form>
     </div>
@@ -126,6 +129,16 @@
   </div>
 
   <script>
+    // Lock the login button on submit: spinner + disabled, no double-submit.
+    (function () {
+      var form = document.getElementById('login-form');
+      if (!form) return;
+      form.addEventListener('submit', function () {
+        var btn = document.getElementById('login-submit');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Entrando…'; }
+      });
+    })();
+
     // Populate decorative side-gutter flag banners (desktop only).
     (function () {
       // URLs emitted via the static template tag so they resolve under the
