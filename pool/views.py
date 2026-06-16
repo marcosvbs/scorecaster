@@ -159,6 +159,7 @@ def matches(request):
         "active_nav": "matches",
         "today_matches": today_matches,
         "upcoming_matches": upcoming_matches,
+        "has_finished_today": any(m.status == "finished" for m in today_matches),
         "phase_winner": _phase_winner_card(now),
     }
 

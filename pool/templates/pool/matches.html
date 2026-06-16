@@ -60,6 +60,13 @@
 
     {# ── Today tab ── #}
     <div id="panel-today" class="space-y-3">
+      {% if has_finished_today %}
+      {# Client-side filter: hide already-scored (Finalizado) cards. State persists in localStorage. #}
+      <label class="flex items-center justify-end gap-2 cursor-pointer select-none">
+        <span class="text-xs" style="color: var(--text-muted);">Ocultar finalizados</span>
+        <input id="hide-finished-toggle" type="checkbox" class="toggle-switch" onchange="toggleHideFinished()">
+      </label>
+      {% endif %}
       {% for match in today_matches %}
         {% if match.status == 'open' %}
         <div class="game-card p-4"
@@ -158,7 +165,7 @@
 
         {% else %}
         {# Finalizado — full mirror of a Histórico row: result badge, saved prediction, real result line. "Não palpitou" when skipped. Tappable for Outros palpites. #}
-        <div class="game-card-locked p-4 clickable"
+        <div class="game-card-locked p-4 clickable js-finished"
              onclick="openOthersModal({{ match.id }}, '{{ match.phase|phase_label|escapejs }}', '{{ match.starts_at|time:'H\hi'|escapejs }}', '{{ match.home_team.name|escapejs }} × {{ match.away_team.name|escapejs }}', 'Resultado: {{ match.home_goals }} × {{ match.away_goals }}')">
           <div class="flex items-center justify-between mb-3 gap-2">
             <div class="flex items-center gap-2 min-w-0">
@@ -217,6 +224,8 @@
       {% empty %}
         <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum jogo na fase atual.</p>
       {% endfor %}
+      {# Shown by JS only when the toggle hides every remaining (non-finished) card #}
+      <p id="no-pending-msg" class="text-center text-sm py-8 hidden" style="color: var(--text-muted);">Nenhum jogo pendente — todos finalizados.</p>
     </div>
 
     {# ── Upcoming tab ── #}
@@ -300,6 +309,22 @@
   ✅ Palpite registrado!
 </div>
 
+<style>
+  /* Toggle switch (Fase atual → ocultar finalizados). Inline CSS: classes aren't in the prebuilt Tailwind. */
+  .toggle-switch {
+    appearance: none; -webkit-appearance: none;
+    position: relative; width: 36px; height: 20px; border-radius: 9999px;
+    background: var(--bg-surface-alt); border: 1px solid var(--border-default);
+    cursor: pointer; transition: background .15s ease; flex-shrink: 0;
+  }
+  .toggle-switch::after {
+    content: ""; position: absolute; top: 1px; left: 1px;
+    width: 16px; height: 16px; border-radius: 9999px;
+    background: var(--text-muted); transition: transform .15s ease, background .15s ease;
+  }
+  .toggle-switch:checked { background: var(--color-gold); border-color: var(--color-gold); }
+  .toggle-switch:checked::after { transform: translateX(16px); background: var(--color-navy); }
+</style>
 <script>
   const CSRF_TOKEN = '{{ csrf_token }}';
   const SAVE_URL   = '{% url "pool:save_prediction" %}';
@@ -372,5 +397,33 @@
     document.getElementById('tab-today').className    = 'flex-1 py-1.5 text-sm font-medium transition-colors ' + (isToday  ? 'tab-active' : 'tab-inactive');
     document.getElementById('tab-upcoming').className = 'flex-1 py-1.5 text-sm transition-colors '             + (!isToday ? 'tab-active' : 'tab-inactive');
   }
+
+  // ── Ocultar finalizados (persisted in localStorage) ──
+  const HIDE_FINISHED_KEY = 'wc26:hideFinished';
+
+  function applyHideFinished(hide) {
+    const finished = document.querySelectorAll('.js-finished');
+    finished.forEach(c => c.classList.toggle('hidden', hide));
+    // When hiding leaves no non-finished card, show the fallback message.
+    const total = document.querySelectorAll('#panel-today .game-card, #panel-today .game-card-locked').length;
+    const noPending = hide && finished.length === total && total > 0;
+    const msg = document.getElementById('no-pending-msg');
+    if (msg) msg.classList.toggle('hidden', !noPending);
+  }
+
+  function toggleHideFinished() {
+    const hide = document.getElementById('hide-finished-toggle').checked;
+    try { localStorage.setItem(HIDE_FINISHED_KEY, hide ? '1' : '0'); } catch (e) {}
+    applyHideFinished(hide);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('hide-finished-toggle');
+    if (!toggle) return;  // no finished matches this phase → no toggle rendered
+    let hide = false;
+    try { hide = localStorage.getItem(HIDE_FINISHED_KEY) === '1'; } catch (e) {}
+    toggle.checked = hide;
+    applyHideFinished(hide);
+  });
 </script>
 {% endblock %}
