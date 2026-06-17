@@ -1,0 +1,1734 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolão Copa do Mundo 2026 — Histórico</title>
+  <link rel="icon" type="image/svg+xml" href="/static/pool/scorecaster_logo.svg">
+  <link rel="stylesheet" href="/static/pool/tailwind.css">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-gold:       #C8A84B;
+      --color-navy:       #0A0F2C;
+      --color-red:        #E8003D;
+      --color-white:      #F5F0E8;
+      --color-sandstone:  #D4B896;
+      --bg-primary:       var(--color-navy);
+      --bg-surface:       #111829;
+      --bg-surface-alt:   #1A2340;
+      --text-primary:     var(--color-white);
+      --text-secondary:   var(--color-sandstone);
+      --text-muted:       rgba(245, 240, 232, 0.45);
+      --accent-hover:     #DFC05A;
+      --danger:           var(--color-red);
+      --border-default:   rgba(200, 168, 75, 0.2);
+      --border-strong:    rgba(200, 168, 75, 0.5);
+    }
+    body { font-family: 'Barlow', sans-serif; background: var(--bg-primary); color: var(--text-primary); }
+    .barlow-condensed { font-family: 'Barlow Condensed', sans-serif; }
+    .card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; }
+    .flag { width: 22px; height: 16px; border-radius: 2px; object-fit: cover; display: inline-block; flex-shrink: 0; }
+    .bottom-nav { background: var(--bg-surface); border-top: 1px solid var(--border-default); }
+    .nav-active { color: var(--color-gold); }
+    .nav-inactive { color: var(--text-muted); }
+    .gold-shimmer {
+      background: linear-gradient(135deg, #A8851E 0%, #C8A84B 40%, #EDD97A 70%, #C8A84B 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .logout-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 24px; }
+    /* Shared modal panel (Palpites modal — used on every page that includes _others_modal.html). */
+    .modal-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 24px; }
+    /* ── Shared loading spinner (reused: Palpites modal, prediction save, login, logout) ── */
+    .spinner { width: 24px; height: 24px; border: 2.5px solid rgba(200,168,75,0.25); border-top-color: var(--color-gold); border-radius: 50%; animation: spin 0.7s linear infinite; box-sizing: border-box; }
+    .spinner-sm { width: 16px; height: 16px; border-width: 2px; display: inline-block; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    button:disabled { opacity: 0.7; cursor: not-allowed; }
+    .btn-cancel { background: var(--bg-surface-alt); color: var(--text-secondary); border: 1px solid var(--border-default); border-radius: 10px; font-size: 0.875rem; padding: 10px; font-family: 'Barlow', sans-serif; cursor: pointer; }
+    .btn-logout-confirm { background: var(--danger); color: white; border: none; border-radius: 10px; font-size: 0.875rem; font-weight: 600; padding: 10px; font-family: 'Barlow', sans-serif; cursor: pointer; }
+    /* ── Decorative country-flag side banners (desktop gutters only) ── */
+    .side-flags { position: fixed; top: 0; bottom: 0; z-index: 0; overflow: hidden; pointer-events: none; width: calc((100vw - 34rem) / 2); display: none; }
+    .side-flags.left  { left: 0; }
+    .side-flags.right { right: 0; }
+    /* Only show where real gutter space exists (content column is max-w-lg). */
+    @media (min-width: 1024px) { .side-flags { display: block; } }
+    .flag-strip { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 28px 0; }
+    .flag-strip img { width: 120px; height: 80px; object-fit: cover; border-radius: 4px; opacity: 0.55; box-shadow: 0 2px 10px rgba(0,0,0,0.45); }
+    /* Deep-navy filter so flags read as subtle texture and fade into content. */
+    .side-flags::after { content: ''; position: absolute; inset: 0; }
+    .side-flags.left::after  { background: linear-gradient(to right, rgba(10,15,44,0.45) 0%, rgba(10,15,44,0.85) 65%, var(--bg-primary) 100%); }
+    .side-flags.right::after { background: linear-gradient(to left,  rgba(10,15,44,0.45) 0%, rgba(10,15,44,0.85) 65%, var(--bg-primary) 100%); }
+    
+  .stat-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 12px; padding: 12px 6px; text-align: center; }
+  .stat-card.filter-card { cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .stat-card.filter-card:hover { border-color: var(--border-strong); }
+  .stat-card.filter-card.selected { border-color: var(--border-strong); background: var(--bg-surface-alt); }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .divider { border-top: 1px solid var(--border-default); }
+  .hist-row.first-visible { border-top: none !important; }
+  .hist-row { cursor: pointer; transition: background 0.15s; }
+  .hist-row:hover { background: var(--bg-surface-alt); }
+  .badge-exact   { background: rgba(200,168,75,0.15);  color: var(--color-gold);       border: 1px solid rgba(200,168,75,0.3);   border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+  .badge-partial { background: rgba(245,240,232,0.07); color: var(--text-secondary);   border: 1px solid rgba(245,240,232,0.15); border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+  .badge-wrong   { background: rgba(232,0,61,0.1);     color: rgba(232,0,61,0.8);      border: 1px solid rgba(232,0,61,0.2);    border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; white-space: nowrap; }
+  .badge-none    { background: rgba(245,240,232,0.05); color: var(--text-muted);        border: 1px solid rgba(245,240,232,0.08); border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; white-space: nowrap; }
+
+  </style>
+</head>
+<body class="min-h-screen pb-24">
+
+  
+  <div class="side-flags left"  aria-hidden="true"><div class="flag-strip"></div></div>
+  <div class="side-flags right" aria-hidden="true"><div class="flag-strip"></div></div>
+
+  <header style="background: var(--bg-surface); border-bottom: 1px solid var(--border-default);" class="sticky top-0 z-10">
+    <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <img src="/static/pool/scorecaster_logo.svg" alt="Scorecaster" style="width: 28px; height: 28px;" />
+        <span class="barlow-condensed text-base uppercase tracking-wider">Bolão Copa do Mundo 2026</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button id="rules-trigger" onclick="abrirRegras()" type="button"
+                aria-label="Como funciona a pontuação" title="Como funciona a pontuação"
+                style="color: var(--text-muted); padding: 8px;"
+                class="hover:opacity-80 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.15em;height:1.15em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 17l0 .01"/><path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4"/></svg>
+        </button>
+        <span class="text-xs ml-1" style="color: var(--text-muted);">Marcos</span>
+        
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-lg mx-auto px-4 pt-5 space-y-5">
+    
+
+  <div>
+    <h1 class="text-base font-semibold" style="color: var(--text-primary);">Meu histórico</h1>
+    <p class="text-xs mt-0.5" style="color: var(--text-muted);">Marcos</p>
+  </div>
+
+  
+  <div class="stat-grid">
+    <div class="stat-card">
+      <p class="barlow-condensed text-2xl" style="color: var(--color-gold);">110</p>
+      <p class="text-xs mt-0.5" style="color: var(--text-muted);">pontos</p>
+    </div>
+    <div class="stat-card filter-card selected" data-filter="all" role="button" tabindex="0"
+         aria-label="Mostrar todos os palpites">
+      <p class="barlow-condensed text-2xl" style="color: var(--text-primary);">32</p>
+      <p class="text-xs mt-0.5" style="color: var(--text-muted);">palpites</p>
+    </div>
+    <div class="stat-card filter-card" data-filter="exact" role="button" tabindex="0"
+         aria-label="Filtrar palpites exatos">
+      <p class="barlow-condensed text-2xl" style="color: #2DB87F;">7</p>
+      <p class="text-xs mt-0.5" style="color: var(--text-muted);">exatos</p>
+    </div>
+    <div class="stat-card filter-card" data-filter="partial" role="button" tabindex="0"
+         aria-label="Filtrar palpites parciais">
+      <p class="barlow-condensed text-2xl" style="color: var(--text-secondary);">8</p>
+      <p class="text-xs mt-0.5" style="color: var(--text-muted);">parciais</p>
+    </div>
+  </div>
+
+  
+  <div class="card overflow-hidden">
+    <div class="px-4 py-3 divider">
+      <span id="hist-header" class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Todos os palpites</span>
+    </div>
+
+    <div id="hist-list">
+      
+      <div class="hist-row px-4 py-3 divider " data-result="wrong"
+           onclick="openOthersModal(26, 'Fase de Grupos · 2ª Rodada', '17h54', 'Suíça × Bósnia e Herzegovina', 'Resultado: 1 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            15 de Jun · Fase de Grupos · 2ª Rodada
+          </span>
+          
+            <span class="badge-wrong">Errou · 0 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/ch.svg" alt="Suíça"> Suíça
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">2</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">1</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Bósnia e Herzegovina <img class="flag" src="/static/pool/flags/ba.svg" alt="Bósnia e Herzegovina">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: rgba(232,0,61,0.8);">Resultado: 1 × 2</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="wrong"
+           onclick="openOthersModal(25, 'Fase de Grupos · 2ª Rodada', '15h54', 'Tchéquia × África do Sul', 'Resultado: 0 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            15 de Jun · Fase de Grupos · 2ª Rodada
+          </span>
+          
+            <span class="badge-wrong">Errou · 0 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/cz.svg" alt="Tchéquia"> Tchéquia
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">1</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">0</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            África do Sul <img class="flag" src="/static/pool/flags/za.svg" alt="África do Sul">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: rgba(232,0,61,0.8);">Resultado: 0 × 0</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="wrong"
+           onclick="openOthersModal(24, 'Fase de Grupos · 1ª Rodada', '19h54', 'Uzbequistão × Colômbia', 'Resultado: 2 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            14 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-wrong">Errou · 0 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/uz.svg" alt="Uzbequistão"> Uzbequistão
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">3</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">2</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Colômbia <img class="flag" src="/static/pool/flags/co.svg" alt="Colômbia">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: rgba(232,0,61,0.8);">Resultado: 2 × 2</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="partial"
+           onclick="openOthersModal(23, 'Fase de Grupos · 1ª Rodada', '17h54', 'Gana × Panamá', 'Resultado: 1 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            14 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-partial">Parcial · +5 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/gh.svg" alt="Gana"> Gana
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">3</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">0</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Panamá <img class="flag" src="/static/pool/flags/pa.svg" alt="Panamá">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--text-secondary);">Resultado: 1 × 0</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="exact"
+           onclick="openOthersModal(22, 'Fase de Grupos · 1ª Rodada', '15h54', 'Inglaterra × Croácia', 'Resultado: 0 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            14 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-exact">Exato · +10 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/gb.svg" alt="Inglaterra"> Inglaterra
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--color-gold);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--color-gold);">2</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Croácia <img class="flag" src="/static/pool/flags/hr.svg" alt="Croácia">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--color-gold);">Resultado: 0 × 2 ✓</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="wrong"
+           onclick="openOthersModal(21, 'Fase de Grupos · 1ª Rodada', '13h54', 'Portugal × República Democrática do Congo', 'Resultado: 2 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            14 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-wrong">Errou · 0 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/pt.svg" alt="Portugal"> Portugal
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">2</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            República Democrática do Congo <img class="flag" src="/static/pool/flags/cd.svg" alt="República Democrática do Congo">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: rgba(232,0,61,0.8);">Resultado: 2 × 0</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="partial"
+           onclick="openOthersModal(20, 'Fase de Grupos · 1ª Rodada', '11h54', 'Áustria × Jordânia', 'Resultado: 1 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            14 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-partial">Parcial · +5 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/at.svg" alt="Áustria"> Áustria
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">1</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">4</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Jordânia <img class="flag" src="/static/pool/flags/jo.svg" alt="Jordânia">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--text-secondary);">Resultado: 1 × 2</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="exact"
+           onclick="openOthersModal(19, 'Fase de Grupos · 1ª Rodada', '09h54', 'Argentina × Argélia', 'Resultado: 0 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            14 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-exact">Exato · +10 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/ar.svg" alt="Argentina"> Argentina
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--color-gold);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--color-gold);">0</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Argélia <img class="flag" src="/static/pool/flags/dz.svg" alt="Argélia">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--color-gold);">Resultado: 0 × 0 ✓</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="wrong"
+           onclick="openOthersModal(18, 'Fase de Grupos · 1ª Rodada', '07h54', 'Iraque × Noruega', 'Resultado: 2 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            14 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-wrong">Errou · 0 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/iq.svg" alt="Iraque"> Iraque
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">3</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">2</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Noruega <img class="flag" src="/static/pool/flags/no.svg" alt="Noruega">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: rgba(232,0,61,0.8);">Resultado: 2 × 2</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="partial"
+           onclick="openOthersModal(17, 'Fase de Grupos · 1ª Rodada', '05h54', 'França × Senegal', 'Resultado: 1 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            14 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-partial">Parcial · +5 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/fr.svg" alt="França"> França
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">3</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">0</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Senegal <img class="flag" src="/static/pool/flags/sn.svg" alt="Senegal">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--text-secondary);">Resultado: 1 × 0</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="exact"
+           onclick="openOthersModal(16, 'Fase de Grupos · 1ª Rodada', '03h54', 'Irã × Nova Zelândia', 'Resultado: 0 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            14 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-exact">Exato · +10 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/ir.svg" alt="Irã"> Irã
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--color-gold);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--color-gold);">2</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Nova Zelândia <img class="flag" src="/static/pool/flags/nz.svg" alt="Nova Zelândia">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--color-gold);">Resultado: 0 × 2 ✓</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="wrong"
+           onclick="openOthersModal(15, 'Fase de Grupos · 1ª Rodada', '01h54', 'Arábia Saudita × Uruguai', 'Resultado: 2 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            14 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-wrong">Errou · 0 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/sa.svg" alt="Arábia Saudita"> Arábia Saudita
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">2</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Uruguai <img class="flag" src="/static/pool/flags/uy.svg" alt="Uruguai">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: rgba(232,0,61,0.8);">Resultado: 2 × 0</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="partial"
+           onclick="openOthersModal(14, 'Fase de Grupos · 1ª Rodada', '23h54', 'Bélgica × Egito', 'Resultado: 1 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-partial">Parcial · +5 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/be.svg" alt="Bélgica"> Bélgica
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">1</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">4</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Egito <img class="flag" src="/static/pool/flags/eg.svg" alt="Egito">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--text-secondary);">Resultado: 1 × 2</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="exact"
+           onclick="openOthersModal(13, 'Fase de Grupos · 1ª Rodada', '21h54', 'Espanha × Cabo Verde', 'Resultado: 0 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-exact">Exato · +10 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/es.svg" alt="Espanha"> Espanha
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--color-gold);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--color-gold);">0</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Cabo Verde <img class="flag" src="/static/pool/flags/cv.svg" alt="Cabo Verde">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--color-gold);">Resultado: 0 × 0 ✓</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="wrong"
+           onclick="openOthersModal(12, 'Fase de Grupos · 1ª Rodada', '19h54', 'Suécia × Tunísia', 'Resultado: 2 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-wrong">Errou · 0 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/se.svg" alt="Suécia"> Suécia
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">3</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">2</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Tunísia <img class="flag" src="/static/pool/flags/tn.svg" alt="Tunísia">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: rgba(232,0,61,0.8);">Resultado: 2 × 2</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="partial"
+           onclick="openOthersModal(11, 'Fase de Grupos · 1ª Rodada', '17h54', 'Costa do Marfim × Equador', 'Resultado: 1 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-partial">Parcial · +5 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/ci.svg" alt="Costa do Marfim"> Costa do Marfim
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">3</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">0</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Equador <img class="flag" src="/static/pool/flags/ec.svg" alt="Equador">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--text-secondary);">Resultado: 1 × 0</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider opacity-50" data-result="none"
+           onclick="openOthersModal(10, 'Fase de Grupos · 1ª Rodada', '15h54', 'Países Baixos × Japão', 'Resultado: 0 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-none">Não palpitou</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/nl.svg" alt="Países Baixos"> Países Baixos
+          </span>
+
+          
+          <span class="text-xs px-3" style="color: var(--text-muted);">× × ×</span>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Japão <img class="flag" src="/static/pool/flags/jp.svg" alt="Japão">
+          </span>
+        </div>
+
+        
+        
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="wrong"
+           onclick="openOthersModal(9, 'Fase de Grupos · 1ª Rodada', '13h54', 'Alemanha × Curaçao', 'Resultado: 2 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-wrong">Errou · 0 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/de.svg" alt="Alemanha"> Alemanha
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">2</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Curaçao <img class="flag" src="/static/pool/flags/cw.svg" alt="Curaçao">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: rgba(232,0,61,0.8);">Resultado: 2 × 0</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="partial"
+           onclick="openOthersModal(8, 'Fase de Grupos · 1ª Rodada', '11h54', 'Austrália × Turquia', 'Resultado: 1 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-partial">Parcial · +5 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/au.svg" alt="Austrália"> Austrália
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">1</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">4</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Turquia <img class="flag" src="/static/pool/flags/tr.svg" alt="Turquia">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--text-secondary);">Resultado: 1 × 2</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="exact"
+           onclick="openOthersModal(7, 'Fase de Grupos · 1ª Rodada', '09h54', 'Haiti × Escócia', 'Resultado: 0 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-exact">Exato · +10 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/ht.svg" alt="Haiti"> Haiti
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--color-gold);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--color-gold);">0</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Escócia <img class="flag" src="/static/pool/flags/gb.svg" alt="Escócia">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--color-gold);">Resultado: 0 × 0 ✓</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="wrong"
+           onclick="openOthersModal(6, 'Fase de Grupos · 1ª Rodada', '07h54', 'Brasil × Marrocos', 'Resultado: 2 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-wrong">Errou · 0 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/br.svg" alt="Brasil"> Brasil
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">3</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">2</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Marrocos <img class="flag" src="/static/pool/flags/ma.svg" alt="Marrocos">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: rgba(232,0,61,0.8);">Resultado: 2 × 2</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="partial"
+           onclick="openOthersModal(5, 'Fase de Grupos · 1ª Rodada', '05h54', 'Catar × Suíça', 'Resultado: 1 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-partial">Parcial · +5 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/qa.svg" alt="Catar"> Catar
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">3</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">0</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Suíça <img class="flag" src="/static/pool/flags/ch.svg" alt="Suíça">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--text-secondary);">Resultado: 1 × 0</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="exact"
+           onclick="openOthersModal(4, 'Fase de Grupos · 1ª Rodada', '03h54', 'Estados Unidos × Paraguai', 'Resultado: 0 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-exact">Exato · +10 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/us.svg" alt="Estados Unidos"> Estados Unidos
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--color-gold);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--color-gold);">2</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Paraguai <img class="flag" src="/static/pool/flags/py.svg" alt="Paraguai">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--color-gold);">Resultado: 0 × 2 ✓</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="wrong"
+           onclick="openOthersModal(3, 'Fase de Grupos · 1ª Rodada', '01h54', 'Canadá × Bósnia e Herzegovina', 'Resultado: 2 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            13 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-wrong">Errou · 0 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/ca.svg" alt="Canadá"> Canadá
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">2</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Bósnia e Herzegovina <img class="flag" src="/static/pool/flags/ba.svg" alt="Bósnia e Herzegovina">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: rgba(232,0,61,0.8);">Resultado: 2 × 0</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="partial"
+           onclick="openOthersModal(2, 'Fase de Grupos · 1ª Rodada', '23h54', 'Coreia do Sul × Tchéquia', 'Resultado: 1 × 2')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            12 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-partial">Parcial · +5 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/kr.svg" alt="Coreia do Sul"> Coreia do Sul
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--text-primary);">1</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--text-primary);">4</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            Tchéquia <img class="flag" src="/static/pool/flags/cz.svg" alt="Tchéquia">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--text-secondary);">Resultado: 1 × 2</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <div class="hist-row px-4 py-3 divider " data-result="exact"
+           onclick="openOthersModal(1, 'Fase de Grupos · 1ª Rodada', '21h54', 'México × África do Sul', 'Resultado: 0 × 0')">
+
+        <div class="flex items-center gap-3">
+        <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs" style="color: var(--text-muted);">
+            12 de Jun · Fase de Grupos · 1ª Rodada
+          </span>
+          
+            <span class="badge-exact">Exato · +10 pts</span>
+          
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-sm flex-1" style="color: var(--text-secondary);">
+            <img class="flag" src="/static/pool/flags/mx.svg" alt="México"> México
+          </span>
+
+          
+          <div class="text-center">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-bold" style="color: var(--color-gold);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-sm font-bold" style="color: var(--color-gold);">0</span>
+            </div>
+            <p class="text-xs" style="color: var(--text-muted);">palpite</p>
+          </div>
+          
+
+          <span class="text-sm flex-1 text-right" style="color: var(--text-secondary);">
+            África do Sul <img class="flag" src="/static/pool/flags/za.svg" alt="África do Sul">
+          </span>
+        </div>
+
+        
+        
+          
+            <p class="text-xs mt-1" style="color: var(--color-gold);">Resultado: 0 × 0 ✓</p>
+          
+        
+        </div>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;color:var(--text-muted);flex-shrink:0;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+
+      </div>
+      
+      <p id="hist-empty" class="text-center text-sm py-8" style="color: var(--text-muted); display: none;"></p>
+    </div>
+  </div>
+
+
+  </main>
+
+  <nav class="fixed bottom-0 left-0 right-0 bottom-nav">
+    <div class="max-w-lg mx-auto px-4 py-2 flex items-center justify-around">
+      <a href="index.html" class="flex flex-col items-center gap-0.5 nav-inactive">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>
+        <span class="text-xs ">Jogos</span>
+      </a>
+      <a href="ranking.html" class="flex flex-col items-center gap-0.5 nav-inactive">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M3 12m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M9 8m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M15 4m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M4 20l14 0"/></svg>
+        <span class="text-xs ">Ranking</span>
+      </a>
+      <a href="historico.html" class="flex flex-col items-center gap-0.5 nav-active">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/></svg>
+        <span class="text-xs font-medium">Histórico</span>
+      </a>
+    </div>
+  </nav>
+
+  
+
+  
+  <div id="rules-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
+       style="background: rgba(0,0,0,0.7);" onclick="if(event.target===this)fecharRegras()">
+    <div class="logout-card w-full p-6"
+         style="max-width: 28rem; max-height: 85vh; overflow-y: auto;"
+         role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <div class="flex items-start justify-between mb-1">
+        <div class="flex items-center gap-2">
+          <span style="color: var(--color-gold);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 17l0 .01"/><path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4"/></svg>
+          </span>
+          <p id="rules-title" class="text-base font-semibold" style="color: var(--text-primary);">Como funciona a pontuação</p>
+        </div>
+        <button onclick="fecharRegras()" aria-label="Fechar" style="color: var(--text-muted); flex-shrink: 0;" class="hover:opacity-80 p-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.15em;height:1.15em;display:block"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="text-xs mb-4" style="color: var(--text-muted);">Cada jogo vale pontos conforme o acerto do seu palpite:</p>
+
+      <ul class="space-y-0">
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Placar exato <span class="block text-xs" style="color: var(--text-muted);">Acertou os gols dos dois times</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">10 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Vencedor + saldo de gols <span class="block text-xs" style="color: var(--text-muted);">Acertou quem venceu e a diferença de gols</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">7 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Empate correto <span class="block text-xs" style="color: var(--text-muted);">Previu empate e o jogo empatou (placar diferente)</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">5 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Apenas o vencedor <span class="block text-xs" style="color: var(--text-muted);">Acertou só quem venceu</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">5 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-muted);">Errou o resultado</span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--text-muted);">0 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-muted);">Não palpitou <span class="block text-xs" style="color: var(--text-muted);">Sem penalidade</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--text-muted);">0 pts</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    function abrirLogout() { var m = document.getElementById('logout-modal'); if (m) m.classList.remove('hidden'); }
+    function fecharLogout() { var m = document.getElementById('logout-modal'); if (m) m.classList.add('hidden'); }
+
+    // Lock the logout action on submit: spinner + disabled, no double-tap.
+    (function () {
+      var form = document.getElementById('logout-form');
+      if (!form) return;
+      form.addEventListener('submit', function () {
+        var btn = document.getElementById('logout-submit');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-sm"></span> Saindo…'; }
+        var cancel = document.querySelector('#logout-modal .btn-cancel');
+        if (cancel) cancel.disabled = true;
+      });
+    })();
+
+    function abrirRegras() {
+      document.getElementById('rules-modal').classList.remove('hidden');
+      // Move focus into the dialog for keyboard/screen-reader users.
+      document.querySelector('#rules-modal [aria-label="Fechar"]').focus();
+    }
+    function fecharRegras() {
+      document.getElementById('rules-modal').classList.add('hidden');
+      // Return focus to the trigger.
+      var t = document.getElementById('rules-trigger');
+      if (t) t.focus();
+    }
+    // Esc closes whichever modal is open.
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (!document.getElementById('rules-modal').classList.contains('hidden')) fecharRegras();
+      var lm = document.getElementById('logout-modal');
+      if (lm && !lm.classList.contains('hidden')) fecharLogout();
+    });
+
+    // Populate decorative side-gutter flag banners (desktop only).
+    (function () {
+      // URLs emitted via the static template tag so they resolve under the
+      // WhiteNoise manifest (hashed filenames in production); never build in JS.
+      var FLAGS = [
+        "/static/pool/flags/br.svg", "/static/pool/flags/ar.svg",
+        "/static/pool/flags/fr.svg", "/static/pool/flags/de.svg",
+        "/static/pool/flags/es.svg", "/static/pool/flags/pt.svg",
+        "/static/pool/flags/it.svg", "/static/pool/flags/nl.svg",
+        "/static/pool/flags/gb.svg", "/static/pool/flags/us.svg",
+        "/static/pool/flags/mx.svg", "/static/pool/flags/jp.svg",
+        "/static/pool/flags/kr.svg", "/static/pool/flags/ca.svg",
+        "/static/pool/flags/be.svg", "/static/pool/flags/hr.svg",
+        "/static/pool/flags/ma.svg", "/static/pool/flags/sn.svg",
+        "/static/pool/flags/co.svg", "/static/pool/flags/uy.svg",
+        "/static/pool/flags/ch.svg", "/static/pool/flags/pl.svg",
+        "/static/pool/flags/rs.svg", "/static/pool/flags/dk.svg",
+        "/static/pool/flags/no.svg", "/static/pool/flags/se.svg",
+        "/static/pool/flags/au.svg", "/static/pool/flags/za.svg",
+        "/static/pool/flags/ec.svg", "/static/pool/flags/cr.svg",
+        "/static/pool/flags/tn.svg", "/static/pool/flags/eg.svg",
+        "/static/pool/flags/ir.svg", "/static/pool/flags/sa.svg",
+        "/static/pool/flags/qa.svg", "/static/pool/flags/cl.svg",
+        "/static/pool/flags/pe.svg", "/static/pool/flags/ng.svg",
+        "/static/pool/flags/gh.svg", "/static/pool/flags/jm.svg",
+        "/static/pool/flags/pa.svg", "/static/pool/flags/cz.svg"
+      ];
+      var strips = document.querySelectorAll('.side-flags .flag-strip');
+      if (!strips.length || window.matchMedia('(max-width: 1023px)').matches) return;
+      var needed = Math.ceil((window.innerHeight + 200) / 100) + 2; // ~100px per flag (80 + gap)
+      strips.forEach(function (strip, s) {
+        for (var i = 0; i < needed; i++) {
+          // Offset each side so left/right don't mirror identically.
+          var img = document.createElement('img');
+          img.src = FLAGS[(i + s * 7) % FLAGS.length];
+          img.alt = '';
+          strip.appendChild(img);
+        }
+      });
+    })();
+  </script>
+
+  
+<script>window.DEMO_OTHERS = {"1": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Carla", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Diego", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Marina", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}]}, "2": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Rafael", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}]}, "3": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Rafael", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}]}, "4": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Carla", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Diego", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Marina", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Rafael", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}]}, "5": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Marina", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}]}, "6": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 2, "away_goals": 2, "result": "exact", "points": 10}, {"username": "Carla", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Rafael", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}]}, "7": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Carla", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}]}, "8": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Diego", "home_goals": 1, "away_goals": 2, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Rafael", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}]}, "9": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Marina", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Carla", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}]}, "10": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "predicted": false, "home_goals": null, "away_goals": null, "result": null, "points": null}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Carla", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Diego", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Marina", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Rafael", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}]}, "11": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Rafael", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Carla", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}]}, "12": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Carla", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Rafael", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}]}, "13": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Carla", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Marina", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}]}, "14": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Rafael", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}]}, "15": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Diego", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Carla", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}]}, "16": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 0, "away_goals": 2, "result": "exact", "points": 10}, {"username": "Carla", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Diego", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Marina", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Rafael", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}]}, "17": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Marina", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}]}, "18": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Carla", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}]}, "19": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Carla", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}]}, "20": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Rafael", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}]}, "21": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Marina", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Carla", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}]}, "22": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Diego", "home_goals": 0, "away_goals": 2, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Carla", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Marina", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Rafael", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}]}, "23": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Rafael", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}]}, "24": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Carla", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Rafael", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}]}, "25": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 1, "away_goals": 0, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Rafael", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 1, "away_goals": 0, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 1, "away_goals": 0, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 1, "away_goals": 0, "result": "wrong", "points": 0}]}, "26": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 2, "away_goals": 1, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Diego", "home_goals": 2, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Marina", "home_goals": 2, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Bruno", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Rafael", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 2, "away_goals": 1, "result": "wrong", "points": 0}]}, "27": {"ok": true, "is_finished": false, "viewer": {"username": "Marcos", "home_goals": 2, "away_goals": 0, "result": null, "points": null, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Carla", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Diego", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Marina", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Rafael", "home_goals": 2, "away_goals": 0, "result": null, "points": null}]}, "28": {"ok": true, "is_finished": false, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 4, "result": null, "points": null, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 3, "result": null, "points": null}, {"username": "Carla", "home_goals": 0, "away_goals": 4, "result": null, "points": null}, {"username": "Diego", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Marina", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Rafael", "home_goals": 1, "away_goals": 3, "result": null, "points": null}]}, "29": {"ok": true, "is_finished": false, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 1, "result": null, "points": null, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 3, "away_goals": 0, "result": null, "points": null}, {"username": "Carla", "home_goals": 0, "away_goals": 1, "result": null, "points": null}, {"username": "Diego", "home_goals": 2, "away_goals": 1, "result": null, "points": null}, {"username": "Marina", "home_goals": 2, "away_goals": 1, "result": null, "points": null}, {"username": "Rafael", "home_goals": 1, "away_goals": 0, "result": null, "points": null}]}, "30": {"ok": true, "is_finished": false, "viewer": {"username": "Marcos", "home_goals": 2, "away_goals": 2, "result": null, "points": null, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 3, "away_goals": 2, "result": null, "points": null}, {"username": "Carla", "home_goals": 3, "away_goals": 3, "result": null, "points": null}, {"username": "Diego", "home_goals": 3, "away_goals": 2, "result": null, "points": null}, {"username": "Marina", "home_goals": 3, "away_goals": 2, "result": null, "points": null}, {"username": "Rafael", "home_goals": 3, "away_goals": 2, "result": null, "points": null}]}};</script>
+
+
+<div id="others-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
+     style="background: rgba(0,0,0,0.7);" onclick="if(event.target===this)closeOthersModal()">
+  <div class="modal-card w-full max-w-sm p-5 space-y-4" role="dialog" aria-modal="true" aria-labelledby="others-teams"
+       style="max-height: 85vh; overflow-y: auto;">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <p class="text-xs" id="others-phase" style="color: var(--text-muted);"></p>
+        <p class="text-base font-semibold mt-0.5 truncate" id="others-teams" style="color: var(--text-primary);"></p>
+        <p class="text-xs mt-0.5" id="others-result" style="color: var(--text-muted); display: none;"></p>
+      </div>
+      <button onclick="closeOthersModal()" aria-label="Fechar" style="color: var(--text-muted); flex-shrink: 0;" class="hover:opacity-70 text-lg leading-none">✕</button>
+    </div>
+    <div class="border-t" style="border-color: var(--border-default);"></div>
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color: var(--text-muted);">Palpites</p>
+      <div id="others-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    // URL template with a sentinel id (0); swapped per match. Built via {% url %}
+    // so it survives any path change — never hardcode the route in JS.
+    
+    var overlay = document.getElementById('others-overlay');
+    var listEl = document.getElementById('others-list');
+    var phaseEl = document.getElementById('others-phase');
+    var teamsEl = document.getElementById('others-teams');
+    var resultEl = document.getElementById('others-result');
+
+    function setLoading() {
+      listEl.replaceChildren();
+      var wrap = document.createElement('div');
+      wrap.className = 'flex justify-center py-4';
+      var sp = document.createElement('div');
+      sp.className = 'spinner';
+      wrap.appendChild(sp);
+      listEl.appendChild(wrap);
+    }
+
+    function setMessage(text) {
+      listEl.replaceChildren();
+      var p = document.createElement('p');
+      p.className = 'text-sm py-2 text-center';
+      p.style.color = 'var(--text-muted)';
+      p.textContent = text;
+      listEl.appendChild(p);
+    }
+
+    // result code → [badge class, label]. Built only for finished matches.
+    function badgeFor(result, points) {
+      if (result === 'exact')   return ['badge-exact',   'Exato · +' + points + ' pts'];
+      if (result === 'partial') return ['badge-partial', 'Parcial · +' + points + ' pts'];
+      if (result === 'wrong')   return ['badge-wrong',   'Errou · 0 pts'];
+      return null;
+    }
+
+    // Emit one prediction as 3 grid cells (name | score | points). A single
+    // grid owns all rows, so columns align vertically across every row.
+    function appendRow(grid, entry, isViewer, isFinished) {
+      var name = document.createElement('span');
+      name.className = 'text-sm truncate';
+      name.style.color = isViewer ? 'var(--color-gold)' : 'var(--text-secondary)';
+      if (isViewer) name.style.fontWeight = '600';
+      name.textContent = isViewer ? 'Você' : entry.username;  // textContent: never innerHTML user data
+      grid.appendChild(name);
+
+      var score = document.createElement('span');
+      score.className = 'text-sm font-bold';
+      score.style.color = 'var(--color-gold)';
+      score.style.justifySelf = 'end';
+      score.style.whiteSpace = 'nowrap';
+
+      var points = document.createElement('span');
+      points.style.justifySelf = 'end';
+
+      if (isViewer && entry.predicted === false) {
+        // Skipped viewer: empty score cell (keeps the column), muted note in points.
+        points.className = 'badge-none';
+        points.textContent = 'Não palpitou';
+      } else {
+        // Coerce to number so only digits ever reach the DOM.
+        score.textContent = (Number(entry.home_goals) || 0) + ' × ' + (Number(entry.away_goals) || 0);
+        if (isFinished) {
+          var b = badgeFor(entry.result, Number(entry.points) || 0);
+          if (b) { points.className = b[0]; points.textContent = b[1]; }
+        }
+      }
+
+      grid.appendChild(score);
+      grid.appendChild(points);
+    }
+
+    function render(data) {
+      var grid = document.createElement('div');
+      grid.style.display = 'grid';
+      grid.style.gridTemplateColumns = 'minmax(0,1fr) auto auto';
+      grid.style.columnGap = '12px';
+      grid.style.rowGap = '16px';
+      grid.style.alignItems = 'center';
+
+      // Viewer first (pinned + highlighted via gold name).
+      appendRow(grid, data.viewer, true, data.is_finished);
+      (data.predictions || []).forEach(function (p) {
+        appendRow(grid, p, false, data.is_finished);
+      });
+
+      listEl.replaceChildren(grid);
+
+      if (!(data.predictions || []).length) {
+        var none = document.createElement('p');
+        none.className = 'text-xs';
+        none.style.color = 'var(--text-muted)';
+        none.style.marginTop = '16px';
+        none.textContent = 'Nenhum outro palpite ainda.';
+        listEl.appendChild(none);
+      }
+    }
+
+    window.openOthersModal = function (matchId, phase, time, teams, resultLine) {
+      phaseEl.textContent = time ? (phase + ' · ' + time) : phase;
+      teamsEl.textContent = teams;
+      if (resultLine) {
+        resultEl.textContent = resultLine;
+        resultEl.style.display = '';
+      } else {
+        resultEl.style.display = 'none';
+      }
+      setLoading();
+      overlay.classList.remove('hidden');
+
+      
+      // Demo: read inlined mock data, no network call.
+      var data = (window.DEMO_OTHERS || {})[matchId];
+      if (data && data.ok) { render(data); }
+      else { setMessage('Não foi possível carregar os palpites.'); }
+      
+    };
+
+    window.closeOthersModal = function () { overlay.classList.add('hidden'); };
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeOthersModal();
+    });
+  })();
+</script>
+
+<script>
+  (function () {
+    var cards = document.querySelectorAll('.filter-card');
+    var rows = document.querySelectorAll('#hist-list .hist-row');
+    var header = document.getElementById('hist-header');
+    var empty = document.getElementById('hist-empty');
+    if (!cards.length) return;
+
+    var LABELS = { all: 'Todos os palpites', exact: 'Palpites exatos', partial: 'Palpites parciais' };
+    var EMPTY_MSG = 'Nenhum palpite registrado ou computado ainda.';
+
+    function apply(filter) {
+      var firstVisible = null;
+      rows.forEach(function (row) {
+        var show = (filter === 'all') || (row.getAttribute('data-result') === filter);
+        row.hidden = !show;
+        row.classList.remove('first-visible');
+        if (show && !firstVisible) firstVisible = row;
+      });
+      if (firstVisible) firstVisible.classList.add('first-visible');
+      if (header) header.textContent = LABELS[filter];
+      if (empty) {
+        // 'all', and the zero-rows case, are handled by the server-rendered
+        // {% empty %} message; JS only covers "rows exist but none match".
+        if (filter !== 'all' && !firstVisible && rows.length > 0) {
+          empty.textContent = EMPTY_MSG;
+          empty.style.display = '';
+        } else {
+          empty.style.display = 'none';
+        }
+      }
+      cards.forEach(function (c) {
+        c.classList.toggle('selected', c.getAttribute('data-filter') === filter);
+      });
+    }
+
+    cards.forEach(function (card) {
+      card.addEventListener('click', function () { apply(card.getAttribute('data-filter')); });
+      card.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); apply(card.getAttribute('data-filter')); }
+      });
+    });
+
+    // Initial state: 'all' selected, set first-visible border.
+    apply('all');
+  })();
+</script>
+
+</body>
+</html>

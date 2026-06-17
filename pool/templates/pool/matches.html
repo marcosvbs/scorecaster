@@ -265,6 +265,7 @@
 
 
 {% block extra_scripts %}
+{% if is_demo %}<script>window.DEMO_OTHERS = {{ demo_others_json|safe }};</script>{% endif %}
 {% include "pool/_others_modal.html" %}
 <div id="modal-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4" style="background: rgba(0,0,0,0.7);">
   <div class="modal-card w-full max-w-sm p-5 space-y-5">
@@ -333,8 +334,10 @@
   .filter-chip[aria-pressed="true"] .filter-chip-check { display: inline-block; }
 </style>
 <script>
+  {% if not is_demo %}
   const CSRF_TOKEN = '{{ csrf_token }}';
   const SAVE_URL   = '{% url "pool:save_prediction" %}';
+  {% endif %}
 
   let currentMatchId = null;
   let saving = false;
@@ -364,6 +367,16 @@
     document.getElementById('score-' + team).textContent = scores[team];
   }
 
+  {% if is_demo %}
+  function savePrediction() {
+    // Demo mode: nothing is persisted and no request is made. Acknowledge + close.
+    const t = document.getElementById('toast');
+    t.textContent = '👁️ Modo demonstração — palpite não salvo';
+    t.classList.remove('hidden');
+    setTimeout(function () { t.classList.add('hidden'); }, 2200);
+    closeModal();
+  }
+  {% else %}
   async function savePrediction() {
     if (saving) return;
     saving = true;
@@ -389,6 +402,7 @@
       unlockSave();
     }
   }
+  {% endif %}
 
   function unlockSave() {
     saving = false;

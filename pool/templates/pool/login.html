@@ -36,6 +36,15 @@
     .btn-primary:hover { background: var(--accent-hover); }
     .btn-primary:active { transform: scale(0.98); }
     .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      display: block; text-align: center; text-decoration: none;
+      background: transparent; color: var(--color-gold); font-weight: 600;
+      border: 1px solid var(--border-strong); border-radius: 10px;
+      padding: 11px 24px; width: 100%; font-size: 0.875rem;
+      font-family: 'Barlow', sans-serif; cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-secondary:hover { background: rgba(200,168,75,0.08); border-color: var(--color-gold); }
     .spinner { width: 16px; height: 16px; border: 2px solid rgba(10,15,44,0.3); border-top-color: var(--color-navy); border-radius: 50%; animation: spin 0.7s linear infinite; box-sizing: border-box; display: inline-block; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .gold-shimmer {
@@ -120,6 +129,13 @@
         <button type="submit" id="login-submit" class="btn-primary mt-2">Entrar</button>
 
       </form>
+
+      {# ── Demo entry: secondary action, kept in-card and above the fold so curious ── #}
+      {# ── visitors can explore without an account (no public registration). ──────── #}
+      <div class="mt-5 pt-5" style="border-top: 1px solid var(--border-default);">
+        <p class="text-center text-xs mb-3" style="color: var(--text-muted);">Quer ver como funciona?</p>
+        <a href="/static/pool/demo/index.html" class="btn-secondary">Ver demonstração</a>
+      </div>
     </div>
 
     <p class="text-center text-xs mt-6" style="color: var(--text-muted);">

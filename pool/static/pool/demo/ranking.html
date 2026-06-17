@@ -1,12 +1,12 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Bolão Copa do Mundo 2026{% endblock %}</title>
-  <link rel="icon" type="image/svg+xml" href="{% static 'pool/scorecaster_logo.svg' %}">
-  <link rel="stylesheet" href="{% static 'pool/tailwind.css' %}">
+  <title>Bolão Copa do Mundo 2026 — Ranking</title>
+  <link rel="icon" type="image/svg+xml" href="/static/pool/scorecaster_logo.svg">
+  <link rel="stylesheet" href="/static/pool/tailwind.css">
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -59,19 +59,24 @@
     .side-flags::after { content: ''; position: absolute; inset: 0; }
     .side-flags.left::after  { background: linear-gradient(to right, rgba(10,15,44,0.45) 0%, rgba(10,15,44,0.85) 65%, var(--bg-primary) 100%); }
     .side-flags.right::after { background: linear-gradient(to left,  rgba(10,15,44,0.45) 0%, rgba(10,15,44,0.85) 65%, var(--bg-primary) 100%); }
-    {% block extra_styles %}{% endblock %}
+    
+  .podium-first { background: linear-gradient(160deg, #1A1A0A 0%, #201800 100%); border: 1px solid var(--border-strong); border-radius: 16px; }
+  .podium-other { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; }
+  .divider { border-top: 1px solid var(--border-default); }
+  .row-highlight { background: rgba(200,168,75,0.06); }
+
   </style>
 </head>
 <body class="min-h-screen pb-24">
 
-  {# ── Decorative flag banners in the desktop side gutters (purely visual) ── #}
+  
   <div class="side-flags left"  aria-hidden="true"><div class="flag-strip"></div></div>
   <div class="side-flags right" aria-hidden="true"><div class="flag-strip"></div></div>
 
   <header style="background: var(--bg-surface); border-bottom: 1px solid var(--border-default);" class="sticky top-0 z-10">
     <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <img src="{% static 'pool/scorecaster_logo.svg' %}" alt="Scorecaster" style="width: 28px; height: 28px;" />
+        <img src="/static/pool/scorecaster_logo.svg" alt="Scorecaster" style="width: 28px; height: 28px;" />
         <span class="barlow-condensed text-base uppercase tracking-wider">Bolão Copa do Mundo 2026</span>
       </div>
       <div class="flex items-center gap-1">
@@ -81,54 +86,183 @@
                 class="hover:opacity-80 flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.15em;height:1.15em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 17l0 .01"/><path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4"/></svg>
         </button>
-        <span class="text-xs ml-1" style="color: var(--text-muted);">{{ request.user.username }}</span>
-        {% if not is_demo %}
-        <button onclick="abrirLogout()" style="color: var(--text-muted); padding: 8px;" class="hover:opacity-80">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:inline-block;vertical-align:middle"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></svg>
-        </button>
-        {% endif %}
+        <span class="text-xs ml-1" style="color: var(--text-muted);">Marcos</span>
+        
       </div>
     </div>
   </header>
 
   <main class="max-w-lg mx-auto px-4 pt-5 space-y-5">
-    {% block content %}{% endblock %}
+    
+
+  <div>
+    <h1 class="text-base font-semibold" style="color: var(--text-primary);">Ranking geral</h1>
+    <p class="text-xs mt-0.5" style="color: var(--text-muted);">
+      Atualizado após cada jogo · 26 jogos disputados
+    </p>
+  </div>
+
+  
+  
+  <div class="grid grid-cols-3 gap-2 items-end">
+
+    <div class="podium-other p-3 pt-5 mt-4 text-center">
+      <span class="text-lg">🥈</span>
+      <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">Marina</span>
+      <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">125</span>
+      <span class="text-xs" style="color: var(--text-muted);">pts</span>
+    </div>
+
+    <div class="podium-first p-3 -mt-1 text-center">
+      <span class="text-xl">🥇</span>
+      <span class="block text-xs font-semibold mt-1 leading-tight gold-shimmer">Rafael</span>
+      <span class="barlow-condensed block text-2xl mt-1" style="color: var(--color-gold);">173</span>
+      <span class="text-xs" style="color: var(--color-gold); opacity: 0.7;">pts</span>
+    </div>
+
+    <div class="podium-other p-3 pt-5 mt-4 text-center">
+      <span class="text-lg">🥉</span>
+      <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">Bruno</span>
+      <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">121</span>
+      <span class="text-xs" style="color: var(--text-muted);">pts</span>
+    </div>
+
+  </div>
+  
+
+  
+  <div class="card overflow-hidden">
+    <div class="px-4 py-3 divider flex items-center justify-between">
+      <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Todos os participantes</span>
+      <span class="text-xs" style="color: var(--text-muted);">6 participantes</span>
+    </div>
+
+    <div>
+      
+      <div class="flex items-center px-4 py-3 gap-3  ">
+        <span class="text-sm w-5 font-bold"
+              style="color: var(--color-gold);">
+          1
+        </span>
+        <span class="text-sm flex-1 font-semibold"
+              style="color: var(--text-primary);">
+          Rafael
+          
+        </span>
+        <span class="text-sm font-bold"
+              style="color: var(--color-gold);">
+          173 pts
+        </span>
+      </div>
+      
+      <div class="flex items-center px-4 py-3 gap-3 divider ">
+        <span class="text-sm w-5 "
+              style="color: var(--text-muted);">
+          2
+        </span>
+        <span class="text-sm flex-1 font-semibold"
+              style="color: var(--text-primary);">
+          Marina
+          
+        </span>
+        <span class="text-sm "
+              style="color: var(--text-primary);">
+          125 pts
+        </span>
+      </div>
+      
+      <div class="flex items-center px-4 py-3 gap-3 divider ">
+        <span class="text-sm w-5 "
+              style="color: var(--text-muted);">
+          3
+        </span>
+        <span class="text-sm flex-1 font-semibold"
+              style="color: var(--text-primary);">
+          Bruno
+          
+        </span>
+        <span class="text-sm "
+              style="color: var(--text-primary);">
+          121 pts
+        </span>
+      </div>
+      
+      <div class="flex items-center px-4 py-3 gap-3 divider ">
+        <span class="text-sm w-5 "
+              style="color: var(--text-muted);">
+          4
+        </span>
+        <span class="text-sm flex-1 "
+              style="color: var(--text-secondary);">
+          Diego
+          
+        </span>
+        <span class="text-sm "
+              style="color: var(--text-secondary);">
+          118 pts
+        </span>
+      </div>
+      
+      <div class="flex items-center px-4 py-3 gap-3 divider row-highlight">
+        <span class="text-sm w-5 "
+              style="color: var(--text-muted);">
+          5
+        </span>
+        <span class="text-sm flex-1 "
+              style="color: var(--text-secondary);">
+          Marcos
+          
+            <span class="text-xs font-normal ml-1" style="color: var(--text-muted);">você</span>
+          
+        </span>
+        <span class="text-sm "
+              style="color: var(--text-secondary);">
+          110 pts
+        </span>
+      </div>
+      
+      <div class="flex items-center px-4 py-3 gap-3 divider ">
+        <span class="text-sm w-5 "
+              style="color: var(--text-muted);">
+          6
+        </span>
+        <span class="text-sm flex-1 "
+              style="color: var(--text-secondary);">
+          Carla
+          
+        </span>
+        <span class="text-sm "
+              style="color: var(--text-secondary);">
+          103 pts
+        </span>
+      </div>
+      
+    </div>
+  </div>
+
+
   </main>
 
   <nav class="fixed bottom-0 left-0 right-0 bottom-nav">
     <div class="max-w-lg mx-auto px-4 py-2 flex items-center justify-around">
-      <a href="{% if is_demo %}index.html{% else %}{% url 'pool:matches' %}{% endif %}" class="flex flex-col items-center gap-0.5 {% if active_nav == 'matches' %}nav-active{% else %}nav-inactive{% endif %}">
+      <a href="index.html" class="flex flex-col items-center gap-0.5 nav-inactive">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>
-        <span class="text-xs {% if active_nav == 'matches' %}font-medium{% endif %}">Jogos</span>
+        <span class="text-xs ">Jogos</span>
       </a>
-      <a href="{% if is_demo %}ranking.html{% else %}{% url 'pool:ranking' %}{% endif %}" class="flex flex-col items-center gap-0.5 {% if active_nav == 'ranking' %}nav-active{% else %}nav-inactive{% endif %}">
+      <a href="ranking.html" class="flex flex-col items-center gap-0.5 nav-active">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M3 12m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M9 8m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M15 4m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M4 20l14 0"/></svg>
-        <span class="text-xs {% if active_nav == 'ranking' %}font-medium{% endif %}">Ranking</span>
+        <span class="text-xs font-medium">Ranking</span>
       </a>
-      <a href="{% if is_demo %}historico.html{% else %}{% url 'pool:historic' %}{% endif %}" class="flex flex-col items-center gap-0.5 {% if active_nav == 'historic' %}nav-active{% else %}nav-inactive{% endif %}">
+      <a href="historico.html" class="flex flex-col items-center gap-0.5 nav-inactive">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/></svg>
-        <span class="text-xs {% if active_nav == 'historic' %}font-medium{% endif %}">Histórico</span>
+        <span class="text-xs ">Histórico</span>
       </a>
     </div>
   </nav>
 
-  {% if not is_demo %}
-  <div id="logout-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4" style="background: rgba(0,0,0,0.7);">
-    <div class="logout-card w-full max-w-sm p-6 text-center">
-      <p class="text-base font-semibold mb-1" style="color: var(--text-primary);">Sair da conta?</p>
-      <p class="text-sm mb-6" style="color: var(--text-muted);">Você precisará entrar novamente para fazer palpites.</p>
-      <div class="flex gap-3">
-        <button onclick="fecharLogout()" class="btn-cancel flex-1">Cancelar</button>
-        <form method="post" action="{% url 'pool:logout' %}" class="flex-1" id="logout-form">
-          {% csrf_token %}
-          <button type="submit" id="logout-submit" class="btn-logout-confirm w-full">Sair</button>
-        </form>
-      </div>
-    </div>
-  </div>
-  {% endif %}
+  
 
-  {# ── Scoring-rules modal ── #}
+  
   <div id="rules-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
        style="background: rgba(0,0,0,0.7);" onclick="if(event.target===this)fecharRegras()">
     <div class="logout-card w-full p-6"
@@ -216,27 +350,27 @@
       // URLs emitted via the static template tag so they resolve under the
       // WhiteNoise manifest (hashed filenames in production); never build in JS.
       var FLAGS = [
-        "{% static 'pool/flags/br.svg' %}", "{% static 'pool/flags/ar.svg' %}",
-        "{% static 'pool/flags/fr.svg' %}", "{% static 'pool/flags/de.svg' %}",
-        "{% static 'pool/flags/es.svg' %}", "{% static 'pool/flags/pt.svg' %}",
-        "{% static 'pool/flags/it.svg' %}", "{% static 'pool/flags/nl.svg' %}",
-        "{% static 'pool/flags/gb.svg' %}", "{% static 'pool/flags/us.svg' %}",
-        "{% static 'pool/flags/mx.svg' %}", "{% static 'pool/flags/jp.svg' %}",
-        "{% static 'pool/flags/kr.svg' %}", "{% static 'pool/flags/ca.svg' %}",
-        "{% static 'pool/flags/be.svg' %}", "{% static 'pool/flags/hr.svg' %}",
-        "{% static 'pool/flags/ma.svg' %}", "{% static 'pool/flags/sn.svg' %}",
-        "{% static 'pool/flags/co.svg' %}", "{% static 'pool/flags/uy.svg' %}",
-        "{% static 'pool/flags/ch.svg' %}", "{% static 'pool/flags/pl.svg' %}",
-        "{% static 'pool/flags/rs.svg' %}", "{% static 'pool/flags/dk.svg' %}",
-        "{% static 'pool/flags/no.svg' %}", "{% static 'pool/flags/se.svg' %}",
-        "{% static 'pool/flags/au.svg' %}", "{% static 'pool/flags/za.svg' %}",
-        "{% static 'pool/flags/ec.svg' %}", "{% static 'pool/flags/cr.svg' %}",
-        "{% static 'pool/flags/tn.svg' %}", "{% static 'pool/flags/eg.svg' %}",
-        "{% static 'pool/flags/ir.svg' %}", "{% static 'pool/flags/sa.svg' %}",
-        "{% static 'pool/flags/qa.svg' %}", "{% static 'pool/flags/cl.svg' %}",
-        "{% static 'pool/flags/pe.svg' %}", "{% static 'pool/flags/ng.svg' %}",
-        "{% static 'pool/flags/gh.svg' %}", "{% static 'pool/flags/jm.svg' %}",
-        "{% static 'pool/flags/pa.svg' %}", "{% static 'pool/flags/cz.svg' %}"
+        "/static/pool/flags/br.svg", "/static/pool/flags/ar.svg",
+        "/static/pool/flags/fr.svg", "/static/pool/flags/de.svg",
+        "/static/pool/flags/es.svg", "/static/pool/flags/pt.svg",
+        "/static/pool/flags/it.svg", "/static/pool/flags/nl.svg",
+        "/static/pool/flags/gb.svg", "/static/pool/flags/us.svg",
+        "/static/pool/flags/mx.svg", "/static/pool/flags/jp.svg",
+        "/static/pool/flags/kr.svg", "/static/pool/flags/ca.svg",
+        "/static/pool/flags/be.svg", "/static/pool/flags/hr.svg",
+        "/static/pool/flags/ma.svg", "/static/pool/flags/sn.svg",
+        "/static/pool/flags/co.svg", "/static/pool/flags/uy.svg",
+        "/static/pool/flags/ch.svg", "/static/pool/flags/pl.svg",
+        "/static/pool/flags/rs.svg", "/static/pool/flags/dk.svg",
+        "/static/pool/flags/no.svg", "/static/pool/flags/se.svg",
+        "/static/pool/flags/au.svg", "/static/pool/flags/za.svg",
+        "/static/pool/flags/ec.svg", "/static/pool/flags/cr.svg",
+        "/static/pool/flags/tn.svg", "/static/pool/flags/eg.svg",
+        "/static/pool/flags/ir.svg", "/static/pool/flags/sa.svg",
+        "/static/pool/flags/qa.svg", "/static/pool/flags/cl.svg",
+        "/static/pool/flags/pe.svg", "/static/pool/flags/ng.svg",
+        "/static/pool/flags/gh.svg", "/static/pool/flags/jm.svg",
+        "/static/pool/flags/pa.svg", "/static/pool/flags/cz.svg"
       ];
       var strips = document.querySelectorAll('.side-flags .flag-strip');
       if (!strips.length || window.matchMedia('(max-width: 1023px)').matches) return;
@@ -253,6 +387,6 @@
     })();
   </script>
 
-  {% block extra_scripts %}{% endblock %}
+  
 </body>
 </html>

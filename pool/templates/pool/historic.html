@@ -126,6 +126,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
+{% if is_demo %}<script>window.DEMO_OTHERS = {{ demo_others_json|safe }};</script>{% endif %}
 {% include "pool/_others_modal.html" %}
 <script>
   (function () {
