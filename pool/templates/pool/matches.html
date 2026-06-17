@@ -61,11 +61,16 @@
     {# ── Today tab ── #}
     <div id="panel-today" class="space-y-3">
       {% if has_finished_today %}
-      {# Client-side filter: hide already-scored (Finalizado) cards. State persists in localStorage. #}
-      <label class="flex items-center justify-end gap-2 cursor-pointer select-none">
-        <span class="text-xs" style="color: var(--text-muted);">Ocultar finalizados</span>
-        <input id="hide-finished-toggle" type="checkbox" class="toggle-switch" onchange="toggleHideFinished()">
-      </label>
+      {# Client-side filter chip: hide already-scored (Finalizado) cards. State persists in localStorage. #}
+      <div class="flex">
+        <button id="hide-finished-toggle" type="button" aria-pressed="false"
+                class="filter-chip" onclick="toggleHideFinished()">
+          <svg class="filter-chip-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+               stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+          Ocultar finalizados
+        </button>
+      </div>
       {% endif %}
       {% for match in today_matches %}
         {% if match.status == 'open' %}
@@ -310,20 +315,22 @@
 </div>
 
 <style>
-  /* Toggle switch (Fase atual → ocultar finalizados). Inline CSS: classes aren't in the prebuilt Tailwind. */
-  .toggle-switch {
-    appearance: none; -webkit-appearance: none;
-    position: relative; width: 36px; height: 20px; border-radius: 9999px;
-    background: var(--bg-surface-alt); border: 1px solid var(--border-default);
-    cursor: pointer; transition: background .15s ease; flex-shrink: 0;
+  /* Filter chip (Fase atual → ocultar finalizados). Inline CSS: classes aren't in the prebuilt Tailwind. */
+  .filter-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 9999px;
+    font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+    background: rgba(245,240,232,0.05); color: var(--text-muted);
+    border: 1px solid rgba(245,240,232,0.12);
+    cursor: pointer; transition: background .15s ease, color .15s ease, border-color .15s ease;
   }
-  .toggle-switch::after {
-    content: ""; position: absolute; top: 1px; left: 1px;
-    width: 16px; height: 16px; border-radius: 9999px;
-    background: var(--text-muted); transition: transform .15s ease, background .15s ease;
+  .filter-chip:hover { border-color: var(--border-strong); }
+  .filter-chip[aria-pressed="true"] {
+    background: rgba(200,168,75,0.15); color: var(--color-gold);
+    border-color: rgba(200,168,75,0.35);
   }
-  .toggle-switch:checked { background: var(--color-gold); border-color: var(--color-gold); }
-  .toggle-switch:checked::after { transform: translateX(16px); background: var(--color-navy); }
+  .filter-chip-check { width: 14px; height: 14px; display: none; }
+  .filter-chip[aria-pressed="true"] .filter-chip-check { display: inline-block; }
 </style>
 <script>
   const CSRF_TOKEN = '{{ csrf_token }}';
@@ -412,7 +419,9 @@
   }
 
   function toggleHideFinished() {
-    const hide = document.getElementById('hide-finished-toggle').checked;
+    const btn = document.getElementById('hide-finished-toggle');
+    const hide = btn.getAttribute('aria-pressed') !== 'true';
+    btn.setAttribute('aria-pressed', hide ? 'true' : 'false');
     try { localStorage.setItem(HIDE_FINISHED_KEY, hide ? '1' : '0'); } catch (e) {}
     applyHideFinished(hide);
   }
@@ -422,7 +431,7 @@
     if (!toggle) return;  // no finished matches this phase → no toggle rendered
     let hide = false;
     try { hide = localStorage.getItem(HIDE_FINISHED_KEY) === '1'; } catch (e) {}
-    toggle.checked = hide;
+    toggle.setAttribute('aria-pressed', hide ? 'true' : 'false');
     applyHideFinished(hide);
   });
 </script>
