@@ -115,6 +115,19 @@ def _phase_winner_card(now):
     )
 
 
+def _demo_context(request):
+    """Demo flags for templates.
+
+    Both attrs are set ONLY by the offline ``render_demo`` command on its
+    in-process request. Real production requests never set them, so this
+    returns the off/empty defaults and the live pages are unaffected.
+    """
+    return {
+        "is_demo": getattr(request, "is_demo", False),
+        "demo_others_json": getattr(request, "demo_others_json", "{}"),
+    }
+
+
 @login_required
 def matches(request):
     now = timezone.now()
@@ -161,6 +174,7 @@ def matches(request):
         "upcoming_matches": upcoming_matches,
         "has_finished_today": any(m.status == "finished" for m in today_matches),
         "phase_winner": _phase_winner_card(now),
+        **_demo_context(request),
     }
 
     return render(request, "pool/matches.html", context)
@@ -173,6 +187,7 @@ def ranking(request):
         # Pre-computed snapshot — no aggregation at request time.
         "ranking": get_ranking(),
         "total_matches": Match.objects.filter(is_scored=True).count(),
+        **_demo_context(request),
     }
     return render(request, "pool/ranking.html", context)
 
@@ -206,6 +221,7 @@ def historic(request):
         "active_nav": "historic",
         "stats": stats,
         "predictions": entries,
+        **_demo_context(request),
     }
     return render(request, "pool/historic.html", context)
 

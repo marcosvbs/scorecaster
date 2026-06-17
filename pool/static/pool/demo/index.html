@@ -1,0 +1,2120 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolão Copa do Mundo 2026 — Jogos</title>
+  <link rel="icon" type="image/svg+xml" href="/static/pool/scorecaster_logo.svg">
+  <link rel="stylesheet" href="/static/pool/tailwind.css">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-gold:       #C8A84B;
+      --color-navy:       #0A0F2C;
+      --color-red:        #E8003D;
+      --color-white:      #F5F0E8;
+      --color-sandstone:  #D4B896;
+      --bg-primary:       var(--color-navy);
+      --bg-surface:       #111829;
+      --bg-surface-alt:   #1A2340;
+      --text-primary:     var(--color-white);
+      --text-secondary:   var(--color-sandstone);
+      --text-muted:       rgba(245, 240, 232, 0.45);
+      --accent-hover:     #DFC05A;
+      --danger:           var(--color-red);
+      --border-default:   rgba(200, 168, 75, 0.2);
+      --border-strong:    rgba(200, 168, 75, 0.5);
+    }
+    body { font-family: 'Barlow', sans-serif; background: var(--bg-primary); color: var(--text-primary); }
+    .barlow-condensed { font-family: 'Barlow Condensed', sans-serif; }
+    .card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; }
+    .flag { width: 22px; height: 16px; border-radius: 2px; object-fit: cover; display: inline-block; flex-shrink: 0; }
+    .bottom-nav { background: var(--bg-surface); border-top: 1px solid var(--border-default); }
+    .nav-active { color: var(--color-gold); }
+    .nav-inactive { color: var(--text-muted); }
+    .gold-shimmer {
+      background: linear-gradient(135deg, #A8851E 0%, #C8A84B 40%, #EDD97A 70%, #C8A84B 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .logout-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 24px; }
+    /* Shared modal panel (Palpites modal — used on every page that includes _others_modal.html). */
+    .modal-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 24px; }
+    /* ── Shared loading spinner (reused: Palpites modal, prediction save, login, logout) ── */
+    .spinner { width: 24px; height: 24px; border: 2.5px solid rgba(200,168,75,0.25); border-top-color: var(--color-gold); border-radius: 50%; animation: spin 0.7s linear infinite; box-sizing: border-box; }
+    .spinner-sm { width: 16px; height: 16px; border-width: 2px; display: inline-block; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    button:disabled { opacity: 0.7; cursor: not-allowed; }
+    .btn-cancel { background: var(--bg-surface-alt); color: var(--text-secondary); border: 1px solid var(--border-default); border-radius: 10px; font-size: 0.875rem; padding: 10px; font-family: 'Barlow', sans-serif; cursor: pointer; }
+    .btn-logout-confirm { background: var(--danger); color: white; border: none; border-radius: 10px; font-size: 0.875rem; font-weight: 600; padding: 10px; font-family: 'Barlow', sans-serif; cursor: pointer; }
+    /* ── Decorative country-flag side banners (desktop gutters only) ── */
+    .side-flags { position: fixed; top: 0; bottom: 0; z-index: 0; overflow: hidden; pointer-events: none; width: calc((100vw - 34rem) / 2); display: none; }
+    .side-flags.left  { left: 0; }
+    .side-flags.right { right: 0; }
+    /* Only show where real gutter space exists (content column is max-w-lg). */
+    @media (min-width: 1024px) { .side-flags { display: block; } }
+    .flag-strip { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 28px 0; }
+    .flag-strip img { width: 120px; height: 80px; object-fit: cover; border-radius: 4px; opacity: 0.55; box-shadow: 0 2px 10px rgba(0,0,0,0.45); }
+    /* Deep-navy filter so flags read as subtle texture and fade into content. */
+    .side-flags::after { content: ''; position: absolute; inset: 0; }
+    .side-flags.left::after  { background: linear-gradient(to right, rgba(10,15,44,0.45) 0%, rgba(10,15,44,0.85) 65%, var(--bg-primary) 100%); }
+    .side-flags.right::after { background: linear-gradient(to left,  rgba(10,15,44,0.45) 0%, rgba(10,15,44,0.85) 65%, var(--bg-primary) 100%); }
+    
+  .winner-card {
+    background: linear-gradient(160deg, #1A1A0A 0%, #201800 100%);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+  }
+  .badge-open     { background: rgba(200,168,75,0.15); color: var(--color-gold); border: 1px solid rgba(200,168,75,0.35); border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+  .badge-predicted{ background: rgba(0,122,77,0.15); color: #2DB87F; border: 1px solid rgba(0,122,77,0.35); border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+  .badge-locked   { background: rgba(245,240,232,0.07); color: var(--text-muted); border: 1px solid rgba(245,240,232,0.12); border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; white-space: nowrap; }
+  .badge-live     { background: rgba(232,0,61,0.12); color: rgba(232,0,61,0.9); border: 1px solid rgba(232,0,61,0.3); border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+  .badge-knockout { background: rgba(232,0,61,0.12); color: rgba(232,0,61,0.85); border: 1px solid rgba(232,0,61,0.25); border-radius: 999px; padding: 2px 8px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+  
+  .badge-exact   { background: rgba(200,168,75,0.15);  color: var(--color-gold);       border: 1px solid rgba(200,168,75,0.3);   border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+  .badge-partial { background: rgba(245,240,232,0.07); color: var(--text-secondary);   border: 1px solid rgba(245,240,232,0.15); border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+  .badge-wrong   { background: rgba(232,0,61,0.1);     color: rgba(232,0,61,0.8);      border: 1px solid rgba(232,0,61,0.2);    border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; white-space: nowrap; }
+  .badge-none    { background: rgba(245,240,232,0.05); color: var(--text-muted);        border: 1px solid rgba(245,240,232,0.08); border-radius: 999px; padding: 2px 10px; font-size: 0.7rem; white-space: nowrap; }
+  .game-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; transition: border-color 0.2s, box-shadow 0.2s; cursor: pointer; }
+  .game-card:hover { border-color: var(--border-strong); box-shadow: 0 0 20px rgba(200,168,75,0.08); }
+  .game-card-locked { background: rgba(17,24,41,0.6); border: 1px solid rgba(200,168,75,0.08); border-radius: 16px; opacity: 0.55; }
+  .game-card-locked.clickable { cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s; }
+  .game-card-locked.clickable:hover { border-color: var(--border-strong); box-shadow: 0 0 20px rgba(200,168,75,0.08); opacity: 0.8; }
+  .tab-active   { background: var(--bg-surface-alt); color: var(--text-primary); border-radius: 10px; }
+  .tab-inactive { color: var(--text-muted); border-radius: 10px; }
+  .score-btn { background: var(--bg-surface-alt); border: 1px solid var(--border-default); border-radius: 10px; width: 36px; height: 36px; min-width: 36px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: border-color 0.15s; cursor: pointer; padding: 0; flex-shrink: 0; }
+  .score-btn:hover { border-color: var(--border-strong); }
+  .score-btn svg { width: 14px; height: 14px; display: block; }
+  .btn-confirm { background: var(--color-gold); color: var(--color-navy); font-weight: 700; border-radius: 12px; padding: 12px; width: 100%; font-family: 'Barlow', sans-serif; font-size: 0.875rem; letter-spacing: 0.03em; cursor: pointer; transition: background 0.2s; border: none; }
+  .btn-confirm:hover { background: var(--accent-hover); }
+  #toast { background: var(--bg-surface-alt); border: 1px solid var(--border-default); color: var(--text-primary); border-radius: 12px; }
+
+  </style>
+</head>
+<body class="min-h-screen pb-24">
+
+  
+  <div class="side-flags left"  aria-hidden="true"><div class="flag-strip"></div></div>
+  <div class="side-flags right" aria-hidden="true"><div class="flag-strip"></div></div>
+
+  <header style="background: var(--bg-surface); border-bottom: 1px solid var(--border-default);" class="sticky top-0 z-10">
+    <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <img src="/static/pool/scorecaster_logo.svg" alt="Scorecaster" style="width: 28px; height: 28px;" />
+        <span class="barlow-condensed text-base uppercase tracking-wider">Bolão Copa do Mundo 2026</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button id="rules-trigger" onclick="abrirRegras()" type="button"
+                aria-label="Como funciona a pontuação" title="Como funciona a pontuação"
+                style="color: var(--text-muted); padding: 8px;"
+                class="hover:opacity-80 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.15em;height:1.15em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 17l0 .01"/><path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4"/></svg>
+        </button>
+        <span class="text-xs ml-1" style="color: var(--text-muted);">Marcos</span>
+        
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-lg mx-auto px-4 pt-5 space-y-5">
+    
+
+  
+  
+
+  
+  <section>
+    <div class="flex gap-1 p-1 rounded-xl mb-4" style="background: var(--bg-surface-alt);">
+      <button id="tab-today" onclick="switchTab('today')" class="flex-1 py-1.5 text-sm font-medium transition-colors tab-active">Fase atual</button>
+      <button id="tab-upcoming" onclick="switchTab('upcoming')" class="flex-1 py-1.5 text-sm transition-colors tab-inactive">Próximas fases</button>
+    </div>
+
+    
+    <div id="panel-today" class="space-y-3">
+      
+      
+      <div class="flex">
+        <button id="hide-finished-toggle" type="button" aria-pressed="false"
+                class="filter-chip" onclick="toggleHideFinished()">
+          <svg class="filter-chip-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+               stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+          Ocultar finalizados
+        </button>
+      </div>
+      
+      
+        
+        
+        <div class="game-card-locked p-4 clickable js-finished"
+             onclick="openOthersModal(25, 'Fase de Grupos · 2ª Rodada', '15h54', 'Tchéquia × África do Sul', 'Resultado: 0 × 0')">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 15/06 15h</span>
+              
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="badge-locked">Finalizado</span>
+              
+                
+                  <span class="badge-wrong">Errou · 0 pts</span>
+                
+              
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/cz.svg" alt="Tchéquia">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">Tchéquia</span>
+            </div>
+            
+            <div class="text-center">
+              <div class="flex items-center justify-center gap-1">
+                <span class="text-base font-bold w-5 text-center" style="color: var(--text-primary);">1</span>
+                <span class="text-xs" style="color: var(--text-muted);">×</span>
+                <span class="text-base font-bold w-5 text-center" style="color: var(--text-primary);">0</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">África do Sul</span>
+              <img class="flag" src="/static/pool/flags/za.svg" alt="África do Sul">
+            </div>
+          </div>
+          
+            <p class="text-xs mt-1 text-center" style="color: rgba(232,0,61,0.8);">Resultado: 0 × 0</p>
+          
+          <p class="text-xs mt-1 text-center flex items-center justify-center gap-1" style="color: var(--text-muted);">Toque para ver os palpites <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:0.85em;height:0.85em;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg></p>
+        </div>
+        
+
+      
+        
+        
+        <div class="game-card-locked p-4 clickable js-finished"
+             onclick="openOthersModal(26, 'Fase de Grupos · 2ª Rodada', '17h54', 'Suíça × Bósnia e Herzegovina', 'Resultado: 1 × 2')">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 15/06 17h</span>
+              
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="badge-locked">Finalizado</span>
+              
+                
+                  <span class="badge-wrong">Errou · 0 pts</span>
+                
+              
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/ch.svg" alt="Suíça">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">Suíça</span>
+            </div>
+            
+            <div class="text-center">
+              <div class="flex items-center justify-center gap-1">
+                <span class="text-base font-bold w-5 text-center" style="color: var(--text-primary);">2</span>
+                <span class="text-xs" style="color: var(--text-muted);">×</span>
+                <span class="text-base font-bold w-5 text-center" style="color: var(--text-primary);">1</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">Bósnia e Herzegovina</span>
+              <img class="flag" src="/static/pool/flags/ba.svg" alt="Bósnia e Herzegovina">
+            </div>
+          </div>
+          
+            <p class="text-xs mt-1 text-center" style="color: rgba(232,0,61,0.8);">Resultado: 1 × 2</p>
+          
+          <p class="text-xs mt-1 text-center flex items-center justify-center gap-1" style="color: var(--text-muted);">Toque para ver os palpites <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:0.85em;height:0.85em;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg></p>
+        </div>
+        
+
+      
+        
+        
+        <div class="game-card-locked p-4 clickable"
+             onclick="openOthersModal(27, 'Fase de Grupos · 2ª Rodada', '20h54', 'Canadá × Catar', '')">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 16/06 20h</span>
+              
+            </div>
+            <span class="badge-live">Em andamento</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/ca.svg" alt="Canadá">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">Canadá</span>
+            </div>
+            
+            <div class="flex items-center gap-1">
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">2</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">0</span>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">Catar</span>
+              <img class="flag" src="/static/pool/flags/qa.svg" alt="Catar">
+            </div>
+          </div>
+          
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">Partida em andamento</p>
+          
+          <p class="text-xs mt-1 text-center flex items-center justify-center gap-1" style="color: var(--text-muted);">Toque para ver os palpites <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:0.85em;height:0.85em;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg></p>
+        </div>
+
+        
+
+      
+        
+        
+        <div class="game-card-locked p-4 clickable"
+             onclick="openOthersModal(28, 'Fase de Grupos · 2ª Rodada', '21h24', 'México × Coreia do Sul', '')">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 16/06 21h</span>
+              
+            </div>
+            <span class="badge-live">Em andamento</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/mx.svg" alt="México">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">México</span>
+            </div>
+            
+            <div class="flex items-center gap-1">
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">4</span>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">Coreia do Sul</span>
+              <img class="flag" src="/static/pool/flags/kr.svg" alt="Coreia do Sul">
+            </div>
+          </div>
+          
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">Partida em andamento</p>
+          
+          <p class="text-xs mt-1 text-center flex items-center justify-center gap-1" style="color: var(--text-muted);">Toque para ver os palpites <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:0.85em;height:0.85em;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg></p>
+        </div>
+
+        
+
+      
+        
+        
+        <div class="game-card-locked p-4 clickable"
+             onclick="openOthersModal(29, 'Fase de Grupos · 2ª Rodada', '22h09', 'Estados Unidos × Austrália', '')">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 16/06 22h</span>
+              
+            </div>
+            <span class="badge-locked">Bloqueado</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/us.svg" alt="Estados Unidos">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">Estados Unidos</span>
+            </div>
+            
+            <div class="flex items-center gap-1">
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">0</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">1</span>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">Austrália</span>
+              <img class="flag" src="/static/pool/flags/au.svg" alt="Austrália">
+            </div>
+          </div>
+          
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">Palpites encerrados às 21h39</p>
+          
+          <p class="text-xs mt-1 text-center flex items-center justify-center gap-1" style="color: var(--text-muted);">Toque para ver os palpites <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:0.85em;height:0.85em;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg></p>
+        </div>
+
+        
+
+      
+        
+        
+        <div class="game-card-locked p-4 clickable"
+             onclick="openOthersModal(30, 'Fase de Grupos · 2ª Rodada', '22h19', 'Escócia × Marrocos', '')">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 16/06 22h</span>
+              
+            </div>
+            <span class="badge-locked">Bloqueado</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/gb.svg" alt="Escócia">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">Escócia</span>
+            </div>
+            
+            <div class="flex items-center gap-1">
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">2</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">2</span>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-muted);">Marrocos</span>
+              <img class="flag" src="/static/pool/flags/ma.svg" alt="Marrocos">
+            </div>
+          </div>
+          
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">Palpites encerrados às 21h49</p>
+          
+          <p class="text-xs mt-1 text-center flex items-center justify-center gap-1" style="color: var(--text-muted);">Toque para ver os palpites <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:0.85em;height:0.85em;" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg></p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             onclick="openModal(31, 'Fase de Grupos · 2ª Rodada', '03h54', 'Brasil', 'Haiti', 2, 1)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 18/06 03h</span>
+              
+            </div>
+            <span class="badge-predicted">Palpitado</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/br.svg" alt="Brasil">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Brasil</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">2</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">1</span>
+            </div>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Haiti</span>
+              <img class="flag" src="/static/pool/flags/ht.svg" alt="Haiti">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 03h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             onclick="openModal(32, 'Fase de Grupos · 2ª Rodada', '05h54', 'Turquia', 'Paraguai', 2, 1)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 18/06 05h</span>
+              
+            </div>
+            <span class="badge-predicted">Palpitado</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/tr.svg" alt="Turquia">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Turquia</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">2</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">1</span>
+            </div>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Paraguai</span>
+              <img class="flag" src="/static/pool/flags/py.svg" alt="Paraguai">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 05h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             onclick="openModal(33, 'Fase de Grupos · 2ª Rodada', '07h54', 'Países Baixos', 'Suécia', 2, 1)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 18/06 07h</span>
+              
+            </div>
+            <span class="badge-predicted">Palpitado</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/nl.svg" alt="Países Baixos">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Países Baixos</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">2</span>
+              <span class="text-xs" style="color: var(--text-muted);">×</span>
+              <span class="text-base font-bold w-5 text-center" style="color: var(--color-gold);">1</span>
+            </div>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Suécia</span>
+              <img class="flag" src="/static/pool/flags/se.svg" alt="Suécia">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 07h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(34, 'Fase de Grupos · 2ª Rodada', '09h54', 'Alemanha', 'Costa do Marfim', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 18/06 09h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/de.svg" alt="Alemanha">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Alemanha</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Costa do Marfim</span>
+              <img class="flag" src="/static/pool/flags/ci.svg" alt="Costa do Marfim">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 09h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(35, 'Fase de Grupos · 2ª Rodada', '11h54', 'Equador', 'Curaçao', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 18/06 11h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/ec.svg" alt="Equador">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Equador</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Curaçao</span>
+              <img class="flag" src="/static/pool/flags/cw.svg" alt="Curaçao">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 11h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(36, 'Fase de Grupos · 2ª Rodada', '13h54', 'Tunísia', 'Japão', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 18/06 13h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/tn.svg" alt="Tunísia">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Tunísia</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Japão</span>
+              <img class="flag" src="/static/pool/flags/jp.svg" alt="Japão">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 13h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(37, 'Fase de Grupos · 2ª Rodada', '15h54', 'Espanha', 'Arábia Saudita', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 18/06 15h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/es.svg" alt="Espanha">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Espanha</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Arábia Saudita</span>
+              <img class="flag" src="/static/pool/flags/sa.svg" alt="Arábia Saudita">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 15h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(38, 'Fase de Grupos · 2ª Rodada', '17h54', 'Bélgica', 'Irã', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 18/06 17h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/be.svg" alt="Bélgica">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Bélgica</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Irã</span>
+              <img class="flag" src="/static/pool/flags/ir.svg" alt="Irã">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 17h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(39, 'Fase de Grupos · 2ª Rodada', '19h54', 'Uruguai', 'Cabo Verde', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 18/06 19h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/uy.svg" alt="Uruguai">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Uruguai</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Cabo Verde</span>
+              <img class="flag" src="/static/pool/flags/cv.svg" alt="Cabo Verde">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 19h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(40, 'Fase de Grupos · 2ª Rodada', '21h54', 'Nova Zelândia', 'Egito', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 18/06 21h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/nz.svg" alt="Nova Zelândia">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Nova Zelândia</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Egito</span>
+              <img class="flag" src="/static/pool/flags/eg.svg" alt="Egito">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 21h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(41, 'Fase de Grupos · 2ª Rodada', '23h54', 'Argentina', 'Áustria', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 18/06 23h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/ar.svg" alt="Argentina">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Argentina</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Áustria</span>
+              <img class="flag" src="/static/pool/flags/at.svg" alt="Áustria">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 23h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(42, 'Fase de Grupos · 2ª Rodada', '01h54', 'França', 'Iraque', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 19/06 01h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/fr.svg" alt="França">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">França</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Iraque</span>
+              <img class="flag" src="/static/pool/flags/iq.svg" alt="Iraque">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 01h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(43, 'Fase de Grupos · 2ª Rodada', '03h54', 'Noruega', 'Senegal', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 19/06 03h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/no.svg" alt="Noruega">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Noruega</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Senegal</span>
+              <img class="flag" src="/static/pool/flags/sn.svg" alt="Senegal">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 03h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(44, 'Fase de Grupos · 2ª Rodada', '05h54', 'Jordânia', 'Argélia', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 19/06 05h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/jo.svg" alt="Jordânia">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Jordânia</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Argélia</span>
+              <img class="flag" src="/static/pool/flags/dz.svg" alt="Argélia">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 05h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(45, 'Fase de Grupos · 2ª Rodada', '07h54', 'Portugal', 'Uzbequistão', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 19/06 07h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/pt.svg" alt="Portugal">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Portugal</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Uzbequistão</span>
+              <img class="flag" src="/static/pool/flags/uz.svg" alt="Uzbequistão">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 07h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(46, 'Fase de Grupos · 2ª Rodada', '09h54', 'Inglaterra', 'Gana', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 19/06 09h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/gb.svg" alt="Inglaterra">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Inglaterra</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Gana</span>
+              <img class="flag" src="/static/pool/flags/gh.svg" alt="Gana">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 09h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(47, 'Fase de Grupos · 2ª Rodada', '11h54', 'Panamá', 'Croácia', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 19/06 11h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/pa.svg" alt="Panamá">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Panamá</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Croácia</span>
+              <img class="flag" src="/static/pool/flags/hr.svg" alt="Croácia">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 11h24
+          </p>
+        </div>
+
+        
+
+      
+        
+        <div class="game-card p-4"
+             
+             onclick="openModal(48, 'Fase de Grupos · 2ª Rodada', '13h54', 'Colômbia', 'República Democrática do Congo', 0, 0)">
+          <div class="flex items-center justify-between mb-3 gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs truncate" style="color: var(--text-muted);">Fase de Grupos · 2ª Rodada · 19/06 13h</span>
+              
+            </div>
+            <span class="badge-open">Palpitar</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/co.svg" alt="Colômbia">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">Colômbia</span>
+            </div>
+            <span class="text-xs font-bold px-3" style="color: var(--text-muted);">×</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm font-semibold" style="color: var(--text-primary);">República Democrática do Congo</span>
+              <img class="flag" src="/static/pool/flags/cd.svg" alt="República Democrática do Congo">
+            </div>
+          </div>
+          <p class="text-xs mt-2 text-center" style="color: var(--text-muted);">
+            Palpites encerram às 13h24
+          </p>
+        </div>
+
+        
+
+      
+      
+      <p id="no-pending-msg" class="text-center text-sm py-8 hidden" style="color: var(--text-muted);">Nenhum jogo pendente — todos finalizados.</p>
+    </div>
+
+    
+    <div id="panel-upcoming" class="space-y-3 hidden">
+      
+      
+      <div class="card p-4">
+        <p class="text-xs mb-3" style="color: var(--color-gold);">Fase de Grupos · 3ª Rodada</p>
+        <div class="space-y-3">
+          
+          <div class="flex items-center justify-between" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/ba.svg" alt="Bósnia e Herzegovina">
+              <span class="text-sm" style="color: var(--text-secondary);">Bósnia e Herzegovina</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 20/06 21h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Catar</span>
+              <img class="flag" src="/static/pool/flags/qa.svg" alt="Catar">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/ch.svg" alt="Suíça">
+              <span class="text-sm" style="color: var(--text-secondary);">Suíça</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 20/06 23h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Canadá</span>
+              <img class="flag" src="/static/pool/flags/ca.svg" alt="Canadá">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/ma.svg" alt="Marrocos">
+              <span class="text-sm" style="color: var(--text-secondary);">Marrocos</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 01h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Haiti</span>
+              <img class="flag" src="/static/pool/flags/ht.svg" alt="Haiti">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/gb.svg" alt="Escócia">
+              <span class="text-sm" style="color: var(--text-secondary);">Escócia</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 03h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Brasil</span>
+              <img class="flag" src="/static/pool/flags/br.svg" alt="Brasil">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/za.svg" alt="África do Sul">
+              <span class="text-sm" style="color: var(--text-secondary);">África do Sul</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 05h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Coreia do Sul</span>
+              <img class="flag" src="/static/pool/flags/kr.svg" alt="Coreia do Sul">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/cz.svg" alt="Tchéquia">
+              <span class="text-sm" style="color: var(--text-secondary);">Tchéquia</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 07h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">México</span>
+              <img class="flag" src="/static/pool/flags/mx.svg" alt="México">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/cw.svg" alt="Curaçao">
+              <span class="text-sm" style="color: var(--text-secondary);">Curaçao</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 09h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Costa do Marfim</span>
+              <img class="flag" src="/static/pool/flags/ci.svg" alt="Costa do Marfim">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/ec.svg" alt="Equador">
+              <span class="text-sm" style="color: var(--text-secondary);">Equador</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 11h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Alemanha</span>
+              <img class="flag" src="/static/pool/flags/de.svg" alt="Alemanha">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/tn.svg" alt="Tunísia">
+              <span class="text-sm" style="color: var(--text-secondary);">Tunísia</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 13h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Países Baixos</span>
+              <img class="flag" src="/static/pool/flags/nl.svg" alt="Países Baixos">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/jp.svg" alt="Japão">
+              <span class="text-sm" style="color: var(--text-secondary);">Japão</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 15h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Suécia</span>
+              <img class="flag" src="/static/pool/flags/se.svg" alt="Suécia">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/py.svg" alt="Paraguai">
+              <span class="text-sm" style="color: var(--text-secondary);">Paraguai</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 17h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Austrália</span>
+              <img class="flag" src="/static/pool/flags/au.svg" alt="Austrália">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/tr.svg" alt="Turquia">
+              <span class="text-sm" style="color: var(--text-secondary);">Turquia</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 19h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Estados Unidos</span>
+              <img class="flag" src="/static/pool/flags/us.svg" alt="Estados Unidos">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/sn.svg" alt="Senegal">
+              <span class="text-sm" style="color: var(--text-secondary);">Senegal</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 21h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Iraque</span>
+              <img class="flag" src="/static/pool/flags/iq.svg" alt="Iraque">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/no.svg" alt="Noruega">
+              <span class="text-sm" style="color: var(--text-secondary);">Noruega</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 21/06 23h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">França</span>
+              <img class="flag" src="/static/pool/flags/fr.svg" alt="França">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/uy.svg" alt="Uruguai">
+              <span class="text-sm" style="color: var(--text-secondary);">Uruguai</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 22/06 01h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Espanha</span>
+              <img class="flag" src="/static/pool/flags/es.svg" alt="Espanha">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/cv.svg" alt="Cabo Verde">
+              <span class="text-sm" style="color: var(--text-secondary);">Cabo Verde</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 22/06 03h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Arábia Saudita</span>
+              <img class="flag" src="/static/pool/flags/sa.svg" alt="Arábia Saudita">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/nz.svg" alt="Nova Zelândia">
+              <span class="text-sm" style="color: var(--text-secondary);">Nova Zelândia</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 22/06 05h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Bélgica</span>
+              <img class="flag" src="/static/pool/flags/be.svg" alt="Bélgica">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/eg.svg" alt="Egito">
+              <span class="text-sm" style="color: var(--text-secondary);">Egito</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 22/06 07h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Irã</span>
+              <img class="flag" src="/static/pool/flags/ir.svg" alt="Irã">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/pa.svg" alt="Panamá">
+              <span class="text-sm" style="color: var(--text-secondary);">Panamá</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 22/06 09h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Inglaterra</span>
+              <img class="flag" src="/static/pool/flags/gb.svg" alt="Inglaterra">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/hr.svg" alt="Croácia">
+              <span class="text-sm" style="color: var(--text-secondary);">Croácia</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 22/06 11h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Gana</span>
+              <img class="flag" src="/static/pool/flags/gh.svg" alt="Gana">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/cd.svg" alt="República Democrática do Congo">
+              <span class="text-sm" style="color: var(--text-secondary);">República Democrática do Congo</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 22/06 13h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Uzbequistão</span>
+              <img class="flag" src="/static/pool/flags/uz.svg" alt="Uzbequistão">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/co.svg" alt="Colômbia">
+              <span class="text-sm" style="color: var(--text-secondary);">Colômbia</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 22/06 15h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Portugal</span>
+              <img class="flag" src="/static/pool/flags/pt.svg" alt="Portugal">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/dz.svg" alt="Argélia">
+              <span class="text-sm" style="color: var(--text-secondary);">Argélia</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 22/06 17h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Áustria</span>
+              <img class="flag" src="/static/pool/flags/at.svg" alt="Áustria">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/jo.svg" alt="Jordânia">
+              <span class="text-sm" style="color: var(--text-secondary);">Jordânia</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 22/06 19h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">Argentina</span>
+              <img class="flag" src="/static/pool/flags/ar.svg" alt="Argentina">
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+      <div class="card p-4">
+        <p class="text-xs mb-3" style="color: var(--color-gold);">32-avos de Final</p>
+        <div class="space-y-3">
+          
+          <div class="flex items-center justify-between" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2A">
+              <span class="text-sm" style="color: var(--text-secondary);">2A</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 23/06 21h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">2B</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2B">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1C">
+              <span class="text-sm" style="color: var(--text-secondary);">1C</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 23/06 23h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">2F</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2F">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1E">
+              <span class="text-sm" style="color: var(--text-secondary);">1E</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 01h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">3ABCDF</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="3ABCDF">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1F">
+              <span class="text-sm" style="color: var(--text-secondary);">1F</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 03h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">2C</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2C">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2E">
+              <span class="text-sm" style="color: var(--text-secondary);">2E</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 05h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">2I</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2I">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1I">
+              <span class="text-sm" style="color: var(--text-secondary);">1I</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 07h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">3CDFGH</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="3CDFGH">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1A">
+              <span class="text-sm" style="color: var(--text-secondary);">1A</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 09h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">3CEFHI</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="3CEFHI">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1L">
+              <span class="text-sm" style="color: var(--text-secondary);">1L</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 11h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">3EHIJK</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="3EHIJK">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1G">
+              <span class="text-sm" style="color: var(--text-secondary);">1G</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 13h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">3AEHIJ</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="3AEHIJ">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1D">
+              <span class="text-sm" style="color: var(--text-secondary);">1D</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 15h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">3BEFIJ</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="3BEFIJ">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1H">
+              <span class="text-sm" style="color: var(--text-secondary);">1H</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 17h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">2J</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2J">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2K">
+              <span class="text-sm" style="color: var(--text-secondary);">2K</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 19h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">2L</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2L">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1B">
+              <span class="text-sm" style="color: var(--text-secondary);">1B</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 21h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">3EFGIJ</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="3EFGIJ">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2D">
+              <span class="text-sm" style="color: var(--text-secondary);">2D</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 24/06 23h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">2G</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2G">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1J">
+              <span class="text-sm" style="color: var(--text-secondary);">1J</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 25/06 01h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">2H</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="2H">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="1K">
+              <span class="text-sm" style="color: var(--text-secondary);">1K</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 25/06 03h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">3DEIJL</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="3DEIJL">
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+      <div class="card p-4">
+        <p class="text-xs mb-3" style="color: var(--color-gold);">Oitavas de Final</p>
+        <div class="space-y-3">
+          
+          <div class="flex items-center justify-between" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W73">
+              <span class="text-sm" style="color: var(--text-secondary);">W73</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 26/06 21h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W75</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W75">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W74">
+              <span class="text-sm" style="color: var(--text-secondary);">W74</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 26/06 23h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W77</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W77">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W76">
+              <span class="text-sm" style="color: var(--text-secondary);">W76</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 27/06 01h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W78</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W78">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W79">
+              <span class="text-sm" style="color: var(--text-secondary);">W79</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 27/06 03h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W80</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W80">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W83">
+              <span class="text-sm" style="color: var(--text-secondary);">W83</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 27/06 05h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W84</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W84">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W81">
+              <span class="text-sm" style="color: var(--text-secondary);">W81</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 27/06 07h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W82</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W82">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W86">
+              <span class="text-sm" style="color: var(--text-secondary);">W86</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 27/06 09h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W88</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W88">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W85">
+              <span class="text-sm" style="color: var(--text-secondary);">W85</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 27/06 11h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W87</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W87">
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+      <div class="card p-4">
+        <p class="text-xs mb-3" style="color: var(--color-gold);">Quartas de Final</p>
+        <div class="space-y-3">
+          
+          <div class="flex items-center justify-between" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W89">
+              <span class="text-sm" style="color: var(--text-secondary);">W89</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 29/06 21h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W90</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W90">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W93">
+              <span class="text-sm" style="color: var(--text-secondary);">W93</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 29/06 23h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W94</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W94">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W91">
+              <span class="text-sm" style="color: var(--text-secondary);">W91</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 30/06 01h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W92</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W92">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W95">
+              <span class="text-sm" style="color: var(--text-secondary);">W95</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 30/06 03h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W96</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W96">
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+      <div class="card p-4">
+        <p class="text-xs mb-3" style="color: var(--color-gold);">Semifinal</p>
+        <div class="space-y-3">
+          
+          <div class="flex items-center justify-between" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W97">
+              <span class="text-sm" style="color: var(--text-secondary);">W97</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 02/07 21h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W98</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W98">
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between border-t pt-3" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W99">
+              <span class="text-sm" style="color: var(--text-secondary);">W99</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 02/07 23h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W100</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W100">
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+      <div class="card p-4">
+        <p class="text-xs mb-3" style="color: var(--color-gold);">Disputa de Terceiro Lugar</p>
+        <div class="space-y-3">
+          
+          <div class="flex items-center justify-between" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="RU101">
+              <span class="text-sm" style="color: var(--text-secondary);">RU101</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 04/07 21h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">RU102</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="RU102">
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+      <div class="card p-4">
+        <p class="text-xs mb-3" style="color: var(--color-gold);">Final</p>
+        <div class="space-y-3">
+          
+          <div class="flex items-center justify-between" style="border-color: var(--border-default);">
+            <div class="flex items-center gap-2 flex-1">
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W101">
+              <span class="text-sm" style="color: var(--text-secondary);">W101</span>
+            </div>
+            <span class="text-xs px-2" style="color: var(--text-muted);">× 05/07 21h</span>
+            <div class="flex items-center gap-2 flex-1 justify-end">
+              <span class="text-sm" style="color: var(--text-secondary);">W102</span>
+              <img class="flag" src="/static/pool/flags/_placeholder.svg" alt="W102">
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+
+  </main>
+
+  <nav class="fixed bottom-0 left-0 right-0 bottom-nav">
+    <div class="max-w-lg mx-auto px-4 py-2 flex items-center justify-around">
+      <a href="index.html" class="flex flex-col items-center gap-0.5 nav-active">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>
+        <span class="text-xs font-medium">Jogos</span>
+      </a>
+      <a href="ranking.html" class="flex flex-col items-center gap-0.5 nav-inactive">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M3 12m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M9 8m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M15 4m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/><path d="M4 20l14 0"/></svg>
+        <span class="text-xs ">Ranking</span>
+      </a>
+      <a href="historico.html" class="flex flex-col items-center gap-0.5 nav-inactive">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/></svg>
+        <span class="text-xs ">Histórico</span>
+      </a>
+    </div>
+  </nav>
+
+  
+
+  
+  <div id="rules-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
+       style="background: rgba(0,0,0,0.7);" onclick="if(event.target===this)fecharRegras()">
+    <div class="logout-card w-full p-6"
+         style="max-width: 28rem; max-height: 85vh; overflow-y: auto;"
+         role="dialog" aria-modal="true" aria-labelledby="rules-title">
+      <div class="flex items-start justify-between mb-1">
+        <div class="flex items-center gap-2">
+          <span style="color: var(--color-gold);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.25em;height:1.25em;display:inline-block;vertical-align:middle"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 17l0 .01"/><path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4"/></svg>
+          </span>
+          <p id="rules-title" class="text-base font-semibold" style="color: var(--text-primary);">Como funciona a pontuação</p>
+        </div>
+        <button onclick="fecharRegras()" aria-label="Fechar" style="color: var(--text-muted); flex-shrink: 0;" class="hover:opacity-80 p-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1.15em;height:1.15em;display:block"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="text-xs mb-4" style="color: var(--text-muted);">Cada jogo vale pontos conforme o acerto do seu palpite:</p>
+
+      <ul class="space-y-0">
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Placar exato <span class="block text-xs" style="color: var(--text-muted);">Acertou os gols dos dois times</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">10 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Vencedor + saldo de gols <span class="block text-xs" style="color: var(--text-muted);">Acertou quem venceu e a diferença de gols</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">7 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Empate correto <span class="block text-xs" style="color: var(--text-muted);">Previu empate e o jogo empatou (placar diferente)</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">5 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-primary);">Apenas o vencedor <span class="block text-xs" style="color: var(--text-muted);">Acertou só quem venceu</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--color-gold);">5 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-muted);">Errou o resultado</span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--text-muted);">0 pts</span>
+        </li>
+        <li class="flex items-center justify-between gap-3 py-3" style="border-top: 1px solid var(--border-default);">
+          <span class="text-sm" style="color: var(--text-muted);">Não palpitou <span class="block text-xs" style="color: var(--text-muted);">Sem penalidade</span></span>
+          <span class="barlow-condensed text-xl font-bold" style="flex-shrink: 0; color: var(--text-muted);">0 pts</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    function abrirLogout() { var m = document.getElementById('logout-modal'); if (m) m.classList.remove('hidden'); }
+    function fecharLogout() { var m = document.getElementById('logout-modal'); if (m) m.classList.add('hidden'); }
+
+    // Lock the logout action on submit: spinner + disabled, no double-tap.
+    (function () {
+      var form = document.getElementById('logout-form');
+      if (!form) return;
+      form.addEventListener('submit', function () {
+        var btn = document.getElementById('logout-submit');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-sm"></span> Saindo…'; }
+        var cancel = document.querySelector('#logout-modal .btn-cancel');
+        if (cancel) cancel.disabled = true;
+      });
+    })();
+
+    function abrirRegras() {
+      document.getElementById('rules-modal').classList.remove('hidden');
+      // Move focus into the dialog for keyboard/screen-reader users.
+      document.querySelector('#rules-modal [aria-label="Fechar"]').focus();
+    }
+    function fecharRegras() {
+      document.getElementById('rules-modal').classList.add('hidden');
+      // Return focus to the trigger.
+      var t = document.getElementById('rules-trigger');
+      if (t) t.focus();
+    }
+    // Esc closes whichever modal is open.
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (!document.getElementById('rules-modal').classList.contains('hidden')) fecharRegras();
+      var lm = document.getElementById('logout-modal');
+      if (lm && !lm.classList.contains('hidden')) fecharLogout();
+    });
+
+    // Populate decorative side-gutter flag banners (desktop only).
+    (function () {
+      // URLs emitted via the static template tag so they resolve under the
+      // WhiteNoise manifest (hashed filenames in production); never build in JS.
+      var FLAGS = [
+        "/static/pool/flags/br.svg", "/static/pool/flags/ar.svg",
+        "/static/pool/flags/fr.svg", "/static/pool/flags/de.svg",
+        "/static/pool/flags/es.svg", "/static/pool/flags/pt.svg",
+        "/static/pool/flags/it.svg", "/static/pool/flags/nl.svg",
+        "/static/pool/flags/gb.svg", "/static/pool/flags/us.svg",
+        "/static/pool/flags/mx.svg", "/static/pool/flags/jp.svg",
+        "/static/pool/flags/kr.svg", "/static/pool/flags/ca.svg",
+        "/static/pool/flags/be.svg", "/static/pool/flags/hr.svg",
+        "/static/pool/flags/ma.svg", "/static/pool/flags/sn.svg",
+        "/static/pool/flags/co.svg", "/static/pool/flags/uy.svg",
+        "/static/pool/flags/ch.svg", "/static/pool/flags/pl.svg",
+        "/static/pool/flags/rs.svg", "/static/pool/flags/dk.svg",
+        "/static/pool/flags/no.svg", "/static/pool/flags/se.svg",
+        "/static/pool/flags/au.svg", "/static/pool/flags/za.svg",
+        "/static/pool/flags/ec.svg", "/static/pool/flags/cr.svg",
+        "/static/pool/flags/tn.svg", "/static/pool/flags/eg.svg",
+        "/static/pool/flags/ir.svg", "/static/pool/flags/sa.svg",
+        "/static/pool/flags/qa.svg", "/static/pool/flags/cl.svg",
+        "/static/pool/flags/pe.svg", "/static/pool/flags/ng.svg",
+        "/static/pool/flags/gh.svg", "/static/pool/flags/jm.svg",
+        "/static/pool/flags/pa.svg", "/static/pool/flags/cz.svg"
+      ];
+      var strips = document.querySelectorAll('.side-flags .flag-strip');
+      if (!strips.length || window.matchMedia('(max-width: 1023px)').matches) return;
+      var needed = Math.ceil((window.innerHeight + 200) / 100) + 2; // ~100px per flag (80 + gap)
+      strips.forEach(function (strip, s) {
+        for (var i = 0; i < needed; i++) {
+          // Offset each side so left/right don't mirror identically.
+          var img = document.createElement('img');
+          img.src = FLAGS[(i + s * 7) % FLAGS.length];
+          img.alt = '';
+          strip.appendChild(img);
+        }
+      });
+    })();
+  </script>
+
+  
+<script>window.DEMO_OTHERS = {"1": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Carla", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Diego", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Marina", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}]}, "2": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Rafael", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}]}, "3": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Rafael", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}]}, "4": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Carla", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Diego", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Marina", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Rafael", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}]}, "5": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Marina", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}]}, "6": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 2, "away_goals": 2, "result": "exact", "points": 10}, {"username": "Carla", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Rafael", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}]}, "7": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Carla", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}]}, "8": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Diego", "home_goals": 1, "away_goals": 2, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Rafael", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}]}, "9": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Marina", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Carla", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}]}, "10": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "predicted": false, "home_goals": null, "away_goals": null, "result": null, "points": null}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Carla", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Diego", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Marina", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Rafael", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}]}, "11": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Rafael", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Carla", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}]}, "12": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Carla", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Rafael", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}]}, "13": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Carla", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Marina", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}]}, "14": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Rafael", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}]}, "15": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Diego", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Carla", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}]}, "16": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 0, "away_goals": 2, "result": "exact", "points": 10}, {"username": "Carla", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Diego", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Marina", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Rafael", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}]}, "17": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Marina", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}]}, "18": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Carla", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}]}, "19": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Carla", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}]}, "20": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Rafael", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}]}, "21": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Marina", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Rafael", "home_goals": 2, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Carla", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 0, "away_goals": 2, "result": "wrong", "points": 0}]}, "22": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 2, "result": "exact", "points": 10, "predicted": true}, "predictions": [{"username": "Diego", "home_goals": 0, "away_goals": 2, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Carla", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Marina", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Rafael", "home_goals": 1, "away_goals": 3, "result": "partial", "points": 7}]}, "23": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5, "predicted": true}, "predictions": [{"username": "Rafael", "home_goals": 1, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Diego", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}, {"username": "Marina", "home_goals": 3, "away_goals": 0, "result": "partial", "points": 5}]}, "24": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Carla", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}, {"username": "Rafael", "home_goals": 3, "away_goals": 2, "result": "wrong", "points": 0}]}, "25": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 1, "away_goals": 0, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Rafael", "home_goals": 0, "away_goals": 0, "result": "exact", "points": 10}, {"username": "Bruno", "home_goals": 1, "away_goals": 1, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 1, "away_goals": 0, "result": "wrong", "points": 0}, {"username": "Diego", "home_goals": 1, "away_goals": 0, "result": "wrong", "points": 0}, {"username": "Marina", "home_goals": 1, "away_goals": 0, "result": "wrong", "points": 0}]}, "26": {"ok": true, "is_finished": true, "viewer": {"username": "Marcos", "home_goals": 2, "away_goals": 1, "result": "wrong", "points": 0, "predicted": true}, "predictions": [{"username": "Diego", "home_goals": 2, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Marina", "home_goals": 2, "away_goals": 3, "result": "partial", "points": 7}, {"username": "Bruno", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Rafael", "home_goals": 1, "away_goals": 4, "result": "partial", "points": 5}, {"username": "Carla", "home_goals": 2, "away_goals": 1, "result": "wrong", "points": 0}]}, "27": {"ok": true, "is_finished": false, "viewer": {"username": "Marcos", "home_goals": 2, "away_goals": 0, "result": null, "points": null, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Carla", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Diego", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Marina", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Rafael", "home_goals": 2, "away_goals": 0, "result": null, "points": null}]}, "28": {"ok": true, "is_finished": false, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 4, "result": null, "points": null, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 1, "away_goals": 3, "result": null, "points": null}, {"username": "Carla", "home_goals": 0, "away_goals": 4, "result": null, "points": null}, {"username": "Diego", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Marina", "home_goals": 2, "away_goals": 0, "result": null, "points": null}, {"username": "Rafael", "home_goals": 1, "away_goals": 3, "result": null, "points": null}]}, "29": {"ok": true, "is_finished": false, "viewer": {"username": "Marcos", "home_goals": 0, "away_goals": 1, "result": null, "points": null, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 3, "away_goals": 0, "result": null, "points": null}, {"username": "Carla", "home_goals": 0, "away_goals": 1, "result": null, "points": null}, {"username": "Diego", "home_goals": 2, "away_goals": 1, "result": null, "points": null}, {"username": "Marina", "home_goals": 2, "away_goals": 1, "result": null, "points": null}, {"username": "Rafael", "home_goals": 1, "away_goals": 0, "result": null, "points": null}]}, "30": {"ok": true, "is_finished": false, "viewer": {"username": "Marcos", "home_goals": 2, "away_goals": 2, "result": null, "points": null, "predicted": true}, "predictions": [{"username": "Bruno", "home_goals": 3, "away_goals": 2, "result": null, "points": null}, {"username": "Carla", "home_goals": 3, "away_goals": 3, "result": null, "points": null}, {"username": "Diego", "home_goals": 3, "away_goals": 2, "result": null, "points": null}, {"username": "Marina", "home_goals": 3, "away_goals": 2, "result": null, "points": null}, {"username": "Rafael", "home_goals": 3, "away_goals": 2, "result": null, "points": null}]}};</script>
+
+
+<div id="others-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4"
+     style="background: rgba(0,0,0,0.7);" onclick="if(event.target===this)closeOthersModal()">
+  <div class="modal-card w-full max-w-sm p-5 space-y-4" role="dialog" aria-modal="true" aria-labelledby="others-teams"
+       style="max-height: 85vh; overflow-y: auto;">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <p class="text-xs" id="others-phase" style="color: var(--text-muted);"></p>
+        <p class="text-base font-semibold mt-0.5 truncate" id="others-teams" style="color: var(--text-primary);"></p>
+        <p class="text-xs mt-0.5" id="others-result" style="color: var(--text-muted); display: none;"></p>
+      </div>
+      <button onclick="closeOthersModal()" aria-label="Fechar" style="color: var(--text-muted); flex-shrink: 0;" class="hover:opacity-70 text-lg leading-none">✕</button>
+    </div>
+    <div class="border-t" style="border-color: var(--border-default);"></div>
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-widest mb-3" style="color: var(--text-muted);">Palpites</p>
+      <div id="others-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    // URL template with a sentinel id (0); swapped per match. Built via {% url %}
+    // so it survives any path change — never hardcode the route in JS.
+    
+    var overlay = document.getElementById('others-overlay');
+    var listEl = document.getElementById('others-list');
+    var phaseEl = document.getElementById('others-phase');
+    var teamsEl = document.getElementById('others-teams');
+    var resultEl = document.getElementById('others-result');
+
+    function setLoading() {
+      listEl.replaceChildren();
+      var wrap = document.createElement('div');
+      wrap.className = 'flex justify-center py-4';
+      var sp = document.createElement('div');
+      sp.className = 'spinner';
+      wrap.appendChild(sp);
+      listEl.appendChild(wrap);
+    }
+
+    function setMessage(text) {
+      listEl.replaceChildren();
+      var p = document.createElement('p');
+      p.className = 'text-sm py-2 text-center';
+      p.style.color = 'var(--text-muted)';
+      p.textContent = text;
+      listEl.appendChild(p);
+    }
+
+    // result code → [badge class, label]. Built only for finished matches.
+    function badgeFor(result, points) {
+      if (result === 'exact')   return ['badge-exact',   'Exato · +' + points + ' pts'];
+      if (result === 'partial') return ['badge-partial', 'Parcial · +' + points + ' pts'];
+      if (result === 'wrong')   return ['badge-wrong',   'Errou · 0 pts'];
+      return null;
+    }
+
+    // Emit one prediction as 3 grid cells (name | score | points). A single
+    // grid owns all rows, so columns align vertically across every row.
+    function appendRow(grid, entry, isViewer, isFinished) {
+      var name = document.createElement('span');
+      name.className = 'text-sm truncate';
+      name.style.color = isViewer ? 'var(--color-gold)' : 'var(--text-secondary)';
+      if (isViewer) name.style.fontWeight = '600';
+      name.textContent = isViewer ? 'Você' : entry.username;  // textContent: never innerHTML user data
+      grid.appendChild(name);
+
+      var score = document.createElement('span');
+      score.className = 'text-sm font-bold';
+      score.style.color = 'var(--color-gold)';
+      score.style.justifySelf = 'end';
+      score.style.whiteSpace = 'nowrap';
+
+      var points = document.createElement('span');
+      points.style.justifySelf = 'end';
+
+      if (isViewer && entry.predicted === false) {
+        // Skipped viewer: empty score cell (keeps the column), muted note in points.
+        points.className = 'badge-none';
+        points.textContent = 'Não palpitou';
+      } else {
+        // Coerce to number so only digits ever reach the DOM.
+        score.textContent = (Number(entry.home_goals) || 0) + ' × ' + (Number(entry.away_goals) || 0);
+        if (isFinished) {
+          var b = badgeFor(entry.result, Number(entry.points) || 0);
+          if (b) { points.className = b[0]; points.textContent = b[1]; }
+        }
+      }
+
+      grid.appendChild(score);
+      grid.appendChild(points);
+    }
+
+    function render(data) {
+      var grid = document.createElement('div');
+      grid.style.display = 'grid';
+      grid.style.gridTemplateColumns = 'minmax(0,1fr) auto auto';
+      grid.style.columnGap = '12px';
+      grid.style.rowGap = '16px';
+      grid.style.alignItems = 'center';
+
+      // Viewer first (pinned + highlighted via gold name).
+      appendRow(grid, data.viewer, true, data.is_finished);
+      (data.predictions || []).forEach(function (p) {
+        appendRow(grid, p, false, data.is_finished);
+      });
+
+      listEl.replaceChildren(grid);
+
+      if (!(data.predictions || []).length) {
+        var none = document.createElement('p');
+        none.className = 'text-xs';
+        none.style.color = 'var(--text-muted)';
+        none.style.marginTop = '16px';
+        none.textContent = 'Nenhum outro palpite ainda.';
+        listEl.appendChild(none);
+      }
+    }
+
+    window.openOthersModal = function (matchId, phase, time, teams, resultLine) {
+      phaseEl.textContent = time ? (phase + ' · ' + time) : phase;
+      teamsEl.textContent = teams;
+      if (resultLine) {
+        resultEl.textContent = resultLine;
+        resultEl.style.display = '';
+      } else {
+        resultEl.style.display = 'none';
+      }
+      setLoading();
+      overlay.classList.remove('hidden');
+
+      
+      // Demo: read inlined mock data, no network call.
+      var data = (window.DEMO_OTHERS || {})[matchId];
+      if (data && data.ok) { render(data); }
+      else { setMessage('Não foi possível carregar os palpites.'); }
+      
+    };
+
+    window.closeOthersModal = function () { overlay.classList.add('hidden'); };
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeOthersModal();
+    });
+  })();
+</script>
+
+<div id="modal-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4" style="background: rgba(0,0,0,0.7);">
+  <div class="modal-card w-full max-w-sm p-5 space-y-5">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <p class="text-xs" id="modal-phase" style="color: var(--text-muted);"></p>
+        <p class="text-base font-semibold mt-0.5 truncate" id="modal-teams" style="color: var(--text-primary);"></p>
+      </div>
+      <button onclick="closeModal()" style="color: var(--text-muted); flex-shrink: 0;" class="hover:opacity-70 text-lg leading-none">✕</button>
+    </div>
+    <div class="border-t" style="border-color: var(--border-default);"></div>
+    <div>
+      <p class="text-xs font-medium mb-4" style="color: var(--text-secondary);">Seu palpite de placar</p>
+      <div class="flex items-center justify-center gap-3">
+        <div class="flex flex-col items-center gap-2 flex-1 min-w-0">
+          <span class="text-xs truncate w-full text-center" id="label-home" style="color: var(--text-muted);"></span>
+          <div class="flex items-center gap-2">
+            <button onclick="change('home', -1)" class="score-btn" aria-label="Diminuir">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/></svg>
+            </button>
+            <span id="score-home" class="text-3xl font-bold w-7 text-center leading-none" style="color: var(--color-gold);">0</span>
+            <button onclick="change('home', 1)" class="score-btn" aria-label="Aumentar">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+        <span class="text-lg font-bold pt-7" style="color: var(--text-muted); flex-shrink: 0;">×</span>
+        <div class="flex flex-col items-center gap-2 flex-1 min-w-0">
+          <span class="text-xs truncate w-full text-center" id="label-away" style="color: var(--text-muted);"></span>
+          <div class="flex items-center gap-2">
+            <button onclick="change('away', -1)" class="score-btn" aria-label="Diminuir">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/></svg>
+            </button>
+            <span id="score-away" class="text-3xl font-bold w-7 text-center leading-none" style="color: var(--color-gold);">0</span>
+            <button onclick="change('away', 1)" class="score-btn" aria-label="Aumentar">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button onclick="savePrediction()" id="confirm-btn" class="btn-confirm">Confirmar palpite</button>
+  </div>
+</div>
+
+<div id="toast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 text-sm px-4 py-2.5 rounded-xl flex items-center gap-2 z-50">
+  ✅ Palpite registrado!
+</div>
+
+<style>
+  /* Filter chip (Fase atual → ocultar finalizados). Inline CSS: classes aren't in the prebuilt Tailwind. */
+  .filter-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 9999px;
+    font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+    background: rgba(245,240,232,0.05); color: var(--text-muted);
+    border: 1px solid rgba(245,240,232,0.12);
+    cursor: pointer; transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .filter-chip:hover { border-color: var(--border-strong); }
+  .filter-chip[aria-pressed="true"] {
+    background: rgba(200,168,75,0.15); color: var(--color-gold);
+    border-color: rgba(200,168,75,0.35);
+  }
+  .filter-chip-check { width: 14px; height: 14px; display: none; }
+  .filter-chip[aria-pressed="true"] .filter-chip-check { display: inline-block; }
+</style>
+<script>
+  
+
+  let currentMatchId = null;
+  let saving = false;
+  const scores = { home: 0, away: 0 };
+
+  function openModal(matchId, phase, time, homeTeam, awayTeam, homeGoals, awayGoals) {
+    currentMatchId = matchId;
+    document.getElementById('modal-phase').textContent  = phase + ' · ' + time;
+    document.getElementById('modal-teams').textContent  = homeTeam + ' × ' + awayTeam;
+    document.getElementById('label-home').textContent   = homeTeam;
+    document.getElementById('label-away').textContent   = awayTeam;
+    scores.home = homeGoals;
+    scores.away = awayGoals;
+    document.getElementById('score-home').textContent = homeGoals;
+    document.getElementById('score-away').textContent = awayGoals;
+    document.getElementById('modal-overlay').classList.remove('hidden');
+  }
+
+  function closeModal() {
+    if (saving) return;  // locked while a save is in flight
+    document.getElementById('modal-overlay').classList.add('hidden');
+  }
+
+  function change(team, delta) {
+    if (saving) return;  // locked while a save is in flight
+    scores[team] = Math.min(99, Math.max(0, scores[team] + delta));
+    document.getElementById('score-' + team).textContent = scores[team];
+  }
+
+  
+  function savePrediction() {
+    // Demo mode: nothing is persisted and no request is made. Acknowledge + close.
+    const t = document.getElementById('toast');
+    t.textContent = '👁️ Modo demonstração — palpite não salvo';
+    t.classList.remove('hidden');
+    setTimeout(function () { t.classList.add('hidden'); }, 2200);
+    closeModal();
+  }
+  
+
+  function unlockSave() {
+    saving = false;
+    const btn = document.getElementById('confirm-btn');
+    btn.disabled = false;
+    btn.textContent = 'Confirmar palpite';
+  }
+
+  function switchTab(tab) {
+    const isToday = tab === 'today';
+    document.getElementById('panel-today').classList.toggle('hidden', !isToday);
+    document.getElementById('panel-upcoming').classList.toggle('hidden', isToday);
+    document.getElementById('tab-today').className    = 'flex-1 py-1.5 text-sm font-medium transition-colors ' + (isToday  ? 'tab-active' : 'tab-inactive');
+    document.getElementById('tab-upcoming').className = 'flex-1 py-1.5 text-sm transition-colors '             + (!isToday ? 'tab-active' : 'tab-inactive');
+  }
+
+  // ── Ocultar finalizados (persisted in localStorage) ──
+  const HIDE_FINISHED_KEY = 'wc26:hideFinished';
+
+  function applyHideFinished(hide) {
+    const finished = document.querySelectorAll('.js-finished');
+    finished.forEach(c => c.classList.toggle('hidden', hide));
+    // When hiding leaves no non-finished card, show the fallback message.
+    const total = document.querySelectorAll('#panel-today .game-card, #panel-today .game-card-locked').length;
+    const noPending = hide && finished.length === total && total > 0;
+    const msg = document.getElementById('no-pending-msg');
+    if (msg) msg.classList.toggle('hidden', !noPending);
+  }
+
+  function toggleHideFinished() {
+    const btn = document.getElementById('hide-finished-toggle');
+    const hide = btn.getAttribute('aria-pressed') !== 'true';
+    btn.setAttribute('aria-pressed', hide ? 'true' : 'false');
+    try { localStorage.setItem(HIDE_FINISHED_KEY, hide ? '1' : '0'); } catch (e) {}
+    applyHideFinished(hide);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('hide-finished-toggle');
+    if (!toggle) return;  // no finished matches this phase → no toggle rendered
+    let hide = false;
+    try { hide = localStorage.getItem(HIDE_FINISHED_KEY) === '1'; } catch (e) {}
+    toggle.setAttribute('aria-pressed', hide ? 'true' : 'false');
+    applyHideFinished(hide);
+  });
+</script>
+
+</body>
+</html>

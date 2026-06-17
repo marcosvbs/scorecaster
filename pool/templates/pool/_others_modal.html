@@ -31,7 +31,7 @@ from pool:match_predictions (DB-only, server-side reveal guard). Reuses
   (function () {
     // URL template with a sentinel id (0); swapped per match. Built via {% templatetag openblock %} url {% templatetag closeblock %}
     // so it survives any path change — never hardcode the route in JS.
-    var URL_TEMPLATE = '{% url "pool:match_predictions" 0 %}';
+    {% if not is_demo %}var URL_TEMPLATE = '{% url "pool:match_predictions" 0 %}';{% endif %}
     var overlay = document.getElementById('others-overlay');
     var listEl = document.getElementById('others-list');
     var phaseEl = document.getElementById('others-phase');
@@ -139,6 +139,12 @@ from pool:match_predictions (DB-only, server-side reveal guard). Reuses
       setLoading();
       overlay.classList.remove('hidden');
 
+      {% if is_demo %}
+      // Demo: read inlined mock data, no network call.
+      var data = (window.DEMO_OTHERS || {})[matchId];
+      if (data && data.ok) { render(data); }
+      else { setMessage('Não foi possível carregar os palpites.'); }
+      {% else %}
       var url = URL_TEMPLATE.replace('/0/', '/' + encodeURIComponent(matchId) + '/');
       fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(function (resp) { return resp.json().catch(function () { return { ok: false }; }); })
@@ -147,6 +153,7 @@ from pool:match_predictions (DB-only, server-side reveal guard). Reuses
           else { setMessage('Não foi possível carregar os palpites.'); }
         })
         .catch(function () { setMessage('Erro de conexão. Tente novamente.'); });
+      {% endif %}
     };
 
     window.closeOthersModal = function () { overlay.classList.add('hidden'); };
