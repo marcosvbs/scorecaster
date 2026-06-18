@@ -64,6 +64,9 @@
   .podium-other { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; }
   .divider { border-top: 1px solid var(--border-default); }
   .row-highlight { background: rgba(200,168,75,0.06); }
+  .tab-active   { background: var(--bg-surface); color: var(--text-primary); border-radius: 10px; }
+  .tab-inactive { color: var(--text-muted); border-radius: 10px; }
+  .badge-leader { background: rgba(200,168,75,0.15); color: var(--color-gold); border: 1px solid rgba(200,168,75,0.35); border-radius: 999px; padding: 1px 8px; font-size: 0.65rem; font-weight: 600; white-space: nowrap; }
 
   </style>
 </head>
@@ -102,148 +105,319 @@
   <main class="max-w-lg mx-auto px-4 pt-5 space-y-5">
     
 
-  <div>
-    <h1 class="text-base font-semibold" style="color: var(--text-primary);">Ranking geral</h1>
-    <p class="text-xs mt-0.5" style="color: var(--text-muted);">
-      Atualizado após cada jogo · 26 jogos disputados
-    </p>
+  
+  <div class="flex gap-1 p-1 rounded-xl" style="background: var(--bg-surface-alt);">
+    <button id="tab-fase" onclick="switchRank('fase')" class="flex-1 py-1.5 text-sm font-medium transition-colors tab-active">Fase atual</button>
+    <button id="tab-geral" onclick="switchRank('geral')" class="flex-1 py-1.5 text-sm transition-colors tab-inactive">Geral</button>
   </div>
 
   
-  
-  <div class="grid grid-cols-3 gap-2 items-end">
-
-    <div class="podium-other p-3 pt-5 mt-4 text-center">
-      <span class="text-lg">🥈</span>
-      <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">Marina</span>
-      <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">125</span>
-      <span class="text-xs" style="color: var(--text-muted);">pts</span>
-    </div>
-
-    <div class="podium-first p-3 -mt-1 text-center">
-      <span class="text-xl">🥇</span>
-      <span class="block text-xs font-semibold mt-1 leading-tight gold-shimmer">Rafael</span>
-      <span class="barlow-condensed block text-2xl mt-1" style="color: var(--color-gold);">173</span>
-      <span class="text-xs" style="color: var(--color-gold); opacity: 0.7;">pts</span>
-    </div>
-
-    <div class="podium-other p-3 pt-5 mt-4 text-center">
-      <span class="text-lg">🥉</span>
-      <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">Bruno</span>
-      <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">121</span>
-      <span class="text-xs" style="color: var(--text-muted);">pts</span>
-    </div>
-
-  </div>
-  
-
-  
-  <div class="card overflow-hidden">
-    <div class="px-4 py-3 divider flex items-center justify-between">
-      <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Todos os participantes</span>
-      <span class="text-xs" style="color: var(--text-muted);">6 participantes</span>
-    </div>
-
+  <div id="panel-fase" class="space-y-5">
     <div>
-      
-      <div class="flex items-center px-4 py-3 gap-3  ">
-        <span class="text-sm w-5 font-bold"
-              style="color: var(--color-gold);">
-          1
-        </span>
-        <span class="text-sm flex-1 font-semibold"
-              style="color: var(--text-primary);">
-          Rafael
-          
-        </span>
-        <span class="text-sm font-bold"
-              style="color: var(--color-gold);">
-          173 pts
-        </span>
+      <h1 class="text-base font-semibold" style="color: var(--text-primary);">
+        Fase de Grupos · 2ª Rodada
+      </h1>
+      <p class="text-xs mt-0.5" style="color: var(--text-muted);">
+        Pontos só desta fase · quem lidera vence a "Vencedor da fase"
+      </p>
+    </div>
+
+    
+
+    
+    
+    <div class="grid grid-cols-3 gap-2 items-end">
+
+      <div class="podium-other p-3 pt-5 mt-4 text-center">
+        <span class="text-lg">🥈</span>
+        <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">Bruno</span>
+        <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">10</span>
+        <span class="text-xs" style="color: var(--text-muted);">pts</span>
       </div>
-      
-      <div class="flex items-center px-4 py-3 gap-3 divider ">
-        <span class="text-sm w-5 "
-              style="color: var(--text-muted);">
-          2
-        </span>
-        <span class="text-sm flex-1 font-semibold"
-              style="color: var(--text-primary);">
-          Marina
-          
-        </span>
-        <span class="text-sm "
-              style="color: var(--text-primary);">
-          125 pts
-        </span>
+
+      <div class="podium-first p-3 -mt-1 text-center">
+        <span class="text-xl">👑</span>
+        <span class="block text-xs font-semibold mt-1 leading-tight gold-shimmer">Rafael</span>
+        <span class="barlow-condensed block text-2xl mt-1" style="color: var(--color-gold);">15</span>
+        <span class="text-xs" style="color: var(--color-gold); opacity: 0.7;">pts</span>
       </div>
-      
-      <div class="flex items-center px-4 py-3 gap-3 divider ">
-        <span class="text-sm w-5 "
-              style="color: var(--text-muted);">
-          3
-        </span>
-        <span class="text-sm flex-1 font-semibold"
-              style="color: var(--text-primary);">
-          Bruno
-          
-        </span>
-        <span class="text-sm "
-              style="color: var(--text-primary);">
-          121 pts
-        </span>
+
+      <div class="podium-other p-3 pt-5 mt-4 text-center">
+        <span class="text-lg">🥉</span>
+        <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">Diego</span>
+        <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">7</span>
+        <span class="text-xs" style="color: var(--text-muted);">pts</span>
       </div>
-      
-      <div class="flex items-center px-4 py-3 gap-3 divider ">
-        <span class="text-sm w-5 "
-              style="color: var(--text-muted);">
-          4
-        </span>
-        <span class="text-sm flex-1 "
-              style="color: var(--text-secondary);">
-          Diego
-          
-        </span>
-        <span class="text-sm "
-              style="color: var(--text-secondary);">
-          118 pts
-        </span>
+
+    </div>
+    
+
+    
+    <div class="card overflow-hidden">
+      <div class="px-4 py-3 divider flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Classificação da fase</span>
+        <span class="text-xs" style="color: var(--text-muted);">6 participantes</span>
       </div>
-      
-      <div class="flex items-center px-4 py-3 gap-3 divider row-highlight">
-        <span class="text-sm w-5 "
-              style="color: var(--text-muted);">
-          5
-        </span>
-        <span class="text-sm flex-1 "
-              style="color: var(--text-secondary);">
-          Marcos
-          
-            <span class="text-xs font-normal ml-1" style="color: var(--text-muted);">você</span>
-          
-        </span>
-        <span class="text-sm "
-              style="color: var(--text-secondary);">
-          110 pts
-        </span>
+
+      <div>
+        
+        <div class="flex items-center px-4 py-3 gap-3  ">
+          <span class="text-sm w-5 font-bold"
+                style="color: var(--color-gold);">
+            1
+          </span>
+          <span class="text-sm flex-1 font-semibold"
+                style="color: var(--text-primary);">
+            Rafael
+            
+            
+              <span class="badge-leader ml-1">🏆 liderando</span>
+            
+          </span>
+          <span class="text-sm font-bold"
+                style="color: var(--color-gold);">
+            15 pts
+          </span>
+        </div>
+        
+        <div class="flex items-center px-4 py-3 gap-3 divider ">
+          <span class="text-sm w-5 "
+                style="color: var(--text-muted);">
+            2
+          </span>
+          <span class="text-sm flex-1 font-semibold"
+                style="color: var(--text-primary);">
+            Bruno
+            
+            
+          </span>
+          <span class="text-sm "
+                style="color: var(--text-primary);">
+            10 pts
+          </span>
+        </div>
+        
+        <div class="flex items-center px-4 py-3 gap-3 divider ">
+          <span class="text-sm w-5 "
+                style="color: var(--text-muted);">
+            3
+          </span>
+          <span class="text-sm flex-1 font-semibold"
+                style="color: var(--text-primary);">
+            Diego
+            
+            
+          </span>
+          <span class="text-sm "
+                style="color: var(--text-primary);">
+            7 pts
+          </span>
+        </div>
+        
+        <div class="flex items-center px-4 py-3 gap-3 divider ">
+          <span class="text-sm w-5 "
+                style="color: var(--text-muted);">
+            4
+          </span>
+          <span class="text-sm flex-1 "
+                style="color: var(--text-secondary);">
+            Marina
+            
+            
+          </span>
+          <span class="text-sm "
+                style="color: var(--text-secondary);">
+            7 pts
+          </span>
+        </div>
+        
+        <div class="flex items-center px-4 py-3 gap-3 divider ">
+          <span class="text-sm w-5 "
+                style="color: var(--text-muted);">
+            5
+          </span>
+          <span class="text-sm flex-1 "
+                style="color: var(--text-secondary);">
+            Carla
+            
+            
+          </span>
+          <span class="text-sm "
+                style="color: var(--text-secondary);">
+            0 pts
+          </span>
+        </div>
+        
+        <div class="flex items-center px-4 py-3 gap-3 divider row-highlight">
+          <span class="text-sm w-5 "
+                style="color: var(--text-muted);">
+            6
+          </span>
+          <span class="text-sm flex-1 "
+                style="color: var(--text-secondary);">
+            Marcos
+            
+              <span class="text-xs font-normal ml-1" style="color: var(--text-muted);">você</span>
+            
+            
+          </span>
+          <span class="text-sm "
+                style="color: var(--text-secondary);">
+            0 pts
+          </span>
+        </div>
+        
       </div>
-      
-      <div class="flex items-center px-4 py-3 gap-3 divider ">
-        <span class="text-sm w-5 "
-              style="color: var(--text-muted);">
-          6
-        </span>
-        <span class="text-sm flex-1 "
-              style="color: var(--text-secondary);">
-          Carla
-          
-        </span>
-        <span class="text-sm "
-              style="color: var(--text-secondary);">
-          103 pts
-        </span>
+    </div>
+
+    
+  </div>
+
+  
+  <div id="panel-geral" class="space-y-5" style="display: none;">
+    <div>
+      <h1 class="text-base font-semibold" style="color: var(--text-primary);">Ranking geral</h1>
+      <p class="text-xs mt-0.5" style="color: var(--text-muted);">
+        Atualizado após cada jogo · 26 jogos disputados
+      </p>
+    </div>
+
+    
+    
+    <div class="grid grid-cols-3 gap-2 items-end">
+
+      <div class="podium-other p-3 pt-5 mt-4 text-center">
+        <span class="text-lg">🥈</span>
+        <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">Marina</span>
+        <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">125</span>
+        <span class="text-xs" style="color: var(--text-muted);">pts</span>
       </div>
-      
+
+      <div class="podium-first p-3 -mt-1 text-center">
+        <span class="text-xl">🥇</span>
+        <span class="block text-xs font-semibold mt-1 leading-tight gold-shimmer">Rafael</span>
+        <span class="barlow-condensed block text-2xl mt-1" style="color: var(--color-gold);">173</span>
+        <span class="text-xs" style="color: var(--color-gold); opacity: 0.7;">pts</span>
+      </div>
+
+      <div class="podium-other p-3 pt-5 mt-4 text-center">
+        <span class="text-lg">🥉</span>
+        <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">Bruno</span>
+        <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">121</span>
+        <span class="text-xs" style="color: var(--text-muted);">pts</span>
+      </div>
+
+    </div>
+    
+
+    
+    <div class="card overflow-hidden">
+      <div class="px-4 py-3 divider flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Todos os participantes</span>
+        <span class="text-xs" style="color: var(--text-muted);">6 participantes</span>
+      </div>
+
+      <div>
+        
+        <div class="flex items-center px-4 py-3 gap-3  ">
+          <span class="text-sm w-5 font-bold"
+                style="color: var(--color-gold);">
+            1
+          </span>
+          <span class="text-sm flex-1 font-semibold"
+                style="color: var(--text-primary);">
+            Rafael
+            
+          </span>
+          <span class="text-sm font-bold"
+                style="color: var(--color-gold);">
+            173 pts
+          </span>
+        </div>
+        
+        <div class="flex items-center px-4 py-3 gap-3 divider ">
+          <span class="text-sm w-5 "
+                style="color: var(--text-muted);">
+            2
+          </span>
+          <span class="text-sm flex-1 font-semibold"
+                style="color: var(--text-primary);">
+            Marina
+            
+          </span>
+          <span class="text-sm "
+                style="color: var(--text-primary);">
+            125 pts
+          </span>
+        </div>
+        
+        <div class="flex items-center px-4 py-3 gap-3 divider ">
+          <span class="text-sm w-5 "
+                style="color: var(--text-muted);">
+            3
+          </span>
+          <span class="text-sm flex-1 font-semibold"
+                style="color: var(--text-primary);">
+            Bruno
+            
+          </span>
+          <span class="text-sm "
+                style="color: var(--text-primary);">
+            121 pts
+          </span>
+        </div>
+        
+        <div class="flex items-center px-4 py-3 gap-3 divider ">
+          <span class="text-sm w-5 "
+                style="color: var(--text-muted);">
+            4
+          </span>
+          <span class="text-sm flex-1 "
+                style="color: var(--text-secondary);">
+            Diego
+            
+          </span>
+          <span class="text-sm "
+                style="color: var(--text-secondary);">
+            118 pts
+          </span>
+        </div>
+        
+        <div class="flex items-center px-4 py-3 gap-3 divider row-highlight">
+          <span class="text-sm w-5 "
+                style="color: var(--text-muted);">
+            5
+          </span>
+          <span class="text-sm flex-1 "
+                style="color: var(--text-secondary);">
+            Marcos
+            
+              <span class="text-xs font-normal ml-1" style="color: var(--text-muted);">você</span>
+            
+          </span>
+          <span class="text-sm "
+                style="color: var(--text-secondary);">
+            110 pts
+          </span>
+        </div>
+        
+        <div class="flex items-center px-4 py-3 gap-3 divider ">
+          <span class="text-sm w-5 "
+                style="color: var(--text-muted);">
+            6
+          </span>
+          <span class="text-sm flex-1 "
+                style="color: var(--text-secondary);">
+            Carla
+            
+          </span>
+          <span class="text-sm "
+                style="color: var(--text-secondary);">
+            103 pts
+          </span>
+        </div>
+        
+      </div>
     </div>
   </div>
 
@@ -395,5 +569,17 @@
   </script>
 
   
+<script>
+  function switchRank(which) {
+    var fase = which === 'fase';
+    document.getElementById('panel-fase').style.display = fase ? '' : 'none';
+    document.getElementById('panel-geral').style.display = fase ? 'none' : '';
+    var tabFase = document.getElementById('tab-fase');
+    var tabGeral = document.getElementById('tab-geral');
+    tabFase.className = 'flex-1 py-1.5 text-sm transition-colors ' + (fase ? 'font-medium tab-active' : 'tab-inactive');
+    tabGeral.className = 'flex-1 py-1.5 text-sm transition-colors ' + (fase ? 'tab-inactive' : 'font-medium tab-active');
+  }
+</script>
+
 </body>
 </html>

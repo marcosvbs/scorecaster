@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 
 from pool.models import Match, Prediction, PhaseWinner
-from pool.services.ranking import get_ranking
+from pool.services.ranking import get_phase_ranking, get_ranking
 from pool.services.phases import (
     current_phase_matches,
     future_phase_matches,
@@ -182,10 +182,15 @@ def matches(request):
 
 @login_required
 def ranking(request):
+    # Pre-computed snapshot — no aggregation at request time. The per-phase
+    # leaderboard is the same rows re-sorted by the focus-phase metrics.
+    phase_ranking = get_phase_ranking()
+    current_phase = phase_ranking[0].phase if phase_ranking else ""
     context = {
         "active_nav": "ranking",
-        # Pre-computed snapshot — no aggregation at request time.
         "ranking": get_ranking(),
+        "phase_ranking": phase_ranking,
+        "current_phase": current_phase,
         "total_matches": Match.objects.filter(is_scored=True).count(),
         **_demo_context(request),
     }

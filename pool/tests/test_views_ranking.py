@@ -40,6 +40,27 @@ def test_ranking_empty_state(auth_client):
     assert len(resp.context["ranking"]) == 1  # only the logged-in user
 
 
+def test_ranking_context_includes_phase_breakdown(auth_client, make_match, user):
+    other = User.objects.create_user(username="joca", password="x")
+    match = make_match(
+        starts_at=timezone.now() - timezone.timedelta(days=1), phase="Group Stage - 1"
+    )
+    Prediction.objects.create(user=user, match=match, home_goals=2, away_goals=0)
+    Prediction.objects.create(user=other, match=match, home_goals=0, away_goals=2)
+    finish(match, 2, 0)
+
+    resp = auth_client.get("/ranking/")
+
+    assert resp.context["current_phase"] == "Group Stage - 1"
+    phase_ranking = resp.context["phase_ranking"]
+    assert [r.user.username for r in phase_ranking] == ["rafael", "joca"]
+    assert phase_ranking[0].phase_points == 10
+    assert phase_ranking[0].is_phase_leader is True
+    # Default panel is the per-phase view, and the leader badge renders.
+    assert b"Fase atual" in resp.content
+    assert "🏆 liderando".encode() in resp.content
+
+
 def test_ranking_view_never_aggregates(auth_client, monkeypatch):
     import pytest
 

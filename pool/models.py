@@ -141,6 +141,14 @@ class RankingEntry(models.Model):
     exact_count = models.IntegerField(default=0)
     winner_hit_count = models.IntegerField(default=0)
     skipped = models.IntegerField(default=0)
+    # Focus-phase breakdown (the phase users currently compete on). Computed
+    # and persisted alongside the cumulative totals at every snapshot rebuild,
+    # so the per-phase leaderboard never aggregates at request time. `phase` is
+    # the phase string these stats were computed for (drives the pt-BR label).
+    phase = models.CharField(max_length=50, blank=True, default="")
+    phase_points = models.IntegerField(default=0)
+    phase_exact_count = models.IntegerField(default=0)
+    phase_winner_hit_count = models.IntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

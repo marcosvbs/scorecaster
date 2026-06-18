@@ -1,4 +1,5 @@
 {% extends "pool/base.html" %}
+{% load pool_extras %}
 
 {% block title %}Bolão Copa do Mundo 2026 — Ranking{% endblock %}
 
@@ -7,75 +8,182 @@
   .podium-other { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 16px; }
   .divider { border-top: 1px solid var(--border-default); }
   .row-highlight { background: rgba(200,168,75,0.06); }
+  .tab-active   { background: var(--bg-surface); color: var(--text-primary); border-radius: 10px; }
+  .tab-inactive { color: var(--text-muted); border-radius: 10px; }
+  .badge-leader { background: rgba(200,168,75,0.15); color: var(--color-gold); border: 1px solid rgba(200,168,75,0.35); border-radius: 999px; padding: 1px 8px; font-size: 0.65rem; font-weight: 600; white-space: nowrap; }
 {% endblock %}
 
 {% block content %}
 
-  <div>
-    <h1 class="text-base font-semibold" style="color: var(--text-primary);">Ranking geral</h1>
-    <p class="text-xs mt-0.5" style="color: var(--text-muted);">
-      Atualizado após cada jogo · {{ total_matches }} jogo{{ total_matches|pluralize }} disputado{{ total_matches|pluralize }}
-    </p>
+  {# ── Tabs: per-phase race (default) vs overall ── #}
+  <div class="flex gap-1 p-1 rounded-xl" style="background: var(--bg-surface-alt);">
+    <button id="tab-fase" onclick="switchRank('fase')" class="flex-1 py-1.5 text-sm font-medium transition-colors tab-active">Fase atual</button>
+    <button id="tab-geral" onclick="switchRank('geral')" class="flex-1 py-1.5 text-sm transition-colors tab-inactive">Geral</button>
   </div>
 
-  {# ── Podium top 3 (only shown with 3+ participants) ── #}
-  {% if ranking|length >= 3 %}
-  <div class="grid grid-cols-3 gap-2 items-end">
-
-    <div class="podium-other p-3 pt-5 mt-4 text-center">
-      <span class="text-lg">🥈</span>
-      <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">{{ ranking.1.user.username }}</span>
-      <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">{{ ranking.1.total_points }}</span>
-      <span class="text-xs" style="color: var(--text-muted);">pts</span>
-    </div>
-
-    <div class="podium-first p-3 -mt-1 text-center">
-      <span class="text-xl">🥇</span>
-      <span class="block text-xs font-semibold mt-1 leading-tight gold-shimmer">{{ ranking.0.user.username }}</span>
-      <span class="barlow-condensed block text-2xl mt-1" style="color: var(--color-gold);">{{ ranking.0.total_points }}</span>
-      <span class="text-xs" style="color: var(--color-gold); opacity: 0.7;">pts</span>
-    </div>
-
-    <div class="podium-other p-3 pt-5 mt-4 text-center">
-      <span class="text-lg">🥉</span>
-      <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">{{ ranking.2.user.username }}</span>
-      <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">{{ ranking.2.total_points }}</span>
-      <span class="text-xs" style="color: var(--text-muted);">pts</span>
-    </div>
-
-  </div>
-  {% endif %}
-
-  {# ── Full list ── #}
-  <div class="card overflow-hidden">
-    <div class="px-4 py-3 divider flex items-center justify-between">
-      <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Todos os participantes</span>
-      <span class="text-xs" style="color: var(--text-muted);">{{ ranking|length }} participante{{ ranking|length|pluralize }}</span>
-    </div>
-
+  {# ══════════════ Fase atual panel ══════════════ #}
+  <div id="panel-fase" class="space-y-5">
     <div>
-      {% for entry in ranking %}
-      <div class="flex items-center px-4 py-3 gap-3 {% if not forloop.first %}divider{% endif %} {% if entry.user == request.user %}row-highlight{% endif %}">
-        <span class="text-sm w-5 {% if entry.position == 1 %}font-bold{% endif %}"
-              style="color: {% if entry.position == 1 %}var(--color-gold){% else %}var(--text-muted){% endif %};">
-          {{ entry.position }}
-        </span>
-        <span class="text-sm flex-1 {% if entry.position <= 3 %}font-semibold{% endif %}"
-              style="color: {% if entry.position <= 3 %}var(--text-primary){% else %}var(--text-secondary){% endif %};">
-          {{ entry.user.username }}
-          {% if entry.user == request.user %}
-            <span class="text-xs font-normal ml-1" style="color: var(--text-muted);">você</span>
-          {% endif %}
-        </span>
-        <span class="text-sm {% if entry.position == 1 %}font-bold{% endif %}"
-              style="color: {% if entry.position == 1 %}var(--color-gold){% elif entry.position <= 3 %}var(--text-primary){% else %}var(--text-secondary){% endif %};">
-          {{ entry.total_points }} pts
-        </span>
+      <h1 class="text-base font-semibold" style="color: var(--text-primary);">
+        {% if current_phase %}{{ current_phase|phase_label }}{% else %}Fase atual{% endif %}
+      </h1>
+      <p class="text-xs mt-0.5" style="color: var(--text-muted);">
+        Pontos só desta fase · quem lidera vence a "Vencedor da fase"
+      </p>
+    </div>
+
+    {% if phase_ranking.0.phase_points > 0 %}
+
+    {# ── Podium top 3 ── #}
+    {% if phase_ranking|length >= 3 %}
+    <div class="grid grid-cols-3 gap-2 items-end">
+
+      <div class="podium-other p-3 pt-5 mt-4 text-center">
+        <span class="text-lg">🥈</span>
+        <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">{{ phase_ranking.1.user.username }}</span>
+        <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">{{ phase_ranking.1.phase_points }}</span>
+        <span class="text-xs" style="color: var(--text-muted);">pts</span>
       </div>
-      {% empty %}
-        <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum participante ainda.</p>
-      {% endfor %}
+
+      <div class="podium-first p-3 -mt-1 text-center">
+        <span class="text-xl">👑</span>
+        <span class="block text-xs font-semibold mt-1 leading-tight gold-shimmer">{{ phase_ranking.0.user.username }}</span>
+        <span class="barlow-condensed block text-2xl mt-1" style="color: var(--color-gold);">{{ phase_ranking.0.phase_points }}</span>
+        <span class="text-xs" style="color: var(--color-gold); opacity: 0.7;">pts</span>
+      </div>
+
+      <div class="podium-other p-3 pt-5 mt-4 text-center">
+        <span class="text-lg">🥉</span>
+        <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">{{ phase_ranking.2.user.username }}</span>
+        <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">{{ phase_ranking.2.phase_points }}</span>
+        <span class="text-xs" style="color: var(--text-muted);">pts</span>
+      </div>
+
+    </div>
+    {% endif %}
+
+    {# ── Full list ── #}
+    <div class="card overflow-hidden">
+      <div class="px-4 py-3 divider flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Classificação da fase</span>
+        <span class="text-xs" style="color: var(--text-muted);">{{ phase_ranking|length }} participante{{ phase_ranking|length|pluralize }}</span>
+      </div>
+
+      <div>
+        {% for entry in phase_ranking %}
+        <div class="flex items-center px-4 py-3 gap-3 {% if not forloop.first %}divider{% endif %} {% if entry.user == request.user %}row-highlight{% endif %}">
+          <span class="text-sm w-5 {% if entry.position == 1 %}font-bold{% endif %}"
+                style="color: {% if entry.position == 1 %}var(--color-gold){% else %}var(--text-muted){% endif %};">
+            {{ entry.position }}
+          </span>
+          <span class="text-sm flex-1 {% if entry.position <= 3 %}font-semibold{% endif %}"
+                style="color: {% if entry.position <= 3 %}var(--text-primary){% else %}var(--text-secondary){% endif %};">
+            {{ entry.user.username }}
+            {% if entry.user == request.user %}
+              <span class="text-xs font-normal ml-1" style="color: var(--text-muted);">você</span>
+            {% endif %}
+            {% if entry.is_phase_leader %}
+              <span class="badge-leader ml-1">🏆 liderando</span>
+            {% endif %}
+          </span>
+          <span class="text-sm {% if entry.position == 1 %}font-bold{% endif %}"
+                style="color: {% if entry.position == 1 %}var(--color-gold){% elif entry.position <= 3 %}var(--text-primary){% else %}var(--text-secondary){% endif %};">
+            {{ entry.phase_points }} pts
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% else %}
+    <div class="card overflow-hidden">
+      <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum ponto nesta fase ainda.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ══════════════ Geral panel ══════════════ #}
+  <div id="panel-geral" class="space-y-5" style="display: none;">
+    <div>
+      <h1 class="text-base font-semibold" style="color: var(--text-primary);">Ranking geral</h1>
+      <p class="text-xs mt-0.5" style="color: var(--text-muted);">
+        Atualizado após cada jogo · {{ total_matches }} jogo{{ total_matches|pluralize }} disputado{{ total_matches|pluralize }}
+      </p>
+    </div>
+
+    {# ── Podium top 3 (only shown with 3+ participants) ── #}
+    {% if ranking|length >= 3 %}
+    <div class="grid grid-cols-3 gap-2 items-end">
+
+      <div class="podium-other p-3 pt-5 mt-4 text-center">
+        <span class="text-lg">🥈</span>
+        <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">{{ ranking.1.user.username }}</span>
+        <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">{{ ranking.1.total_points }}</span>
+        <span class="text-xs" style="color: var(--text-muted);">pts</span>
+      </div>
+
+      <div class="podium-first p-3 -mt-1 text-center">
+        <span class="text-xl">🥇</span>
+        <span class="block text-xs font-semibold mt-1 leading-tight gold-shimmer">{{ ranking.0.user.username }}</span>
+        <span class="barlow-condensed block text-2xl mt-1" style="color: var(--color-gold);">{{ ranking.0.total_points }}</span>
+        <span class="text-xs" style="color: var(--color-gold); opacity: 0.7;">pts</span>
+      </div>
+
+      <div class="podium-other p-3 pt-5 mt-4 text-center">
+        <span class="text-lg">🥉</span>
+        <span class="block text-xs font-medium mt-1 leading-tight" style="color: var(--text-secondary);">{{ ranking.2.user.username }}</span>
+        <span class="barlow-condensed block text-xl mt-1" style="color: var(--text-primary);">{{ ranking.2.total_points }}</span>
+        <span class="text-xs" style="color: var(--text-muted);">pts</span>
+      </div>
+
+    </div>
+    {% endif %}
+
+    {# ── Full list ── #}
+    <div class="card overflow-hidden">
+      <div class="px-4 py-3 divider flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Todos os participantes</span>
+        <span class="text-xs" style="color: var(--text-muted);">{{ ranking|length }} participante{{ ranking|length|pluralize }}</span>
+      </div>
+
+      <div>
+        {% for entry in ranking %}
+        <div class="flex items-center px-4 py-3 gap-3 {% if not forloop.first %}divider{% endif %} {% if entry.user == request.user %}row-highlight{% endif %}">
+          <span class="text-sm w-5 {% if entry.position == 1 %}font-bold{% endif %}"
+                style="color: {% if entry.position == 1 %}var(--color-gold){% else %}var(--text-muted){% endif %};">
+            {{ entry.position }}
+          </span>
+          <span class="text-sm flex-1 {% if entry.position <= 3 %}font-semibold{% endif %}"
+                style="color: {% if entry.position <= 3 %}var(--text-primary){% else %}var(--text-secondary){% endif %};">
+            {{ entry.user.username }}
+            {% if entry.user == request.user %}
+              <span class="text-xs font-normal ml-1" style="color: var(--text-muted);">você</span>
+            {% endif %}
+          </span>
+          <span class="text-sm {% if entry.position == 1 %}font-bold{% endif %}"
+                style="color: {% if entry.position == 1 %}var(--color-gold){% elif entry.position <= 3 %}var(--text-primary){% else %}var(--text-secondary){% endif %};">
+            {{ entry.total_points }} pts
+          </span>
+        </div>
+        {% empty %}
+          <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum participante ainda.</p>
+        {% endfor %}
+      </div>
     </div>
   </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function switchRank(which) {
+    var fase = which === 'fase';
+    document.getElementById('panel-fase').style.display = fase ? '' : 'none';
+    document.getElementById('panel-geral').style.display = fase ? 'none' : '';
+    var tabFase = document.getElementById('tab-fase');
+    var tabGeral = document.getElementById('tab-geral');
+    tabFase.className = 'flex-1 py-1.5 text-sm transition-colors ' + (fase ? 'font-medium tab-active' : 'tab-inactive');
+    tabGeral.className = 'flex-1 py-1.5 text-sm transition-colors ' + (fase ? 'tab-inactive' : 'font-medium tab-active');
+  }
+</script>
 {% endblock %}
