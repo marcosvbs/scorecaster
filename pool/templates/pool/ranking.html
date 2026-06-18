@@ -23,12 +23,9 @@
 
   {# ══════════════ Fase atual panel ══════════════ #}
   <div id="panel-fase" class="space-y-5">
-    <div>
-      <h1 class="text-base font-semibold" style="color: var(--text-primary);">Fase atual</h1>
-      <p class="text-xs mt-0.5" style="color: var(--text-muted);">
-        Pontos só desta fase{% if current_phase %} · {{ current_phase|phase_label }}{% endif %} · atualizado após cada jogo
-      </p>
-    </div>
+    <p class="text-xs" style="color: var(--text-muted);">
+      Pontuação somada apenas dos jogos da {% if current_phase %}{{ current_phase|phase_label }}{% else %}fase atual{% endif %}.
+    </p>
 
     {# ── Podium top 3 ── #}
     {% if phase_ranking|length >= 3 %}
@@ -96,12 +93,9 @@
 
   {# ══════════════ Geral panel ══════════════ #}
   <div id="panel-geral" class="space-y-5" style="display: none;">
-    <div>
-      <h1 class="text-base font-semibold" style="color: var(--text-primary);">Geral</h1>
-      <p class="text-xs mt-0.5" style="color: var(--text-muted);">
-        Atualizado após cada jogo · {{ total_matches }} jogo{{ total_matches|pluralize }} disputado{{ total_matches|pluralize }}
-      </p>
-    </div>
+    <p class="text-xs" style="color: var(--text-muted);">
+      Pontuação somada de todos os jogos da Copa.
+    </p>
 
     {# ── Podium top 3 (only shown with 3+ participants) ── #}
     {% if ranking|length >= 3 %}
@@ -115,7 +109,7 @@
       </div>
 
       <div class="podium-first p-3 -mt-1 text-center">
-        <span class="text-xl">🥇</span>
+        <span class="text-xl">👑</span>
         <span class="block text-xs font-semibold mt-1 leading-tight gold-shimmer">{{ ranking.0.user.username }}</span>
         <span class="barlow-condensed block text-2xl mt-1" style="color: var(--color-gold);">{{ ranking.0.total_points }}</span>
         <span class="text-xs" style="color: var(--color-gold); opacity: 0.7;">pts</span>
