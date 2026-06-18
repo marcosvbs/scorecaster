@@ -3,12 +3,53 @@ from django.utils import timezone
 
 from pool.services.phases import (
     current_phase_matches,
+    focus_phase,
     future_phase_matches,
     get_current_phase,
     is_match_in_current_phase,
     stage_from_phase,
     phase_label,
 )
+
+
+def _finish(match, home, away):
+    match.home_goals = home
+    match.away_goals = away
+    match.save()
+
+
+def test_focus_phase_none_when_nothing_exists(db):
+    assert focus_phase() is None
+
+
+def test_focus_phase_is_current_when_it_has_a_scored_match(make_match, user):
+    from pool.models import Prediction
+
+    now = timezone.now()
+    scored = make_match(starts_at=now, phase="Group Stage - 2")
+    make_match(
+        starts_at=now + timezone.timedelta(days=1), phase="Group Stage - 2"
+    )  # pending -> phase 2 stays current
+    Prediction.objects.create(user=user, match=scored, home_goals=1, away_goals=0)
+    _finish(scored, 1, 0)
+
+    assert get_current_phase() == "Group Stage - 2"
+    assert focus_phase() == "Group Stage - 2"
+
+
+def test_focus_phase_falls_back_to_last_scored_phase(make_match, user):
+    from pool.models import Prediction
+
+    now = timezone.now()
+    p1 = make_match(starts_at=now - timezone.timedelta(days=1), phase="Group Stage - 1")
+    make_match(
+        starts_at=now + timezone.timedelta(days=1), phase="Group Stage - 2"
+    )  # current phase, unscored
+    Prediction.objects.create(user=user, match=p1, home_goals=1, away_goals=0)
+    _finish(p1, 1, 0)
+
+    assert get_current_phase() == "Group Stage - 2"
+    assert focus_phase() == "Group Stage - 1"
 
 
 def test_phase_label_group_includes_matchday():

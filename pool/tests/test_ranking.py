@@ -5,6 +5,7 @@ from django.utils import timezone
 from pool.models import Prediction, RankingEntry
 from pool.services.ranking import (
     compute_ranking,
+    get_phase_ranking,
     get_ranking,
     rebuild_ranking_snapshot,
 )
@@ -215,3 +216,69 @@ def test_rebuild_snapshot_is_idempotent(make_match, users):
     rebuild_ranking_snapshot()
 
     assert RankingEntry.objects.count() == 3
+
+
+# ── Focus-phase breakdown ──
+
+
+def test_compute_ranking_phase_points_only_count_focus_phase(make_match, users):
+    now = timezone.now()
+    p1 = make_match(starts_at=now - timezone.timedelta(days=2), phase="Group Stage - 1")
+    p2_scored = make_match(starts_at=now, phase="Group Stage - 2")
+    make_match(
+        starts_at=now + timezone.timedelta(days=1), phase="Group Stage - 2"
+    )  # pending -> phase 2 is the current (focus) phase
+    Prediction.objects.create(user=users[0], match=p1, home_goals=2, away_goals=0)
+    Prediction.objects.create(user=users[0], match=p2_scored, home_goals=1, away_goals=0)
+    finish(p1, 2, 0)  # ana +10 (phase 1)
+    finish(p2_scored, 1, 0)  # ana +10 (phase 2 — the focus phase)
+
+    rows = {r.user.username: r for r in compute_ranking()}
+    assert rows["ana"].total_points == 20
+    assert rows["ana"].phase == "Group Stage - 2"
+    assert rows["ana"].phase_points == 10  # only the phase-2 match
+    assert rows["ana"].phase_exact_count == 1
+
+
+def test_focus_phase_falls_back_to_last_scored_after_close(make_match, users):
+    """When the current phase has no scored match yet, the breakdown features
+    the most recently scored phase instead of showing all zeros."""
+    now = timezone.now()
+    p1 = make_match(starts_at=now - timezone.timedelta(days=1), phase="Group Stage - 1")
+    make_match(
+        starts_at=now + timezone.timedelta(days=1), phase="Group Stage - 2"
+    )  # current phase, nothing scored
+    Prediction.objects.create(user=users[0], match=p1, home_goals=2, away_goals=0)
+    finish(p1, 2, 0)  # phase 1 closes; current phase is now phase 2 (0 scored)
+
+    rows = {r.user.username: r for r in compute_ranking()}
+    assert rows["ana"].phase == "Group Stage - 1"
+    assert rows["ana"].phase_points == 10
+
+
+def test_get_phase_ranking_sorts_by_phase_points_and_flags_leader(make_match, users):
+    now = timezone.now()
+    first = make_match(starts_at=now, phase="Group Stage - 1")
+    second = make_match(
+        starts_at=now + timezone.timedelta(hours=5), phase="Group Stage - 1"
+    )
+    # carla wins the phase; bruno second; ana wrong.
+    Prediction.objects.create(user=users[2], match=first, home_goals=2, away_goals=0)
+    Prediction.objects.create(user=users[1], match=first, home_goals=1, away_goals=0)
+    Prediction.objects.create(user=users[0], match=first, home_goals=0, away_goals=2)
+    finish(first, 2, 0)  # carla +10, bruno +5, ana 0
+    finish(second, 0, 0)  # phase closes
+
+    phase_rows = get_phase_ranking()
+    assert [r.user.username for r in phase_rows] == ["carla", "bruno", "ana"]
+    assert [r.position for r in phase_rows] == [1, 2, 3]
+    assert [r.phase_points for r in phase_rows] == [10, 5, 0]
+    assert phase_rows[0].is_phase_leader is True
+    assert phase_rows[1].is_phase_leader is False
+
+
+def test_get_phase_ranking_no_leader_when_no_points(users):
+    phase_rows = get_phase_ranking()
+    assert len(phase_rows) == 3
+    assert all(r.phase_points == 0 for r in phase_rows)
+    assert all(r.is_phase_leader is False for r in phase_rows)

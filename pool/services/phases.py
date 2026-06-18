@@ -62,6 +62,29 @@ def get_current_phase():
     return match.phase if match else None
 
 
+def focus_phase():
+    """Phase the per-phase leaderboard features (the live per-phase race).
+
+    Normally the current phase (earliest unscored match). But right after a
+    phase fully closes the current phase jumps to the next one — which has no
+    scored matches yet, so its leaderboard would be all-zero. In that gap we
+    fall back to the most recently scored phase, keeping the view meaningful
+    until the next phase's first match scores. Returns None only when nothing
+    is scored and there is no pending match.
+    """
+    current = get_current_phase()
+    if current is not None and Match.objects.filter(
+        phase=current, is_scored=True
+    ).exists():
+        return current
+    last_scored = (
+        Match.objects.filter(is_scored=True).order_by("-starts_at").first()
+    )
+    if last_scored is not None:
+        return last_scored.phase
+    return current
+
+
 def current_phase_matches():
     current = get_current_phase()
     if current is None:
