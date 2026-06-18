@@ -24,15 +24,11 @@
   {# ══════════════ Fase atual panel ══════════════ #}
   <div id="panel-fase" class="space-y-5">
     <div>
-      <h1 class="text-base font-semibold" style="color: var(--text-primary);">
-        {% if current_phase %}{{ current_phase|phase_label }}{% else %}Fase atual{% endif %}
-      </h1>
+      <h1 class="text-base font-semibold" style="color: var(--text-primary);">Fase atual</h1>
       <p class="text-xs mt-0.5" style="color: var(--text-muted);">
-        Pontos só desta fase · quem lidera vence a "Vencedor da fase"
+        Pontos só desta fase{% if current_phase %} · {{ current_phase|phase_label }}{% endif %} · atualizado após cada jogo
       </p>
     </div>
-
-    {% if phase_ranking.0.phase_points > 0 %}
 
     {# ── Podium top 3 ── #}
     {% if phase_ranking|length >= 3 %}
@@ -65,8 +61,8 @@
     {# ── Full list ── #}
     <div class="card overflow-hidden">
       <div class="px-4 py-3 divider flex items-center justify-between">
-        <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Classificação da fase</span>
-        <span class="text-xs" style="color: var(--text-muted);">{{ phase_ranking|length }} participante{{ phase_ranking|length|pluralize }}</span>
+        <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Participante</span>
+        <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Pontuação</span>
       </div>
 
       <div>
@@ -91,21 +87,17 @@
             {{ entry.phase_points }} pts
           </span>
         </div>
+        {% empty %}
+          <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum participante ainda.</p>
         {% endfor %}
       </div>
     </div>
-
-    {% else %}
-    <div class="card overflow-hidden">
-      <p class="text-center text-sm py-8" style="color: var(--text-muted);">Nenhum ponto nesta fase ainda.</p>
-    </div>
-    {% endif %}
   </div>
 
   {# ══════════════ Geral panel ══════════════ #}
   <div id="panel-geral" class="space-y-5" style="display: none;">
     <div>
-      <h1 class="text-base font-semibold" style="color: var(--text-primary);">Ranking geral</h1>
+      <h1 class="text-base font-semibold" style="color: var(--text-primary);">Geral</h1>
       <p class="text-xs mt-0.5" style="color: var(--text-muted);">
         Atualizado após cada jogo · {{ total_matches }} jogo{{ total_matches|pluralize }} disputado{{ total_matches|pluralize }}
       </p>
@@ -142,8 +134,8 @@
     {# ── Full list ── #}
     <div class="card overflow-hidden">
       <div class="px-4 py-3 divider flex items-center justify-between">
-        <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Todos os participantes</span>
-        <span class="text-xs" style="color: var(--text-muted);">{{ ranking|length }} participante{{ ranking|length|pluralize }}</span>
+        <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Participante</span>
+        <span class="text-xs font-semibold uppercase tracking-widest" style="color: var(--text-muted);">Pontuação</span>
       </div>
 
       <div>
