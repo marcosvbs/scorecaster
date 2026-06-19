@@ -293,6 +293,29 @@ def test_winner_card_hidden_once_next_phase_starts(auth_client, teams, user):
     assert resp.context["phase_winner"] is None
 
 
+def test_winner_card_stays_hidden_during_next_phase_gap(auth_client, teams, user):
+    """Once the next phase has started, the card stays hidden through its gaps.
+
+    The cutoff is the next phase's first kickoff, not the earliest unscored
+    match — so a scored first match plus a still-future second match must not
+    bring the previous phase's winner card back on.
+    """
+    _close_phase(
+        teams, "Group Stage - 1", timezone.now() - timezone.timedelta(days=2), user
+    )
+    # next phase already underway: match 1 played and scored, match 2 tomorrow
+    _close_phase(
+        teams, "Group Stage - 2", timezone.now() - timezone.timedelta(hours=3), user
+    )
+    make_match(
+        teams, timezone.now() + timezone.timedelta(days=1), phase="Group Stage - 2"
+    )
+
+    resp = auth_client.get("/")
+
+    assert resp.context["phase_winner"] is None
+
+
 def test_winner_card_hidden_when_no_winner_rows(auth_client, teams, user):
     """Closed phase without predictions produces no PhaseWinner -> no card."""
     match = make_match(

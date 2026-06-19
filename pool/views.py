@@ -72,7 +72,11 @@ def _phase_winner_card(now):
     """Winner card data for the most recently closed phase (spec section 7).
 
     Shown from the moment the phase is scored until the first match of the
-    next phase kicks off. Multiple winners (spec 7.4) are listed together.
+    next phase kicks off, then stays hidden for the whole next phase. The
+    cutoff is the next phase's first kickoff (a fixed timestamp), NOT the
+    earliest unscored match: a phase spans days with gaps, so keying off the
+    unscored pointer made the card flicker back on between next-phase matches.
+    Multiple winners (spec 7.4) are listed together.
     """
     closed_phase = (
         Match.objects.filter(is_scored=True)
@@ -85,8 +89,11 @@ def _phase_winner_card(now):
     if not closed_phase:
         return None
 
+    # Phases never overlap (verified against the real schedule), so the first
+    # match starting after the closed phase's last match is the next phase's
+    # first match. Using the start time (not is_scored) keeps the cutoff fixed.
     next_first_start = (
-        Match.objects.filter(is_scored=False)
+        Match.objects.filter(starts_at__gt=closed_phase["last_start"])
         .order_by("starts_at")
         .values_list("starts_at", flat=True)
         .first()
