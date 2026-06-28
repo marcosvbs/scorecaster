@@ -1,9 +1,16 @@
+from io import StringIO
 from unittest import mock
 
 import pytest
 from django.core.management import call_command
 from django.utils import timezone
 
+from pool.management.commands.check_results import (
+    MAX_DELAY,
+    MIN_DELAY,
+    RESOLVE_RETRY,
+    compute_next_delay,
+)
 from pool.models import Match, Prediction, PhaseWinner, Team
 from pool.services.fifa_api import FifaApiError
 from pool.tests.fifa_factories import fifa_match
@@ -229,6 +236,48 @@ def test_knockout_placeholder_resolves_to_real_teams(make_match, mock_client):
     assert match.home_team.external_id == 10
     assert match.away_team.external_id == 26
     assert match.is_scored is True
+
+
+def test_next_delay_caps_when_idle(db):
+    """No pending matches: sleep at the cap, not on a busy 10-min loop."""
+    assert compute_next_delay(timezone.now()) == MAX_DELAY
+
+
+def test_next_delay_caps_for_far_future_match(make_match):
+    make_match(starts_at=timezone.now() + timezone.timedelta(days=3), external_id=100)
+    assert compute_next_delay(timezone.now()) == MAX_DELAY
+
+
+def test_next_delay_floors_for_overdue_unscored_match(make_match):
+    # Past its expected end but still unscored (FIFA late): re-check on the floor.
+    make_match(
+        starts_at=timezone.now() - timezone.timedelta(hours=5), external_id=100
+    )
+    assert compute_next_delay(timezone.now()) == MIN_DELAY
+
+
+def test_next_delay_retries_hourly_while_placeholders_unresolved(db):
+    tbd_home = Team.objects.create(name="1F", flag="")
+    tbd_away = Team.objects.create(name="2C", flag="")
+    Match.objects.create(
+        home_team=tbd_home,
+        away_team=tbd_away,
+        stage="round_of_32",
+        phase="Round of 32",
+        starts_at=timezone.now() + timezone.timedelta(days=2),  # not due
+        external_id=200,
+    )
+    assert compute_next_delay(timezone.now()) == RESOLVE_RETRY
+
+
+def test_print_delay_emits_bare_integer(make_match, mock_client):
+    make_match(starts_at=timezone.now() + timezone.timedelta(days=3), external_id=100)
+    out = StringIO()
+
+    call_command("check_results", "--print-delay", stdout=out)
+
+    assert out.getvalue().strip().isdigit()
+    mock_client.get_all_matches.assert_not_called()  # nothing due, no API call
 
 
 def test_current_phase_placeholder_resolves_before_kickoff(db, mock_client):

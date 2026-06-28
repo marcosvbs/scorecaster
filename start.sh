@@ -6,13 +6,21 @@ set -e
 
 python manage.py migrate --noinput
 
-# Low-frequency scheduler (spec section 9). Each tick is a cheap no-op with
-# zero API calls unless a match is past its expected end. The subshell dies
-# with the container; a failed tick never kills the loop.
+# Event-driven scheduler (spec section 9). check_results scores due matches and
+# resolves bracket placeholders, then prints (on stdout) the seconds to sleep
+# before the next run: the time until the next match's expected end, 1h while a
+# phase still has placeholder teams, capped at a few hours when idle. So between
+# phases the loop wakes a handful of times a day, not every 10 min. Logs go to
+# stderr; stdout carries only the delay integer. A failed run (empty/non-numeric
+# output, non-zero exit) falls back to 600s and never kills the loop. The
+# subshell dies with the container.
 (
   while true; do
-    sleep 600
-    python manage.py check_results || echo "check_results failed; retrying next tick" >&2
+    delay=$(python manage.py check_results --print-delay | tail -n1)
+    case "$delay" in
+      ''|*[!0-9]*) delay=600 ;;
+    esac
+    sleep "$delay"
   done
 ) &
 
