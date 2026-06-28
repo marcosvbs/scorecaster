@@ -71,8 +71,11 @@ def test_single_call_covers_all_due_matches(make_match, mock_client):
     assert mock_client.get_all_matches.call_count == 1
 
 
-def test_knockout_waits_longer(make_match, mock_client):
+def test_knockout_waits_longer(make_match, teams, mock_client):
     # 2h after start: group game would be due, knockout (2h45) is not.
+    home, away = teams
+    Team.objects.filter(pk=home.pk).update(external_id=10)  # real teams, not slots
+    Team.objects.filter(pk=away.pk).update(external_id=26)
     make_match(
         starts_at=timezone.now() - timezone.timedelta(hours=2),
         external_id=100,
@@ -226,3 +229,58 @@ def test_knockout_placeholder_resolves_to_real_teams(make_match, mock_client):
     assert match.home_team.external_id == 10
     assert match.away_team.external_id == 26
     assert match.is_scored is True
+
+
+def test_current_phase_placeholder_resolves_before_kickoff(db, mock_client):
+    """Current-phase knockout match still showing slot codes resolves its real
+    teams even though it is not yet due for scoring (kickoff in the future)."""
+    tbd_home = Team.objects.create(name="1F", flag="")
+    tbd_away = Team.objects.create(name="2C", flag="")
+    match = Match.objects.create(
+        home_team=tbd_home,
+        away_team=tbd_away,
+        stage="round_of_32",
+        phase="Round of 32",
+        starts_at=timezone.now() + timezone.timedelta(hours=10),  # not due
+        external_id=200,
+    )
+    mock_client.get_all_matches.return_value = [
+        fifa_match(
+            200,
+            status=0,
+            stage="Round of 32",
+            group=None,
+            home_id=10,
+            away_id=26,
+            home="Brasil",
+            away="Argentina",
+            home_score=None,
+            away_score=None,
+        )
+    ]
+
+    call_command("check_results")
+
+    assert mock_client.get_all_matches.call_count == 1
+    match.refresh_from_db()
+    assert match.home_team.external_id == 10
+    assert match.away_team.external_id == 26
+    assert match.is_scored is False  # resolution must not score a future match
+
+
+def test_no_fetch_when_current_phase_already_resolved(db, mock_client):
+    """Nothing due and the current phase already has real teams: zero API calls."""
+    home = Team.objects.create(name="Brasil", flag="BR", external_id=10)
+    away = Team.objects.create(name="Argentina", flag="AR", external_id=26)
+    Match.objects.create(
+        home_team=home,
+        away_team=away,
+        stage="round_of_32",
+        phase="Round of 32",
+        starts_at=timezone.now() + timezone.timedelta(hours=10),  # not due
+        external_id=200,
+    )
+
+    call_command("check_results")
+
+    mock_client.get_all_matches.assert_not_called()
